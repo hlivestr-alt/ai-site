@@ -1,0 +1,39 @@
+# H3 one-video bridge (Phase 4)
+
+The separate service at `C:\Data\ai-site\h3-bridge` owns its workflow, jobs, references, and final MP4. It binds to `127.0.0.1:8788`; AI Site calls it server-side. Creative Studio and its workflow remain unchanged. The bridge never calls ComfyUI model unload or restart endpoints.
+
+## Request and endpoints
+
+`POST /jobs` accepts JSON with `prompt` (10–4,000 characters), `duration_seconds: 8`, `aspect_ratio: "9:16"`, `dry_run` (boolean), `reference_images` (one or two objects containing `filename`, `mime_type`, `data_base64`), and a UUID `idempotency_key` for real jobs. Allowed reference types are PNG, JPEG, and WebP. Each must decode, be at most 10 MB, and have dimensions at most 4096 × 4096. The bridge checks content, MIME, count, dimensions, and size; it generates its own `reference-1/2` filenames. A repeated key with identical input returns the existing job. A repeated key with different input is rejected.
+
+`GET /health` reports workflow validation, ComfyUI and Creative Studio state, bridge lock, and generation mode (`disabled`, `test_only`, `available`). `GET /jobs` lists bridge jobs; `GET /jobs/:id` reads and advances one submitted job using ComfyUI history. `POST /jobs/:id/submit` explicitly retries a `WAITING_FOR_GPU` job only before any workflow submission. `GET /jobs/:id/artifact` streams the bridge-owned MP4 and supports byte ranges. HTTP responses omit internal paths and secrets.
+
+The platform accepts browser `multipart/form-data` at `/api/ai-video/jobs`, converts each `File` server-side to base64, and sends it to the bridge. Platform routes expose status, job history, polling, an explicit waiting retry, and MP4 preview/download. The UI limits requests to one 8-second, 9:16 video with one or two references and prevents repeated clicks. Generate stays disabled until the controlled test marker exists and live readiness checks pass.
+
+## Workflow and reference lifecycle
+
+`workflows/bridge-ref2va.json` is an owned copy of Creative Studio's Ref2VA graph, pinned by SHA-256 `e4d20993f4dd33d121a67050c1ebe05f85d7a1c776176c1fbe3cfc981094b465`. Prompt text enters node 138 and directly feeds H3 node 136. Node 131 is set to 192 frames at 24 FPS for the sole supported 8-second choice. ResolutionSelector node 115 is fixed to 9:16 and 0.5625 megapixels, yielding 576 × 1024 pixels. The graph requires LoadImage nodes 137 and 139, exactly one SaveVideo node 92, and no prompt-engine, quality loop, or model-unload node. The bridge verifies the template hash, node links/classes, and installed ComfyUI classes before submission.
+
+Original references are stored under `data/jobs/<job-id>/references/`. Before submission, the bridge uploads each via ComfyUI `POST /upload/image` with `type=input`, `overwrite=false`, and `subfolder=ai_site/<job-id>`. It validates ComfyUI's returned location and passes only those returned names into LoadImage nodes 137/139. It does not write directly into ComfyUI input folders or touch Creative Studio files.
+
+## Submission, states, and output
+
+The real path requires `BRIDGE_REAL_SUBMISSION_ENABLED=1` in the bridge process. An exclusive `data/generation.lock` is acquired before work. The bridge checks the ComfyUI queue and Creative Studio current session/jobs, uploads references, then checks both again immediately before submission. Busy activity moves a job to `WAITING_FOR_GPU`; it does not interrupt another generation. Historical nonterminal jobs from old Creative Studio sessions do not count as currently active. The runner must be reachable and its current session verifiable. Creative Studio does not participate in the bridge lock, so a small inter-application race remains.
+
+Persisted states are `CREATED`, `VALIDATED`, `WAITING_FOR_GPU`, `SUBMITTING`, `SUBMISSION_UNKNOWN`, `RUNNING`, `COMPLETED`, and `FAILED`. Metadata and state events live in `data/jobs/<job-id>/`. The bridge persists submission intent and `submissionCount=1` **before** its only ComfyUI `POST /prompt`. It records the returned prompt ID. If the response is ambiguous, it never posts the workflow again; read-only queue/history reconciliation uses `extra_data.aiSiteBridgeJobId`. The lock remains until terminal state. There is no scheduler, automatic retry, cancellation, or automatic second generation. A restart preserves records but does not promise autonomous recovery of active executions; polling an existing job can continue history checks.
+
+The bridge reads `/history/<recorded-prompt-id>` and requires matching prompt ID, bridge job identity, successful execution, and exactly one MP4 from SaveVideo node 92 in the job's own output subfolder. It fetches that file via ComfyUI `/view`, copies it to `data/jobs/<job-id>/output/video.mp4`, checks MP4 header, stream and metadata with ffprobe, then marks the job completed. The platform streams this owned copy with Range support. It never selects a newest or shared output file.
+
+## Controlled test and limits
+
+Automated bridge tests use mocked ComfyUI and a 1-second local MP4 fixture; they do not submit a real H3 workflow. The controlled real attempt on 2026-09-24 used one harmless generated 512 × 512 PNG, one 8-second request, and job `54d1f58d-6a1c-49f3-9548-3e66a4689f72`. Before submission, ComfyUI was idle, Creative Studio's current session was stopped, the bridge lock was free, and workflow/node checks passed. ComfyUI returned HTTP 400; no prompt ID was issued, no matching prompt appeared in queue/history, and no H3 video was produced. The job is `FAILED` with `submissionCount=1`. The deterministic defect was a duplicated ComfyUI reference namespace in LoadImage. The bridge now passes the returned upload filename once and tests that contract; it also treats a definite HTTP 400 as failure. No second real submission was made. A successful controlled test remains outstanding. The bridge was restarted with real submission disabled, so `/health` reports `disabled` and the platform Generate button stays disabled.
+
+The graph is constrained to 8 seconds because its native frame grid exactly supports 192 frames; other durations are rejected rather than approximated. The bridge accepts at most one actual workflow submission per job. ComfyUI and Creative Studio remain shared local resources, and their live state may change between checks.
+
+## Phase 4B live validation — 2026-09-25
+
+The new controlled job `bb902950-b4d1-4850-9a87-83da5101e14e` uploaded one image to `ai_site/<job-id>/reference-1.png`. The bridge read it back through ComfyUI's input view, submitted once at `2026-09-25T06:05:49.726Z`, and received prompt ID `995b6928-f520-4526-98aa-f9774458d659`. ComfyUI history reports one successful execution and one SaveVideo node 92 output. It completed at approximately `06:09:51Z`.
+
+ComfyUI returned the output subfolder with Windows backslashes. The bridge's separator check initially rejected it and marked the job failed after execution. That comparison now normalizes separators while retaining the strict job-specific subfolder check. An explicit recovery of this same prompt copied the MP4 without another `/prompt` call and marked the job `COMPLETED` at `06:11:59Z`. The final bridge artifact is `data/jobs/bb902950-b4d1-4850-9a87-83da5101e14e/output/video.mp4`, 795,811 bytes, H.264/AAC, 192 video frames, 576 × 1024, 8.000 seconds. The platform returns its exact bytes for full download and responds `206` to byte-range preview requests. The previous failed job remains unchanged in history.
+
+The successful controlled-test marker now exists and the normal bridge on port 8788 runs with `BRIDGE_REAL_SUBMISSION_ENABLED=1`. `/health` reports `available` only when workflow validation passes and both ComfyUI and Creative Studio are idle. The AI Videos Generate button follows that state. No additional live job was created to test the button.

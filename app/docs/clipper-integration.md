@@ -1,0 +1,13 @@
+# Clipper integration (Phase 2)
+
+The existing Clipper repository remains untouched. Its development frontend runs on `127.0.0.1:5173` and FastAPI backend on `127.0.0.1:8765`. The frontend is a React/Vite interface around the existing Clipper workflow. Browser CORS is restricted to its own local frontend origin. AI Site therefore calls FastAPI from server-side `src/lib/integrations/clipper/` and exposes a sanitized `GET /api/clipper/overview` to its browser.
+
+The adapter calls only `GET /api/health`, `GET /api/queue?limit=25`, `GET /api/queue/vods`, and `GET /api/scores?limit=25`. These are unauthenticated read endpoints in Clipper's current security settings. It exposes watched input file names/sizes, queue job names/status/progress, and scored clip metadata. It removes source/output paths and artifact data before returning JSON. The server URL defaults to `http://127.0.0.1:8765`; `CLIPPER_API_URL` may override it with a local HTTP origin. The browser receives no backend address or control token.
+
+Clipper watches a configured input folder for VODs. It has no safe browser upload operation exposed for this use. Queue submission uses production control endpoints such as `POST /api/operations/queue-control`; those require `CLIPPER_CONTROL_TOKEN` and change the existing processing state. AI Site does not call them. The native Clipper link opens its local frontend for source management and processing. Completed clip media remains in Clipper; the score index gives metadata but its artifact/media routes can require authorization and were not proxied.
+
+At Phase 2 validation, Clipper was not listening on 8765 or 5173. The page correctly shows a disconnected state. Mocked adapter tests check the exact allowed GET paths and ensure filesystem paths never reach the browser. Live job/result agreement cannot be verified until Clipper runs.
+
+## Phase 3 update
+
+The page now shows the exact **Clipper is offline** state with an **Open Clipper** action, while preserving sources/jobs/scores when the backend runs. Queue status is read from `/api/queue`. The native control API has `POST /api/control/queue` with `QueueControlRequest`; `action=start` can take a `single_video`/`full` launch config, `video_path` constrained to the watched input folder, and `max_clips`. The platform models that request in `src/lib/integrations/clipper/submission.ts` and presents source/count fields, but has no submission route. The per-process `CLIPPER_CONTROL_TOKEN` belongs to the desktop backend and has no safe handoff to this separate website. Submission and source addition therefore remain native-only. No H3 or other AI-video feature was added to Clipper.
