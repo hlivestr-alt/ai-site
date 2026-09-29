@@ -1,0 +1,5 @@
+# Transactional outbox and dispatcher
+
+Job creation commits `jobs`, attempt 1, `job_outbox`, and creation events together. The dispatcher is an independent `npm run dispatcher` process; no request handler owns the execution loop. It polls Postgres, takes one pending outbox row using `FOR UPDATE SKIP LOCKED`, locks its Job, validates active workspace and frozen media availability, then marks the Job `WAITING_FOR_WORKER` and outbox `PROCESSED` in the same transaction. Invalid input fails the Job with a safe error. `--once` runs bounded reconciliation and dispatch batches for operations/tests.
+
+Multiple dispatcher instances may poll without dispatching the same row twice. Process termination leaves uncommitted rows pending for a later run. The periodic scan recovers missed wakeups; Redis and an in-memory queue are not correctness dependencies. SIGINT/SIGTERM stops the loop after the current tick. Configure `DISPATCHER_POLL_MS` and batch limits in the environment. A dispatcher restart does not change the Job ID or create another initial attempt.

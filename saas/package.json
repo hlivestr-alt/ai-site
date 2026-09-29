@@ -12,11 +12,15 @@
     "test:unit": "tsx --test tests/unit/*.test.ts",
     "test:integration": "playwright test tests/integration",
     "test:browser": "playwright test",
+    "test:restart": "node tests/restart-acceptance.mjs",
+    "test:schema-bootstrap": "node tests/schema-bootstrap.mjs",
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs up",
     "db:status": "node --env-file=.env.local scripts/migrate.mjs status",
     "db:seed:test": "node --env-file=.env.local scripts/seed-test.mjs",
     "storage:init": "node --env-file=.env.local scripts/storage-init.mjs",
-    "storage:cleanup": "node --env-file=.env.local scripts/cleanup-pending.mjs"
+    "storage:cleanup": "node --env-file=.env.local scripts/cleanup-pending.mjs",
+    "dispatcher": "node --env-file=.env.local --import tsx scripts/dispatcher.ts",
+    "worker:admin": "node --env-file=.env.local scripts/worker-admin.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1142.0",

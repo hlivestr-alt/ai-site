@@ -1,0 +1,7 @@
+# Private workers
+
+Workers are provisioned with `npm run worker:admin -- create <name> SYSTEM_TEST <capacity>`. The CLI is local-only and prints a new `wk_...` credential once. Only its SHA-256 hash is stored in `worker_credentials`. `rotate` revokes prior credentials and issues one new secret; `revoke`, `drain`, `activate`, `disable`, and `status` support local operations. Do not put credentials in source control, logs, browser code, or Job input.
+
+Worker endpoints are under `/api/worker`, separate from customer sessions. A bearer credential resolves exactly one enabled Worker. Capabilities and maximum capacity come from the DB provisioned record; heartbeat cannot grant new capabilities. Heartbeat reports agent/pipeline versions, available slots, and active lease IDs. Online/offline is derived from heartbeat age; a single missed heartbeat does not revoke an existing lease. An active worker may claim compatible waiting Jobs; a draining worker finishes current work but receives no new claim. An offline worker may heartbeat again without manual database repair.
+
+The Python 3.11+ agent in `../worker-agent` opens no listening port. It calls the SaaS API outbound, runs only `SYSTEM_TEST` deterministic work, keeps attempt-specific directories, emits structured safe logs, and drains on Ctrl+C. It does not import the native Clipper or run providers, transcription, FFmpeg, or AI generation. `worker:admin status` gives a local operational view of workers and active leases; customer UI does not show it.

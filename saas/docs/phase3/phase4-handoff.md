@@ -1,0 +1,5 @@
+# Phase 4 handoff
+
+Stable Phase 3 contracts: transactional `insertJob` with required idempotency key and immutable input; Product snapshot construction through `getProductSnapshot`; durable outbox dispatch; workspace scoped customer reads/cancellation; authenticated worker identity, claim, lease renewal, progress, fail, completion, and artifact staging; `ObjectStorage` mediated signed access; expiry reconciliation with fencing; Job, attempt, event, and output staging tables.
+
+Phase 4 must add a type-specific AI Video creation API, validated request/snapshot schema, provider identity and secret handling, provider execution ownership, callback/poll verification, safe failure classification, and reconciliation rules for uncertain provider outcomes. It must define output size/MIME and final Content Library promotion separately. It should use `RECONCILING` where an external operation may have succeeded before a timeout; fixture retry policy is not a provider policy. No production AI Video, Seedance, H3 SaaS adapter, native Clipper, token ledger, or payment path exists in Phase 3.

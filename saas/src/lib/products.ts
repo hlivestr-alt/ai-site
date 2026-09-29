@@ -156,16 +156,15 @@ export async function productCounts(session:Session,workspaceId:string) {
   return {products:Number(result.rows[0].products),assets:Number(result.rows[0].assets)};
 }
 
-export async function getProductSnapshot(session:Session,workspaceId:string,productId:string) {
+export async function getProductSnapshot(session:Session,workspaceId:string,productId:string,db?:DbClient) {
   await requireActiveWorkspace(session,workspaceId,"workspace:read");
-  const product=await scopedProduct({query},workspaceId,productId);
-  const [version,rules,assets]=await Promise.all([
-    query<ProductVersionRow>("SELECT * FROM product_versions WHERE workspace_id=$1 AND product_id=$2 AND id=$3",[workspaceId,productId,product.current_version_id]),
-    query<RulesRow>("SELECT * FROM product_accuracy_rule_versions WHERE workspace_id=$1 AND product_id=$2 AND id=$3",[workspaceId,productId,product.current_rule_version_id]),
-    query<{id:string;purpose:string;type:string;version_id:string;version_number:number;storage_key:string;sha256:string;byte_size:string;mime_type:string;thumbnail_key:string|null}>(`SELECT a.id,a.purpose,a.type,v.id AS version_id,v.version_number,v.storage_key,v.sha256,v.byte_size,v.mime_type,v.thumbnail_key
+  const client=db??{query};
+  const product=await scopedProduct(client,workspaceId,productId,!!db);
+  const version=await client.query<ProductVersionRow>("SELECT * FROM product_versions WHERE workspace_id=$1 AND product_id=$2 AND id=$3",[workspaceId,productId,product.current_version_id]);
+  const rules=await client.query<RulesRow>("SELECT * FROM product_accuracy_rule_versions WHERE workspace_id=$1 AND product_id=$2 AND id=$3",[workspaceId,productId,product.current_rule_version_id]);
+  const assets=await client.query<{id:string;purpose:string;type:string;version_id:string;version_number:number;storage_key:string;sha256:string;byte_size:string;mime_type:string;thumbnail_key:string|null}>(`SELECT a.id,a.purpose,a.type,v.id AS version_id,v.version_number,v.storage_key,v.sha256,v.byte_size,v.mime_type,v.thumbnail_key
       FROM assets a JOIN asset_versions v ON v.id=a.current_version_id AND v.workspace_id=a.workspace_id AND v.product_id=a.product_id AND v.asset_id=a.id
-      WHERE a.workspace_id=$1 AND a.product_id=$2 AND a.status='READY' AND v.status='READY' ORDER BY a.created_at,a.id LIMIT 100`,[workspaceId,productId]),
-  ]);
+      WHERE a.workspace_id=$1 AND a.product_id=$2 AND a.status='READY' AND v.status='READY' ORDER BY a.created_at,a.id LIMIT 100`,[workspaceId,productId]);
   if(!version.rows[0]||!rules.rows[0])throw new AppError(500,"Product snapshot is incomplete.");
   return {product:{id:product.id,workspaceId:product.workspace_id,status:product.status},version:version.rows[0],rules:rules.rows[0],assets:assets.rows};
 }

@@ -1,4 +1,3 @@
-import "server-only";
 import pg, { type PoolClient, type QueryResult, type QueryResultRow } from "pg";
 
 const globalForDb = globalThis as unknown as { saasPool?: pg.Pool };
