@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 process.loadEnvFile(".env.local");
 if (!process.env.TEST_DATABASE_URL) throw new Error("TEST_DATABASE_URL is required for browser tests");
+if (!process.env.TEST_OBJECT_STORAGE_BUCKET) throw new Error("TEST_OBJECT_STORAGE_BUCKET is required for browser tests");
 
 export default defineConfig({
   testDir: "./tests",
@@ -16,6 +17,6 @@ export default defineConfig({
     url: "http://127.0.0.1:3200/login",
     reuseExistingServer: false,
     timeout: 90_000,
-    env: { DATABASE_URL: process.env.TEST_DATABASE_URL, APP_BASE_URL: "http://127.0.0.1:3200", APP_ENV: "local", MAIL_MODE: "development_file" },
+    env: { DATABASE_URL: process.env.TEST_DATABASE_URL, OBJECT_STORAGE_BUCKET: process.env.TEST_OBJECT_STORAGE_BUCKET, APP_BASE_URL: "http://127.0.0.1:3200", APP_ENV: "local", MAIL_MODE: "development_file" },
   },
 });

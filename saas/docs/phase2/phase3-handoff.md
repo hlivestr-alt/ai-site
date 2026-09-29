@@ -1,0 +1,7 @@
+# Phase 3 handoff
+
+Phase 3 can reuse Phase 1 session, selected workspace, membership and role checks plus Phase 2 `getProductSnapshot` and `ObjectStorage`. The snapshot identifies current ProductVersion and AccuracyRuleVersion IDs and ready Asset IDs/version IDs, purpose, media type, checksum, byte size and private keys. A future Job should store these exact identifiers at creation and avoid looking up mutable current pointers during processing. Jobs, queues, worker leases and heartbeats do not exist yet.
+
+Service entry points in `src/lib/assets.ts` are `createUploadIntent`, `finalizeUpload`, `getAuthorizedDownload`, `archiveAsset`, `getAssetMetadata`, `listProductAssets`, and `getAssetVersions`. A worker must use a server-side authority and a workspace-bound Job input, not accept arbitrary browser-supplied object keys. If worker access requires longer-lived streaming, add a narrowly authorized service path rather than extending browser URL life globally.
+
+Prerequisites for Jobs and private Windows Worker Agent: a persistent Job/input snapshot schema; queue and retry/lease design; service identity and worker credentials; an object download/upload path scoped to the Job's workspace; video metadata extraction/transcoding where needed; a defined recovery path for failed or archived current assets; production email, cookie/domain, backup, monitoring and security operations. No Phase 3 service or paid provider operation was connected in Phase 2.

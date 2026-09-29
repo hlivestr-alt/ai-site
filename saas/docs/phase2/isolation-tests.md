@@ -1,0 +1,7 @@
+# Isolation and verification
+
+All Product, Asset, version, list, count, and signed URL services require `getSession` via the route boundary, selected `currentWorkspace`, and Phase 1 `requireRole`/membership. Object SQL predicates include `workspace_id` and parent IDs. Composite foreign keys prevent a current version or Asset from pointing into another workspace. Viewer has read access; Owner/Admin/Editor use the existing `future:edit` Phase 1 permission for mutations. Audit events use workspace ID and record event type and small safe metadata; signed URLs and secrets are omitted.
+
+`tests/integration/products.spec.ts` creates Brand A and Brand B with the same SKU in separate workspaces and exercises Product and Asset ID substitutions across direct, nested, edit, archive, upload, replacement, rules, list, metadata and download endpoints. It verifies product search/list/count boundaries, own signed download, unsigned/forged/expired storage URLs, version history, Viewer denial, Editor edit, archive and missing-object status. `tests/browser/products-journey.spec.ts` uses Chrome for registration, wizard, four image references, rules, refresh, edits, replacement, archive, a second brand and Viewer. Unit tests cover media validation. Playwright runs against `TEST_DATABASE_URL` and `TEST_OBJECT_STORAGE_BUCKET`.
+
+Run `npm test` for unit, integration and browser suites; `npm run db:status`, `npm run lint`, `npm run typecheck`, `npm run build` for other gates. Never point automated tests at a development or production bucket.

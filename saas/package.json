@@ -14,13 +14,18 @@
     "test:browser": "playwright test",
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs up",
     "db:status": "node --env-file=.env.local scripts/migrate.mjs status",
-    "db:seed:test": "node --env-file=.env.local scripts/seed-test.mjs"
+    "db:seed:test": "node --env-file=.env.local scripts/seed-test.mjs",
+    "storage:init": "node --env-file=.env.local scripts/storage-init.mjs",
+    "storage:cleanup": "node --env-file=.env.local scripts/cleanup-pending.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1142.0",
+    "@aws-sdk/s3-request-presigner": "^3.1142.0",
     "next": "16.3.6",
     "pg": "^8.23.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

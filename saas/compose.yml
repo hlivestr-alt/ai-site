@@ -17,5 +17,41 @@ services:
       interval: 3s
       timeout: 3s
       retries: 20
+  object-storage:
+    image: localstack/localstack:4.7.0
+    restart: unless-stopped
+    environment:
+      SERVICES: s3
+      PERSISTENCE: "1"
+      S3_VALIDATE_SIGNATURES: "1"
+    volumes:
+      - saas_object_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  object-gateway:
+    image: node:22-alpine
+    command: node /app/s3-gateway.mjs
+    restart: unless-stopped
+    depends_on:
+      object-storage:
+        condition: service_healthy
+    environment:
+      TARGET_HOST: object-storage
+      TARGET_PORT: "4566"
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:?set OBJECT_STORAGE_ACCESS_KEY}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:?set OBJECT_STORAGE_SECRET_KEY}
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - ./docker/s3-gateway.mjs:/app/s3-gateway.mjs:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 volumes:
   saas_postgres_data:
+  saas_object_data:
