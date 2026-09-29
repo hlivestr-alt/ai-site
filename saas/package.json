@@ -1,0 +1,36 @@
+{
+  "name": "content-workspace-saas",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3200 -H 127.0.0.1",
+    "start": "next start -p 3200 -H 127.0.0.1",
+    "build": "next build",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit && npm run test:browser",
+    "test:unit": "tsx --test tests/unit/*.test.ts",
+    "test:integration": "playwright test tests/integration",
+    "test:browser": "playwright test",
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs up",
+    "db:status": "node --env-file=.env.local scripts/migrate.mjs status",
+    "db:seed:test": "node --env-file=.env.local scripts/seed-test.mjs"
+  },
+  "dependencies": {
+    "next": "16.3.6",
+    "pg": "^8.23.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^20",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}

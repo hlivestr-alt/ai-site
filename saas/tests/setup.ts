@@ -1,0 +1,10 @@
+import { execFileSync } from "node:child_process";
+
+export default function setup() {
+  if (!process.env.TEST_DATABASE_URL) throw new Error("No isolated test database configured");
+  execFileSync(process.execPath,["scripts/migrate.mjs","up"],{
+    cwd:process.cwd(),
+    env:{...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL},
+    stdio:"inherit",
+  });
+}
