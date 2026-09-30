@@ -1,0 +1,13 @@
+# Job publication and recovery
+
+An AFTER INSERT/UPDATE-of-status job trigger inserts one durable `content_publications` intent when an AI_VIDEO or CLIPPER job is SUCCEEDED. Migration 0006 also backfills existing successes. Publication is separate from execution finalization: a publication failure never changes a successful job or starts a new provider/worker execution.
+
+The dispatcher runs the publication batch after its existing execution reconciliation. It selects pending intents with `FOR UPDATE SKIP LOCKED`, locks the authoritative job, validates the result and atomically inserts items, versions, origin relations, exact reference rows, poster intents and `CONTENT_PUBLISHED` audit events. It marks the intent Published in the same transaction. Rollback leaves no partial items. A failure remains Pending with a safe error code and bounded exponential retry delay of 5–300 seconds; it does not lose the durable intent.
+
+AI Video maps its single `video` READY MP4 to one AI_VIDEO item/version. Clipper maps each ordered `clip_001`… MP4 to a separate CLIP item/version. Transcript and clip-plan JSON remain supporting artifacts. Publication validates the sealed plan's selected spans/score/hook/reason/tags against the result, input hash, source SHA and transcript identity. Only result-listed artifacts from the current successful attempt are used. LOST, non-result, PENDING and FAILED outputs are excluded or cause invalid manifests to be rejected.
+
+The server helper `publishJobContent(workspaceId, jobId)` locks the same intent and job and returns already-published artifact identities. Ten simultaneous calls serialize and return one AI Video item or two Clip items for the two-clip fixture. Database artifact uniqueness provides another guard. Browser success polling only reads `/jobs/:jobId/content`; it cannot create arbitrary Content.
+
+Operators can run `npm run content:reconcile` for up to 25 publication intents and five poster tasks. A workspace/job argument pair runs targeted publication. The background dispatcher normally processes ten publication intents and two poster tasks per tick. Commands must run in the intended server environment; there is no repair HTTP endpoint exposed to customers.
+
+Recovery acceptance injects a controlled ContentVersion insert failure after fake-provider job success. It verifies Pending intent, one provider submission, one READY artifact and zero partial Content; restarts the SaaS app and dispatcher process; removes the failure; and verifies one item/version with unchanged job, attempt, execution, artifact and checksum. Ten further concurrent publication replays still return the same item. Restart requires no paid generation or new rendering.

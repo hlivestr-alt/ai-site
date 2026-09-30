@@ -1,0 +1,34 @@
+import {spawn,execFileSync} from "node:child_process";
+import {readFile,writeFile,mkdir} from "node:fs/promises";
+import pg from "pg";
+
+process.loadEnvFile(".env.local");
+const base="http://127.0.0.1:3200",stamp=Date.now(),guard=`p6_restart_${stamp}`;
+const env={...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,OBJECT_STORAGE_BUCKET:process.env.TEST_OBJECT_STORAGE_BUCKET,APP_BASE_URL:base,APP_ENV:"local",MAIL_MODE:"development_file",VIDEO_PROVIDER:"fake",ENABLE_FAKE_VIDEO_PROVIDER:"1",ENABLE_FAKE_CLIP_ANALYZER:"1",DISPATCHER_POLL_MS:"300"};
+if(!env.TEST_DATABASE_URL||!env.TEST_OBJECT_STORAGE_BUCKET)throw new Error("An isolated test database and bucket are required");
+const db=new pg.Client({connectionString:env.DATABASE_URL});let app,dispatcher,guardCreated=false;
+function check(value,message){if(!value)throw new Error(message);}
+function stop(child){if(!child?.pid)return;try{execFileSync("taskkill",["/PID",String(child.pid),"/T","/F"],{stdio:"ignore",windowsHide:true});}catch{child.kill();}}
+function launch(args){const child=spawn(process.execPath,args,{cwd:process.cwd(),env,stdio:["ignore","ignore","ignore"],windowsHide:true});return child;}
+function startApp(){return launch(["node_modules/next/dist/bin/next","dev","-p","3200","-H","127.0.0.1"]);}
+function startDispatcher(){return launch(["--env-file=.env.local","--import","tsx","scripts/dispatcher.ts"]);}
+async function until(fn,timeout=60000){const deadline=Date.now()+timeout;for(;;){if(await fn().catch(()=>false))return;if(Date.now()>deadline)throw new Error("Timed out waiting for content restart acceptance state");await new Promise(r=>setTimeout(r,300));}}
+async function ready(){await until(async()=>{const r=await fetch(base+"/login");return r.ok;});}
+async function post(path,data,cookie=""){const r=await fetch(base+path,{method:"POST",headers:{"Content-Type":"application/json",Origin:base,...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(data)});return {status:r.status,ok:r.ok,cookie:r.headers.get("set-cookie")?.split(";")[0],body:await r.json().catch(()=>({}))};}
+async function identity(jobId){const job=(await db.query("SELECT id,status,attempt_count,result FROM jobs WHERE id=$1",[jobId])).rows[0],execution=(await db.query("SELECT id,external_task_id,submit_count,state FROM provider_executions WHERE job_id=$1",[jobId])).rows[0],artifacts=(await db.query("SELECT id,sha256,byte_size,status FROM job_artifacts WHERE job_id=$1 ORDER BY id",[jobId])).rows;return {job,execution,artifacts};}
+async function dropGuard(){if(guardCreated){await db.query(`DROP TRIGGER IF EXISTS ${guard} ON content_versions`);await db.query(`DROP FUNCTION IF EXISTS ${guard}()`);guardCreated=false;}}
+async function main(){
+  await db.connect();const fixture=JSON.parse(await readFile("data/phase6/acceptance.json","utf8"));check(fixture.result==="passed","Run Chrome content acceptance first");
+  app=startApp();await ready();const login=await post("/api/auth/login",{email:fixture.email,password:"ValidPassword123!"});check(login.ok&&login.cookie,"Controlled owner sign-in failed");const cookie=login.cookie;
+  const video=await post(`/api/workspaces/${fixture.workspaceId}/ai-videos`,{productId:fixture.productId,prompt:"A fake-provider publication recovery fixture with the saved Product on a table.",tier:"QUALITY",durationSeconds:5,aspectRatio:"1:1",quantity:1,idempotencyKey:`p6-restart-${stamp}`},cookie);check(video.status===201,"Controlled AI Video job creation failed");const jobId=video.body.job.id;
+  await db.query(`CREATE FUNCTION ${guard}() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.job_id='${jobId}'::uuid THEN RAISE EXCEPTION 'Controlled publication failure'; END IF; RETURN NEW; END $$`);guardCreated=true;await db.query(`CREATE TRIGGER ${guard} BEFORE INSERT ON content_versions FOR EACH ROW EXECUTE FUNCTION ${guard}()`);
+  dispatcher=startDispatcher();await until(async()=>{const r=(await db.query("SELECT j.status,p.status AS publication_status,p.attempts FROM jobs j JOIN content_publications p ON p.job_id=j.id WHERE j.id=$1",[jobId])).rows[0];return r?.status==="SUCCEEDED"&&r.publication_status==="PENDING"&&r.attempts>=1;});
+  const before=await identity(jobId);check(before.execution.submit_count===1&&before.artifacts.length===1&&before.artifacts[0].status==="READY","Expected one completed execution and READY artifact");check((await db.query("SELECT count(*) FROM content_items WHERE origin_job_id=$1",[jobId])).rows[0].count==="0","Publication failure created partial content");
+  stop(app);app=null;app=startApp();await ready();const readable=await fetch(`${base}/api/workspaces/${fixture.workspaceId}/ai-videos/${jobId}`,{headers:{Cookie:cookie}});check(readable.ok,"Successful job did not survive app restart");check(JSON.stringify(await identity(jobId))===JSON.stringify(before),"App restart changed execution or artifact identity");
+  stop(dispatcher);dispatcher=null;await dropGuard();await db.query("UPDATE content_publications SET available_at=now() WHERE job_id=$1",[jobId]);dispatcher=startDispatcher();
+  await until(async()=>{const row=(await db.query("SELECT status FROM content_publications WHERE job_id=$1",[jobId])).rows[0];return row?.status==="PUBLISHED";});
+  const repeated=JSON.parse(execFileSync(process.execPath,["--env-file=.env.local","--import","tsx","tests/invoke-publication.ts",fixture.workspaceId,jobId,"10"],{cwd:process.cwd(),env,encoding:"utf8",windowsHide:true}));const ids=new Set(repeated.flat());check(ids.size===1,"Repeated publication after restart duplicated Content");
+  const counts=(await db.query("SELECT (SELECT count(*) FROM content_items WHERE origin_job_id=$1) AS items,(SELECT count(*) FROM content_versions WHERE job_id=$1) AS versions",[jobId])).rows[0];check(counts.items==="1"&&counts.versions==="1","Publication was not exactly once");const after=await identity(jobId);check(JSON.stringify(after)===JSON.stringify(before),"Recovery regenerated or changed the successful execution");
+  const result={result:"passed",appRestart:true,dispatcherProcessRestart:true,controlledPublicationFailure:true,jobId,artifactId:after.artifacts[0].id,sha256:after.artifacts[0].sha256,providerExecutionId:after.execution.id,submissions:after.execution.submit_count,contentItems:1,contentVersions:1,concurrentReplayCalls:10,contentId:[...ids][0],sameJobAndArtifact:true,realSeedanceGenerations:0,realOpenAICalls:0,realTranscriptionRuns:0};await mkdir("data/phase6",{recursive:true});await writeFile("data/phase6/restart.json",JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+}
+try{await main();}finally{stop(dispatcher);stop(app);await dropGuard().catch(()=>{});await db.end().catch(()=>{});}
