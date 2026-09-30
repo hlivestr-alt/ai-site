@@ -1,0 +1,7 @@
+# Video provider contract
+
+`src/lib/video-providers/types.ts` defines normalized capabilities, validation, submit, task lookup by submission token, poll, optional queued cancellation, retrieve, progress mapping, and safe error mapping. `index.ts` resolves a server controlled Quality policy and chooses BytePlus or an explicitly enabled local fake provider. Provider responses do not pass through customer routes.
+
+The enabled database policy records customer tier, provider, verified model ID, policy version, duration and ratio limits, reference cap, and quantity cap. The Job freezes its policy version; ProviderExecution records the provider, model, policy version, request hash, submission token, external task ID, counts, timestamps, safe errors, and private usage metadata. Secrets reside only in the server environment. Actual provider cost is not estimated or displayed; authoritative usage is retained only when returned.
+
+The fake provider runs only with `APP_ENV=local`, `VIDEO_PROVIDER=fake`, and `ENABLE_FAKE_VIDEO_PROVIDER=1`. Its external task ID is deterministic from the persisted submission token. It exercises success, failure, rate limiting before task creation, an accepted task with a lost submission response, transient output retrieval failure, and invalid output. The normal customer API cannot choose these scenarios; the diagnostic API additionally requires a local diagnostic token and workspace management permission.

@@ -17,6 +17,7 @@ test("browser closure leaves ten fixture jobs running in the private agent",asyn
   await page.goto("/register");await page.getByLabel("Email address").fill(email);await page.getByLabel("Your name").fill("Job Browser Owner");await page.getByLabel("Password").fill("ValidPassword123!");await page.getByRole("button",{name:/Create account/}).click();
   await page.goto(await mail(email));await page.getByRole("button",{name:/Verify email/}).click();
   await page.getByLabel("Workspace name").fill(`Fixture Brand ${stamp}`);await page.getByRole("button",{name:/Create workspace/}).click();
+  await expect.poll(async()=>(await (await page.request.get("/api/auth/session")).json()).currentWorkspace?.id).toBeTruthy();
   const workspaceId=(await (await page.request.get("/api/auth/session")).json()).currentWorkspace.id as string;
   const headers={Origin:base,"x-diagnostic-token":process.env.DEV_DIAGNOSTIC_TOKEN||""};
   const jobs:string[]=[];

@@ -1,0 +1,11 @@
+# AI Video Jobs
+
+`POST /api/workspaces/{workspaceId}/ai-videos` accepts `productId`, `prompt`, `tier=QUALITY`, `durationSeconds` (4–30), `aspectRatio` (`9:16`, `16:9`, `1:1`), `quantity=1`, an idempotency key, and optionally up to four READY image AssetVersion IDs. The customer cannot send provider or model IDs. A workspace editor or owner can create a Job; workspace members can read its history and result. Product must be ACTIVE.
+
+The version 1 `AI_VIDEO` input stores Product, ProductVersion, accuracy RuleVersion, and selected AssetVersion data, separate customer prompt and generated accuracy instructions, customer controls, server policy version, and the server-selected execution provider. The six saved accuracy switches and custom rule text become concise instructions. They guide generation but cannot guarantee visual accuracy. The provider adapter combines these instructions with the prompt only at submission. Existing Phase 3 SYSTEM_TEST snapshots without a `kind` field remain valid; new fixtures write `kind=SYSTEM_TEST`.
+
+An immutable client request hash compares retries before re-reading the Product. Thus a duplicate key and unchanged request returns the same Job even if the Product has since been edited. A duplicate key with changed input returns 409. Unique Job and ProviderExecution constraints, transaction locks, and persisted submission state prevent duplicate generation from double clicks and concurrent dispatcher ticks.
+
+Product references are ranked FRONT, BACK, LEFT_SIDE, RIGHT_SIDE, PACKAGING, CAP_PUMP, TEXTURE. The first four compatible READY images are selected by default. Explicit selected versions must be among compatible READY images in that Product. Images must be PNG, JPEG, or WebP, 300–6000 px per side, 407,696–8,295,044 total pixels, at most 4 MiB, and width/height between 0.4 and 2.5. A 640 × 640 px image satisfies the initial policy. Video references and usage footage are not sent for the implemented Seedance reference mode.
+
+The customer page is `/ai-videos`; the detail is `/ai-videos/{jobId}`. The browser polls only the SaaS Job detail endpoint. History is scoped to the selected workspace and has no sample rows. A successful Job publishes one READY JobArtifact for preview and download. Full Content Library promotion belongs to Phase 6.

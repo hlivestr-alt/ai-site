@@ -46,7 +46,7 @@ export async function workerClaim(worker:Worker){
     const picked=await db.query<JobRow&{attempt_id:string}>(`SELECT j.*,a.id AS attempt_id FROM jobs j
       JOIN job_attempts a ON a.workspace_id=j.workspace_id AND a.job_id=j.id AND a.attempt_number=j.attempt_count+1 AND a.status='PENDING'
       JOIN workspaces w ON w.id=j.workspace_id AND w.status='ACTIVE'
-      WHERE j.status='WAITING_FOR_WORKER' AND j.available_at<=now() AND $1::jsonb ? j.required_capability
+      WHERE j.type='SYSTEM_TEST' AND j.status='WAITING_FOR_WORKER' AND j.available_at<=now() AND $1::jsonb ? j.required_capability
       ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[JSON.stringify(own.capabilities)]);
     const job=picked.rows[0];if(!job)return {claim:null,reason:"no_compatible_job"};
     if(!await snapshotMediaAvailable(job,db)){
@@ -157,6 +157,7 @@ export async function workerComplete(worker:Worker,jobId:string,raw:Record<strin
     activeLease(lease);
     if(job.status!=="RUNNING"||job.cancel_requested_at)throw new AppError(409,"Job is no longer completable.");
     if(job.type!=="SYSTEM_TEST")throw new AppError(409,"No executor is configured for this Job type.");
+    if(job.input_snapshot.kind==="AI_VIDEO")throw new AppError(409,"Cloud video Jobs do not use worker completion.");
     const expected=sha(`SYSTEM_TEST:${job.id}:${job.input_snapshot.fixture.steps}`);
     if(expected!==digest)throw new AppError(422,"Fixture result is invalid.");
     await verifiedArtifacts(db,lease,artifactIds as string[]);

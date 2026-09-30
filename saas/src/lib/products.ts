@@ -162,7 +162,7 @@ export async function getProductSnapshot(session:Session,workspaceId:string,prod
   const product=await scopedProduct(client,workspaceId,productId,!!db);
   const version=await client.query<ProductVersionRow>("SELECT * FROM product_versions WHERE workspace_id=$1 AND product_id=$2 AND id=$3",[workspaceId,productId,product.current_version_id]);
   const rules=await client.query<RulesRow>("SELECT * FROM product_accuracy_rule_versions WHERE workspace_id=$1 AND product_id=$2 AND id=$3",[workspaceId,productId,product.current_rule_version_id]);
-  const assets=await client.query<{id:string;purpose:string;type:string;version_id:string;version_number:number;storage_key:string;sha256:string;byte_size:string;mime_type:string;thumbnail_key:string|null}>(`SELECT a.id,a.purpose,a.type,v.id AS version_id,v.version_number,v.storage_key,v.sha256,v.byte_size,v.mime_type,v.thumbnail_key
+  const assets=await client.query<{id:string;purpose:string;type:string;version_id:string;version_number:number;storage_key:string;sha256:string;byte_size:string;mime_type:string;thumbnail_key:string|null;width:number|null;height:number|null}>(`SELECT a.id,a.purpose,a.type,v.id AS version_id,v.version_number,v.storage_key,v.sha256,v.byte_size,v.mime_type,v.thumbnail_key,v.width,v.height
       FROM assets a JOIN asset_versions v ON v.id=a.current_version_id AND v.workspace_id=a.workspace_id AND v.product_id=a.product_id AND v.asset_id=a.id
       WHERE a.workspace_id=$1 AND a.product_id=$2 AND a.status='READY' AND v.status='READY' ORDER BY a.created_at,a.id LIMIT 100`,[workspaceId,productId]);
   if(!version.rows[0]||!rules.rows[0])throw new AppError(500,"Product snapshot is incomplete.");

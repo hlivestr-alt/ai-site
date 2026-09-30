@@ -1,0 +1,9 @@
+# Provider lifecycle and reconciliation
+
+The Phase 3 outbox releases AI_VIDEO from QUEUED to `WAITING_FOR_WORKER` with a `waiting_for_provider` stage. The cloud reservation loop alone claims these Jobs; private fixture workers claim only SYSTEM_TEST. Reservation creates a ProviderExecution and starts the first JobAttempt. The submission token and row exist before the external POST.
+
+Execution states are `RESERVED → SUBMITTING → SUBMITTED → RUNNING → OUTPUT_PENDING → SUCCEEDED`, with FAILED, CANCELLED, and `SUBMISSION_UNKNOWN` branches. Due rows are claimed with `FOR UPDATE SKIP LOCKED`; actions set a future `next_action_at` before external I/O. A crash during SUBMITTING cannot start another POST: after its safety window, the row becomes unknown. If an external ID is known, polling resumes; if only a submission token is known, provider lookup is attempted. BytePlus currently returns no safe token lookup, so its unknown state remains for support. Fake lookup recovers the same deterministic external task.
+
+Provider status is mapped to coarse queued, generating, finalizing, and complete stages. Percentages are state markers, not measured sampler progress. Running tasks are polled about every five seconds; transient status failures back off. Only a queued provider task is sent a cancellation request. A task already running may finish after the customer requested cancellation.
+
+Output ingestion has its own retry state. A temporary download or storage failure retries the same provider result, up to six attempts, without re-submitting generation. The output artifact has a unique attempt/slot key. If the process restarts after the private object becomes READY, retry completes the same Job with that artifact. The terminal Job event and execution transition occur in one transaction.

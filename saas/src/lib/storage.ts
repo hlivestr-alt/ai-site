@@ -1,6 +1,7 @@
 import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { AppError } from "./core";
+import { createReadStream } from "node:fs";
 
 export type ObjectHead = { byteSize: number; etag: string | undefined; contentType: string | undefined };
 export interface ObjectStorage {
@@ -10,6 +11,7 @@ export interface ObjectStorage {
   stream(key: string): Promise<AsyncIterable<Uint8Array>>;
   copy(sourceKey: string, targetKey: string, sourceEtag: string | undefined, mimeType: string): Promise<void>;
   put(key: string, bytes: Uint8Array, mimeType: string): Promise<void>;
+  putFile(key: string, path: string, byteSize: number, mimeType: string): Promise<void>;
   delete(key: string): Promise<void>;
 }
 
@@ -68,6 +70,10 @@ class S3ObjectStorage implements ObjectStorage {
 
   async put(key: string, bytes: Uint8Array, mimeType: string) {
     await this.s3.send(new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: bytes, ContentType: mimeType }));
+  }
+
+  async putFile(key: string, path: string, byteSize: number, mimeType: string) {
+    await this.s3.send(new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: createReadStream(path), ContentLength: byteSize, ContentType: mimeType }));
   }
 
   async delete(key: string) { await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key })); }

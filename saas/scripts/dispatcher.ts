@@ -1,5 +1,6 @@
 import { dispatchBatch, reconcileBatch } from "../src/lib/job-core";
 import { pool } from "../src/lib/db";
+import { providerBatch, reserveProviderBatch } from "../src/lib/provider-core";
 
 const once=process.argv.includes("--once");
 const pollMs=Math.max(200,Math.min(30000,Number(process.env.DISPATCHER_POLL_MS||1000)));
@@ -12,7 +13,9 @@ async function main(){
     try {
       const reconciled=await reconcileBatch(25);
       const dispatched=await dispatchBatch(25);
-      if(reconciled||dispatched)console.log(JSON.stringify({event:"dispatcher_tick",reconciled,dispatched}));
+      const providerReserved=await reserveProviderBatch(10);
+      const providerActions=await providerBatch(20);
+      if(reconciled||dispatched||providerReserved||providerActions)console.log(JSON.stringify({event:"dispatcher_tick",reconciled,dispatched,providerReserved,providerActions}));
     } catch(error) {
       console.error(JSON.stringify({event:"dispatcher_error",code:error instanceof Error?error.name:"UNKNOWN"}));
       if(once)process.exitCode=1;

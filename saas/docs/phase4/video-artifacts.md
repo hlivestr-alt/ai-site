@@ -1,0 +1,7 @@
+# Generated video artifacts
+
+Successful provider output is downloaded by the server into a private temporary file, capped by `MAX_GENERATED_VIDEO_BYTES` (default 268,435,456 bytes / 256 MiB, clamped to a 512 MiB maximum). The database allows MP4 Job artifact sizes up to 536,870,912 bytes / 512 MiB; other Job artifact MIME types remain capped at 20 MiB. A response above the configured limit fails before download when its length is supplied, and a streaming byte counter enforces the same bound if it is omitted or false.
+
+The ingest path accepts MP4 MIME or `application/octet-stream`, checks the MP4 `ftyp` container marker, enforces any declared length and provider checksum, computes SHA-256, and uses bounded `ffprobe` if available for duration, width, and height. It uploads the verified file to a server-generated private key under `workspaces/{workspace}/jobs/{job}/outputs/{artifact}/video.mp4`, verifies the stored length, then marks the Phase 3 JobArtifact READY and completes the Job. Temporary local staging is cleaned up. The customer response contains artifact ID, MIME, size, checksum, and optional media metadata; it never contains the storage key or provider output URL.
+
+`GET /api/workspaces/{workspaceId}/ai-videos/{jobId}/artifacts/{artifactId}/download` checks active workspace membership, Job type and success, READY artifact ownership, and object existence. It returns a five-minute signed private GET URL. A different workspace cannot obtain the Job detail, artifact metadata, or URL.

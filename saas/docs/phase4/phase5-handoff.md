@@ -1,0 +1,5 @@
+# Phase 5 handoff: Clipper contracts
+
+Phase 4 does not implement Clipper. The existing private Python worker can reuse Phase 3's authenticated worker provisioning, heartbeat, capability-based claim, lease expiration, fencing tokens, progress sequencing, safe failure mapping, artifact slot/finalize path, and completion rules. Workspace and Job IDs scope every operation. Input snapshots carry immutable Product and AssetVersion references; worker input must be explicitly type-specific before any future Clipper capability is added.
+
+The Phase 4 provider path is separate from private worker claims. `AI_VIDEO` is reserved for server-side cloud submission and produces a private READY MP4 JobArtifact. A future Clipper Job can consume an authorized source artifact through a scoped download contract, then upload a new output with its own type and capability. It must preserve lease/fencing and workspace checks, and define its own retry behavior rather than copying cloud provider reconciliation. No source-download API for Clipper, Clipper pipeline, rendering policy, or customer billing has been added in Phase 4.

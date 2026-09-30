@@ -16,7 +16,7 @@ try{
   const env={...process.env,DATABASE_URL:target.toString()};
   const up=execFileSync(process.execPath,["scripts/migrate.mjs","up"],{cwd:process.cwd(),env,encoding:"utf8"});
   const status=execFileSync(process.execPath,["scripts/migrate.mjs","status"],{cwd:process.cwd(),env,encoding:"utf8"});
-  if(!["0001_identity_workspaces.sql","0002_products_assets.sql","0003_jobs_workers.sql"].every(file=>status.includes(`applied ${file}`)))throw new Error("Clean bootstrap did not apply every migration");
+  if(!["0001_identity_workspaces.sql","0002_products_assets.sql","0003_jobs_workers.sql","0004_ai_video_provider.sql"].every(file=>status.includes(`applied ${file}`)))throw new Error("Clean bootstrap did not apply every migration");
   console.log(up.trim());console.log("Clean bootstrap passed");
 }finally{
   if(created)await client.query(`DROP DATABASE ${name} WITH (FORCE)`);

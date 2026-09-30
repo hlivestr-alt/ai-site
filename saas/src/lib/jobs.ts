@@ -7,6 +7,16 @@ import { getProductSnapshot, requireActiveWorkspace } from "./products";
 import { cancelWorkspaceJob, insertJob, listWorkspaceJobs, workspaceJobCounts, workspaceJobDetail, type FrozenProduct, type JobInput } from "./job-core";
 import type { Session } from "./auth";
 
+export function frozenProductFromSnapshot(snapshot:Awaited<ReturnType<typeof getProductSnapshot>>):FrozenProduct{
+  return {
+    id:snapshot.product.id,versionId:snapshot.version.id,versionNumber:snapshot.version.version_number,
+    ruleVersionId:snapshot.rules.id,ruleVersionNumber:snapshot.rules.version_number,
+    information:{brand:snapshot.version.brand,name:snapshot.version.name,category:snapshot.version.category,sku:snapshot.version.sku,description:snapshot.version.description,keySellingPoints:snapshot.version.key_selling_points,targetAudience:snapshot.version.target_audience},
+    rules:{keepLogo:snapshot.rules.keep_logo,keepPackagingText:snapshot.rules.keep_packaging_text,keepProductShape:snapshot.rules.keep_product_shape,keepCapPump:snapshot.rules.keep_cap_pump,keepProductColorMaterial:snapshot.rules.keep_product_color_material,keepApplicationMethod:snapshot.rules.keep_application_method,customInstructions:snapshot.rules.custom_instructions},
+    assets:snapshot.assets.map(asset=>({assetId:asset.id,assetVersionId:asset.version_id,purpose:asset.purpose,type:asset.type,storageKey:asset.storage_key,sha256:asset.sha256,byteSize:Number(asset.byte_size),mimeType:asset.mime_type,width:asset.width,height:asset.height})),
+  };
+}
+
 export function requireDiagnosticToken(raw:string|null){
   const expected=process.env.DEV_DIAGNOSTIC_TOKEN;
   if(process.env.APP_ENV!=="local"||!expected||expected.length<32||!raw)throw new AppError(404,"Not found.");
@@ -35,15 +45,9 @@ export async function createDiagnosticJob(session:Session,workspaceId:string,raw
     if(input.productId){
       const snapshot=await getProductSnapshot(session,workspaceId,input.productId,db);
       if(snapshot.product.status!=="ACTIVE")throw new AppError(409,"Diagnostic Product must be active.");
-      product={
-        id:snapshot.product.id,versionId:snapshot.version.id,versionNumber:snapshot.version.version_number,
-        ruleVersionId:snapshot.rules.id,ruleVersionNumber:snapshot.rules.version_number,
-        information:{brand:snapshot.version.brand,name:snapshot.version.name,category:snapshot.version.category,sku:snapshot.version.sku,description:snapshot.version.description,keySellingPoints:snapshot.version.key_selling_points,targetAudience:snapshot.version.target_audience},
-        rules:{keepLogo:snapshot.rules.keep_logo,keepPackagingText:snapshot.rules.keep_packaging_text,keepProductShape:snapshot.rules.keep_product_shape,keepCapPump:snapshot.rules.keep_cap_pump,keepProductColorMaterial:snapshot.rules.keep_product_color_material,keepApplicationMethod:snapshot.rules.keep_application_method,customInstructions:snapshot.rules.custom_instructions},
-        assets:snapshot.assets.map(asset=>({assetId:asset.id,assetVersionId:asset.version_id,purpose:asset.purpose,type:asset.type,storageKey:asset.storage_key,sha256:asset.sha256,byteSize:Number(asset.byte_size),mimeType:asset.mime_type})),
-      };
+      product=frozenProductFromSnapshot(snapshot);
     }
-    const frozen:JobInput={schemaVersion:1,fixture:{steps:input.steps,delayMs:input.delayMs},...(product?{product}:{})};
+    const frozen:JobInput={schemaVersion:1,kind:"SYSTEM_TEST",fixture:{steps:input.steps,delayMs:input.delayMs},...(product?{product}:{})};
     const result=await insertJob(db,{workspaceId,createdBy:session.userId,type:"SYSTEM_TEST",capability:input.capability,idempotencyKey:input.key,input:frozen,maxAttempts:3});
     if(!result.existing)await audit(db,{workspaceId,actorUserId:session.userId,type:"JOB_CREATED",targetType:"job",targetId:result.id});
     return result;
