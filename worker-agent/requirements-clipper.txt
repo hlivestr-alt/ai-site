@@ -1,0 +1,3 @@
+# Compatible existing runtime; do not upgrade native Clipper dependencies.
+faster-whisper==1.2.1
+# FFmpeg/ffprobe and an existing local Whisper model are operational prerequisites.

@@ -3,14 +3,15 @@ import { query, transaction, type DbClient } from "./db";
 import { AppError, hashToken, isUuid } from "./core";
 import { objectStorage } from "./storage";
 import { jobEvent, safeWorkerInput, scheduleRetry, scopedJob, snapshotMediaAvailable, type JobRow } from "./job-core";
+import { completeClipper, clipperArtifactLimit, clipperSlotAllowed } from "./clipper-worker";
 
-type Worker={id:string;name:string;status:string;capabilities:string[];max_concurrency:number;available_slots:number;last_heartbeat_at:Date|null};
-type Lease={id:string;workspace_id:string;job_id:string;attempt_id:string;worker_id:string;fencing_token:string;status:string;expires_at:Date;valid:boolean};
+export type Worker={id:string;name:string;status:string;capabilities:string[];max_concurrency:number;available_slots:number;last_heartbeat_at:Date|null};
+export type Lease={id:string;workspace_id:string;job_id:string;attempt_id:string;worker_id:string;fencing_token:string;status:string;expires_at:Date;valid:boolean};
 type LeaseIdentity={jobId:string;attemptId:string;leaseId:string;fencingToken:string};
 const sha=(value:string|Uint8Array)=>createHash("sha256").update(value).digest("hex");
 function textField(value:unknown,max:number,label:string){if(typeof value!=="string"||value.length>max||!/^[A-Za-z0-9 .,:;()_%+-]*$/.test(value))throw new AppError(400,`Invalid ${label}.`);return value.trim();}
 function codeField(value:unknown,label:string){if(typeof value!=="string"||!/^[A-Z][A-Z0-9_]{1,79}$/.test(value))throw new AppError(400,`Invalid ${label}.`);return value;}
-function identity(raw:Record<string,unknown>,jobId:string):LeaseIdentity{
+export function identity(raw:Record<string,unknown>,jobId:string):LeaseIdentity{
   if(!isUuid(jobId)||!isUuid(String(raw.attemptId))||!isUuid(String(raw.leaseId))||typeof raw.fencingToken!=="string"||!/^\d{1,20}$/.test(raw.fencingToken))throw new AppError(400,"Invalid lease identity.");
   return {jobId,attemptId:raw.attemptId as string,leaseId:raw.leaseId as string,fencingToken:raw.fencingToken};
 }
@@ -24,11 +25,19 @@ export async function authenticateWorker(authorization:string|null){
   if(!worker||worker.status==="DISABLED")throw new AppError(401,"Worker credential unavailable.");
   return worker;
 }
+export async function workerCleanupState(worker:Worker,jobId:string){
+  if(!isUuid(jobId))throw new AppError(404,"Job not found.");
+  const r=await query<{status:string}>("SELECT j.status FROM jobs j WHERE j.id=$1 AND EXISTS(SELECT 1 FROM worker_leases l WHERE l.job_id=j.id AND l.worker_id=$2)",[jobId,worker.id]);
+  if(!r.rows[0])throw new AppError(404,"Job not found.");return {safeTerminal:["SUCCEEDED","FAILED","CANCELLED"].includes(r.rows[0].status)};
+}
 export async function workerHeartbeat(worker:Worker,raw:Record<string,unknown>){
   const agentVersion=textField(raw.agentVersion,80,"agent version"),pipelineVersion=textField(raw.pipelineVersion||"",80,"pipeline version");
   const slots=raw.availableSlots;
   if(typeof slots!=="number"||!Number.isInteger(slots)||slots<0||slots>worker.max_concurrency)throw new AppError(400,"Invalid available slots.");
   if(raw.activeLeaseIds!==undefined&&(!Array.isArray(raw.activeLeaseIds)||raw.activeLeaseIds.length>16||raw.activeLeaseIds.some(x=>typeof x!=="string"||!isUuid(x))))throw new AppError(400,"Invalid active lease list.");
+  const health=raw.clipperHealth as Record<string,unknown>|undefined;
+  if(health&&(!["transcriberAvailable","ffmpegAvailable","gpuAvailable","freeDiskBytes"].every(k=>k in health)||Object.keys(health).length!==4||["transcriberAvailable","ffmpegAvailable","gpuAvailable"].some(k=>typeof health[k]!=="boolean")||typeof health.freeDiskBytes!=="number"||!Number.isSafeInteger(health.freeDiskBytes)||health.freeDiskBytes<0))throw new AppError(400,"Invalid worker health.");
+  await query("UPDATE workers SET clipper_health=$1::jsonb WHERE id=$2",[JSON.stringify(health||{}),worker.id]);
   const result=await query<Worker>(`UPDATE workers SET agent_version=$1,pipeline_version=$2,available_slots=$3,last_heartbeat_at=now()
     WHERE id=$4 AND status<>'DISABLED' RETURNING id,name,status,capabilities,max_concurrency,available_slots,last_heartbeat_at`,[agentVersion,pipelineVersion,slots,worker.id]);
   return {workerId:worker.id,status:result.rows[0].status,capabilities:result.rows[0].capabilities,heartbeatIntervalSeconds:20};
@@ -46,8 +55,9 @@ export async function workerClaim(worker:Worker){
     const picked=await db.query<JobRow&{attempt_id:string}>(`SELECT j.*,a.id AS attempt_id FROM jobs j
       JOIN job_attempts a ON a.workspace_id=j.workspace_id AND a.job_id=j.id AND a.attempt_number=j.attempt_count+1 AND a.status='PENDING'
       JOIN workspaces w ON w.id=j.workspace_id AND w.status='ACTIVE'
-      WHERE j.type='SYSTEM_TEST' AND j.status='WAITING_FOR_WORKER' AND j.available_at<=now() AND $1::jsonb ? j.required_capability
-      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[JSON.stringify(own.capabilities)]);
+      WHERE j.type IN ('SYSTEM_TEST','CLIPPER') AND j.status='WAITING_FOR_WORKER' AND j.available_at<=now() AND $1::jsonb ? j.required_capability
+      AND (j.type<>'CLIPPER' OR NOT EXISTS (SELECT 1 FROM worker_leases l JOIN jobs busy ON busy.id=l.job_id WHERE l.worker_id=$2 AND l.status='ACTIVE' AND busy.type='CLIPPER'))
+      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[JSON.stringify(own.capabilities),worker.id]);
     const job=picked.rows[0];if(!job)return {claim:null,reason:"no_compatible_job"};
     if(!await snapshotMediaAvailable(job,db)){
       await db.query("UPDATE jobs SET status='FAILED',error_code='INPUT_UNAVAILABLE',error_message_safe='Required reference media is unavailable.',finished_at=now(),updated_at=now() WHERE id=$1",[job.id]);
@@ -63,18 +73,18 @@ export async function workerClaim(worker:Worker){
     await db.query("UPDATE jobs SET status='RUNNING',attempt_count=$1,started_at=coalesce(started_at,now()),progress_percent=0,progress_sequence=0,progress_stage='running',progress_message='',updated_at=now() WHERE id=$2",[attemptNumber,job.id]);
     await db.query("UPDATE workers SET available_slots=greatest(0,available_slots-1) WHERE id=$1",[worker.id]);
     await jobEvent(db,job.workspace_id,job.id,"JOB_CLAIMED",job.attempt_id,worker.id,{attempt:attemptNumber});
-    return {claim:{jobId:job.id,attemptId:job.attempt_id,attemptNumber,leaseId:lease.rows[0].id,fencingToken:String(lease.rows[0].fencing_token),leaseExpiresAt:lease.rows[0].expires_at,type:job.type,inputSnapshot:safeWorkerInput(job.input_snapshot)}};
+    return {claim:{jobId:job.id,attemptId:job.attempt_id,attemptNumber,leaseId:lease.rows[0].id,fencingToken:String(lease.rows[0].fencing_token),leaseExpiresAt:lease.rows[0].expires_at,type:job.type,requiredCapability:job.required_capability,inputSnapshot:safeWorkerInput(job.input_snapshot)}};
   });
 }
-async function lockedLease(db:DbClient,workerId:string,id:LeaseIdentity){
+export async function lockedLease(db:DbClient,workerId:string,id:LeaseIdentity){
   const rows=await db.query<Lease>(`SELECT l.*,l.expires_at>now() AS valid FROM worker_leases l
     WHERE l.id=$1 AND l.job_id=$2 AND l.attempt_id=$3 AND l.worker_id=$4 FOR UPDATE`,[id.leaseId,id.jobId,id.attemptId,workerId]);
   const lease=rows.rows[0];
   if(!lease||String(lease.fencing_token)!==id.fencingToken)throw new AppError(409,"Lease is stale or unavailable.");
   return lease;
 }
-function activeLease(lease:Lease){if(lease.status!=="ACTIVE"||!lease.valid)throw new AppError(409,"Lease is stale or expired.");}
-async function runningJob(db:DbClient,lease:Lease){
+export function activeLease(lease:Lease){if(lease.status!=="ACTIVE"||!lease.valid)throw new AppError(409,"Lease is stale or expired.");}
+export async function runningJob(db:DbClient,lease:Lease){
   const job=await scopedJob(db,lease.workspace_id,lease.job_id,true);
   if(job.status!=="RUNNING")throw new AppError(409,"Job is no longer running.");
   return job;
@@ -147,17 +157,19 @@ async function verifiedArtifacts(db:DbClient,lease:Lease,ids:string[]){
 }
 export async function workerComplete(worker:Worker,jobId:string,raw:Record<string,unknown>){
   const id=identity(raw,jobId),digest=raw.digest;
-  if(typeof digest!=="string"||!/^[a-f0-9]{64}$/.test(digest))throw new AppError(400,"Invalid fixture digest.");
   const artifactIds=raw.artifactIds||[];
-  if(!Array.isArray(artifactIds)||artifactIds.length>10||artifactIds.some(x=>typeof x!=="string"||!isUuid(x)))throw new AppError(400,"Invalid output manifest.");
+  if(!Array.isArray(artifactIds)||artifactIds.length>12||artifactIds.some(x=>typeof x!=="string"||!isUuid(x)))throw new AppError(400,"Invalid output manifest.");
   return transaction(async db=>{
     const lease=await lockedLease(db,worker.id,id);
     const job=await scopedJob(db,lease.workspace_id,lease.job_id,true);
     if(lease.status==="COMPLETED"&&job.status==="SUCCEEDED")return {status:"SUCCEEDED",result:job.result,duplicate:true};
     activeLease(lease);
     if(job.status!=="RUNNING"||job.cancel_requested_at)throw new AppError(409,"Job is no longer completable.");
+    if(job.input_snapshot.kind==="CLIPPER")return completeClipper(db,lease,job,raw);
     if(job.type!=="SYSTEM_TEST")throw new AppError(409,"No executor is configured for this Job type.");
+    if(artifactIds.length>10)throw new AppError(400,"Invalid output manifest.");
     if(job.input_snapshot.kind==="AI_VIDEO")throw new AppError(409,"Cloud video Jobs do not use worker completion.");
+    if(typeof digest!=="string"||!/^[a-f0-9]{64}$/.test(digest))throw new AppError(400,"Invalid fixture digest.");
     const expected=sha(`SYSTEM_TEST:${job.id}:${job.input_snapshot.fixture.steps}`);
     if(expected!==digest)throw new AppError(422,"Fixture result is invalid.");
     await verifiedArtifacts(db,lease,artifactIds as string[]);
@@ -189,10 +201,14 @@ export async function workerAssetDownload(worker:Worker,jobId:string,raw:Record<
 export async function workerOutputSlot(worker:Worker,jobId:string,raw:Record<string,unknown>){
   if(raw.storageKey!==undefined)throw new AppError(400,"Object keys are not accepted.");
   const id=identity(raw,jobId),slotName=raw.slotName,mimeType=raw.mimeType,byteSize=raw.byteSize,expectedSha=raw.sha256;
-  if(typeof slotName!=="string"||! /^[A-Za-z0-9_-]{1,80}$/.test(slotName)||!(["application/json","image/png","video/mp4"] as unknown[]).includes(mimeType)||typeof byteSize!=="number"||!Number.isSafeInteger(byteSize)||byteSize<1||byteSize>20*1024*1024||expectedSha!=null&&(typeof expectedSha!=="string"||! /^[a-f0-9]{64}$/.test(expectedSha)))throw new AppError(400,"Invalid output slot.");
+  if(typeof slotName!=="string"||! /^[A-Za-z0-9_-]{1,80}$/.test(slotName)||!(["application/json","image/png","video/mp4"] as unknown[]).includes(mimeType)||typeof byteSize!=="number"||!Number.isSafeInteger(byteSize)||byteSize<1||byteSize>512*1024*1024||expectedSha!=null&&(typeof expectedSha!=="string"||! /^[a-f0-9]{64}$/.test(expectedSha)))throw new AppError(400,"Invalid output slot.");
   const artifact=await transaction(async db=>{
     const lease=await lockedLease(db,worker.id,id);activeLease(lease);
-    await runningJob(db,lease);
+    const job=await runningJob(db,lease);
+    if(job.cancel_requested_at)throw new AppError(409,"Cancellation requested.");
+    if(job.input_snapshot.kind==="CLIPPER"){
+      if(!clipperSlotAllowed(String(slotName),String(mimeType),job.input_snapshot.targetClipCount)||Number(byteSize)>clipperArtifactLimit(String(slotName),String(mimeType)))throw new AppError(400,"Invalid Clipper output slot.");
+    }else if(Number(byteSize)>20*1024*1024)throw new AppError(400,"Invalid output size.");
     const existing=await db.query<{id:string;storage_key:string;mime_type:string;expected_byte_size:string;expected_sha256:string|null;status:string}>("SELECT id,storage_key,mime_type,expected_byte_size,expected_sha256,status FROM job_artifacts WHERE attempt_id=$1 AND slot_name=$2",[id.attemptId,slotName]);
     if(existing.rows[0]){
       const row=existing.rows[0];

@@ -1,4 +1,4 @@
-"""Outbound-only deterministic Phase 3 worker. No native pipeline is imported."""
+"""Outbound-only worker with separate fixture and headless Clipper executors."""
 from __future__ import annotations
 
 import argparse
@@ -60,7 +60,7 @@ class Config:
         return cls(base, token, maximum, max(0.2, float(os.environ.get("WORKER_POLL_SECONDS", "2"))),
                    max(1.0, float(os.environ.get("WORKER_HEARTBEAT_SECONDS", "20"))),
                    Path(os.environ.get("WORKER_WORK_DIR", "./data/jobs")).resolve(),
-                   os.environ.get("WORKER_AGENT_VERSION", "phase3-fixture-1")[:80])
+                   os.environ.get("WORKER_AGENT_VERSION", "phase5-worker-1")[:80])
 
 
 class ApiError(Exception):
@@ -93,15 +93,44 @@ class Agent:
         self.active: dict[Future, dict] = {}
         self.last_heartbeat = 0.0
         self.last_idle_log = 0.0
+        self.last_cleanup = 0.0
+        import subprocess
+        try:
+            self.gpu_available = subprocess.run(["nvidia-smi", "-L"], capture_output=True, timeout=5).returncode == 0
+        except (OSError, subprocess.TimeoutExpired):
+            self.gpu_available = False
+
+    def cleanup_terminal_attempts(self) -> None:
+        import shutil
+        retention = max(3600, int(os.getenv("WORKER_TERMINAL_RETENTION_SECONDS", "86400")))
+        root = self.config.work_dir.resolve()
+        for job in root.iterdir():
+            if not job.is_dir() or not UUID.fullmatch(job.name) or job.is_symlink():
+                continue
+            for attempt in job.iterdir():
+                if not attempt.is_dir() or not UUID.fullmatch(attempt.name) or attempt.is_symlink():
+                    continue
+                target = attempt.resolve()
+                if not target.is_relative_to(root) or time.time() - target.stat().st_mtime < retention:
+                    continue
+                state = self.client.post(f"/api/worker/jobs/{job.name}/cleanup-state", {})
+                if state.get("safeTerminal"):
+                    shutil.rmtree(target)
 
     def stop(self, *_: object) -> None:
         self.stopping.set()
 
     def heartbeat(self) -> dict:
+        import importlib.util
+        import shutil
         result = self.client.post("/api/worker/heartbeat", {
-            "agentVersion": self.config.agent_version, "pipelineVersion": "fixture-only",
+            "agentVersion": self.config.agent_version, "pipelineVersion": "clipper-v1",
             "availableSlots": max(0, self.config.max_concurrency - len(self.active)),
-            "activeLeaseIds": [item["leaseId"] for item in self.active.values()]})
+            "activeLeaseIds": [item["leaseId"] for item in self.active.values()],
+            "clipperHealth": {"transcriberAvailable": importlib.util.find_spec("faster_whisper") is not None,
+                "ffmpegAvailable": bool(shutil.which(os.getenv("FFMPEG_PATH", "ffmpeg")) and shutil.which(os.getenv("FFPROBE_PATH", "ffprobe"))),
+                "gpuAvailable": self.gpu_available,
+                "freeDiskBytes": shutil.disk_usage(self.config.work_dir).free}})
         self.last_heartbeat = time.monotonic()
         return result
 
@@ -119,6 +148,10 @@ class Agent:
         lease = {"attemptId": attempt_id, "leaseId": claim["leaseId"], "fencingToken": claim["fencingToken"]}
         try:
             work = self.work_directory(job_id, attempt_id)
+            if claim["type"] == "CLIPPER":
+                from clipper_executor import ClipperExecutor
+                ClipperExecutor().execute(self, claim, work)
+                return
             if claim["type"] != "SYSTEM_TEST":
                 raise ValueError("Unsupported capability")
             fixture = claim["inputSnapshot"]["fixture"]
@@ -161,6 +194,9 @@ class Agent:
                             log("executor_error", code=type(exc).__name__)
                         del self.active[future]
                 try:
+                    if time.monotonic() - self.last_cleanup > 3600:
+                        self.cleanup_terminal_attempts()
+                        self.last_cleanup = time.monotonic()
                     if time.monotonic() - self.last_heartbeat >= self.config.heartbeat_seconds:
                         heartbeat = self.heartbeat()
                         if heartbeat.get("status") != "ACTIVE":
@@ -191,7 +227,7 @@ class Agent:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Outbound-only Phase 3 fixture worker")
+    parser = argparse.ArgumentParser(description="Outbound-only fixture and headless Clipper worker")
     parser.add_argument("--once", action="store_true", help="Process available Jobs, then exit")
     parser.add_argument("--env", default=".env", help="Configuration file")
     args = parser.parse_args()

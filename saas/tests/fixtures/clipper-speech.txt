@@ -1,0 +1,7 @@
+Synthetic Windows speech fixture (no customer content):
+
+This is a short test recording created for the private clipping pipeline. Here is a useful idea. When a large video is uploaded, each part can be retried independently. The completed source is stored privately, and the worker checks its size and checksum before transcription. Here is another useful idea. A durable job continues even after the customer closes the browser. The worker creates a timestamped transcript, selects complete moments, and renders vertical clips with readable captions. A customer can return later to preview and download the results. This recording contains only synthetic test speech, and no customer or production content.
+
+clipper-speech.mp4: 57.466667 seconds, 320x180 synthetic solid color, AAC synthetic speech.
+clipper-output.mp4: first 10 seconds, 720x1280, H.264/AAC contract-test output.
+Fake analyzer: at most 20 moments per chunk, first at chunk.start, each minClipSeconds long, separated by one second; score 90-index, deterministic fixture hook/reason/tags. Expected plan is validated through the same global selection pipeline; speech-boundary snapping may adjust times when allowed by limits.

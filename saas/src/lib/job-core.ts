@@ -8,13 +8,18 @@ export type FrozenAsset={assetId:string;assetVersionId:string;purpose:string;typ
 export type FrozenProduct={id:string;versionId:string;versionNumber:number;ruleVersionId:string;ruleVersionNumber:number;information:Record<string,unknown>;rules:Record<string,unknown>;assets:FrozenAsset[]};
 export type SystemTestInput={schemaVersion:1;kind?:"SYSTEM_TEST";fixture:{steps:number;delayMs:number};product?:FrozenProduct};
 export type AiVideoInput={schemaVersion:1;kind:"AI_VIDEO";product:FrozenProduct;customerPrompt:string;accuracyInstructions:string;tier:"QUALITY";durationSeconds:number;aspectRatio:"9:16"|"16:9"|"1:1";quantity:1;referenceAssetVersionIds:string[];providerPolicyVersion:string;executionProvider:"BYTEPLUS"|"FAKE";testScenario?:"SUCCESS"|"FAILURE"|"RATE_LIMIT"|"SUBMISSION_UNKNOWN"|"DOWNLOAD_FAIL_ONCE"|"OVERSIZED_OUTPUT"|"INVALID_MIME"|"INVALID_CHECKSUM"};
-export type JobInput=SystemTestInput|AiVideoInput;
+export type ClipperInput={schemaVersion:1;kind:"CLIPPER";analyzerProvider:"openai"|"fake";source:{origin:"SOURCE_ASSET";sourceAssetId:string;byteSize:number;mimeType:string;storageIdentity:string;storageKey:string;filename:string};product?:FrozenProduct;language:string;goal:string;targetClipCount:number;minClipSeconds:number;maxClipSeconds:number;aspectRatio:"9:16";captions:boolean;analyzerPolicyVersion:string;renderPolicyVersion:string};
+export type JobInput=SystemTestInput|AiVideoInput|ClipperInput;
 export type JobRow={id:string;workspace_id:string;type:string;required_capability:string;status:JobStatus;input_snapshot:JobInput;input_hash:string;progress_percent:number;progress_stage:string;progress_message:string;progress_sequence:number;attempt_count:number;max_attempts:number;available_at:Date;cancel_requested_at:Date|null;result:Record<string,unknown>|null};
 
 export function inputHash(input:JobInput){return createHash("sha256").update(JSON.stringify(input)).digest("hex");}
 export function safeWorkerInput(input:JobInput){
   if(input.kind==="AI_VIDEO")throw new AppError(409,"Cloud video input is not available to private workers.");
-  return {schemaVersion:input.schemaVersion,fixture:input.fixture,product:input.product?{
+  if(input.kind==="CLIPPER"){
+    const {storageKey,...source}=input.source;void storageKey;
+    return {...input,source,product:input.product?{...input.product,assets:[]}:undefined};
+  }
+  return {kind:input.kind||"SYSTEM_TEST",schemaVersion:input.schemaVersion,fixture:input.fixture,product:input.product?{
     id:input.product.id,versionId:input.product.versionId,versionNumber:input.product.versionNumber,
     ruleVersionId:input.product.ruleVersionId,ruleVersionNumber:input.product.ruleVersionNumber,
     information:input.product.information,rules:input.product.rules,
@@ -25,7 +30,7 @@ export async function jobEvent(db:DbClient,workspaceId:string,jobId:string,type:
   await db.query("INSERT INTO job_events(workspace_id,job_id,attempt_id,worker_id,event_type,safe_data) VALUES($1,$2,$3,$4,$5,$6::jsonb)",[workspaceId,jobId,attemptId||null,workerId||null,type,JSON.stringify(data)]);
 }
 
-export async function insertJob(db:DbClient,args:{workspaceId:string;createdBy:string;type:"SYSTEM_TEST"|"AI_VIDEO";capability:string;idempotencyKey:string;input:JobInput;maxAttempts:number;requestHash?:string}){
+export async function insertJob(db:DbClient,args:{workspaceId:string;createdBy:string;type:"SYSTEM_TEST"|"AI_VIDEO"|"CLIPPER";capability:string;idempotencyKey:string;input:JobInput;maxAttempts:number;requestHash?:string}){
   const hash=inputHash(args.input),product=args.input.product;
   const created=await db.query<{id:string}>(`INSERT INTO jobs(workspace_id,type,required_capability,input_snapshot,input_hash,idempotency_key,product_id,product_version_id,product_rule_version_id,created_by,max_attempts,client_request_hash)
     VALUES($1,$2,$3,$4::jsonb,$5,$6,$7,$8,$9,$10,$11,$12)
@@ -93,6 +98,11 @@ export async function cancelWorkspaceJob(db:DbClient,workspaceId:string,jobId:st
 }
 
 export async function snapshotMediaAvailable(job:JobRow,db:DbClient={query}){
+  if(job.input_snapshot.kind==="CLIPPER"){
+    const source=job.input_snapshot.source;
+    const found=await db.query<{storage_key:string;byte_size:string;status:string}>("SELECT storage_key,byte_size,status FROM source_assets WHERE workspace_id=$1 AND id=$2",[job.workspace_id,source.sourceAssetId]);
+    const row=found.rows[0];return !!row&&["UPLOADED","VERIFIED"].includes(row.status)&&row.storage_key===source.storageKey&&Number(row.byte_size)===source.byteSize&&!!await objectStorage().head(row.storage_key);
+  }
   const product=job.input_snapshot.product;
   if(!product)return true;
   for(const asset of product.assets.filter(asset=>job.input_snapshot.kind!=="AI_VIDEO"||job.input_snapshot.referenceAssetVersionIds.includes(asset.assetVersionId))){
@@ -128,7 +138,7 @@ export async function dispatchOne(){
 export async function dispatchBatch(limit=25){let count=0;for(;count<limit;count++)if(!await dispatchOne())break;return count;}
 
 export async function scheduleRetry(db:DbClient,job:JobRow,reason:string,attemptId:string,workerId:string|null){
-  if(job.type!=="SYSTEM_TEST"){
+  if(job.type!=="SYSTEM_TEST"&&job.type!=="CLIPPER"){
     await db.query("UPDATE jobs SET status='RECONCILING',error_code=$1,error_message_safe='Execution outcome requires review.',updated_at=now() WHERE id=$2",[reason,job.id]);
     await jobEvent(db,job.workspace_id,job.id,"JOB_RECONCILING",attemptId,workerId,{code:reason});return "RECONCILING";
   }
