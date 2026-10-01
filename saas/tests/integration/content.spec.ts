@@ -1,3 +1,4 @@
+import {paidPost} from "../billing-helpers";
 import {test,expect} from "@playwright/test";
 import {writeFile,mkdir} from "node:fs/promises";
 import {createHash} from "node:crypto";
@@ -66,7 +67,7 @@ test("Content publication, frozen references, Chrome review, isolation, retentio
 
 test("non-successful jobs never publish content",async()=>{
   const a=await owner(`p6-states-${Date.now()}@example.test`),db=new pg.Client({connectionString:process.env.TEST_DATABASE_URL});await db.connect();try{
-    const p=await product(a.c,a.workspaceId),ids=[];for(const status of ["FAILED","CANCELLED","RECONCILING"]){const r=await a.c.post(`/api/workspaces/${a.workspaceId}/ai-videos`,{data:{productId:p.id,prompt:"A simple controlled fixture video with the saved Product on a table.",tier:"QUALITY",durationSeconds:5,aspectRatio:"1:1",quantity:1,idempotencyKey:`p6-state-${status}-${Date.now()}`}});expect(r.status()).toBe(201);const id=(await r.json()).job.id;ids.push(id);await db.query("UPDATE jobs SET status=$1 WHERE id=$2",[status,id]);}
+    const p=await product(a.c,a.workspaceId),ids=[];for(const status of ["FAILED","CANCELLED","RECONCILING"]){const r=await paidPost(a.c,a.workspaceId,"AI_VIDEO",{productId:p.id,prompt:"A simple controlled fixture video with the saved Product on a table.",tier:"QUALITY",durationSeconds:5,aspectRatio:"1:1",quantity:1,idempotencyKey:`p6-state-${status}-${Date.now()}`});expect(r.status()).toBe(201);const id=(await r.json()).job.id;ids.push(id);await db.query("UPDATE jobs SET status=$1 WHERE id=$2",[status,id]);}
     dispatch();expect((await db.query("SELECT count(*) FROM content_publications WHERE job_id=ANY($1::uuid[])",[ids])).rows[0].count).toBe("0");expect((await (await a.c.get(`/api/workspaces/${a.workspaceId}/content`)).json()).total).toBe(0);
   }finally{await a.c.dispose();await db.end();}
 });

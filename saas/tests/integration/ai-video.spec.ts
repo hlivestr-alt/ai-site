@@ -1,3 +1,4 @@
+import {fundFixture,paidPost} from "../billing-helpers";
 import { test, expect, request, type APIRequestContext } from "@playwright/test";
 import { execFileSync, execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -17,7 +18,7 @@ async function account(tag:string){const c=await request.newContext({baseURL:bas
   expect((await c.post("/api/auth/register",{data:{email,displayName:"Video Owner",password}})).status()).toBe(201);
   const token=new URL(await mail(email)).searchParams.get("token");expect((await c.post("/api/auth/verify",{data:{token}})).status()).toBe(200);
   const response=await c.post("/api/workspaces",{data:{name:`Video ${tag} ${Date.now()}`}});expect(response.status(),await response.text()).toBe(201);
-  return {client:c,workspaceId:(await response.json()).workspace.id as string};
+  const workspaceId=(await response.json()).workspace.id as string;fundFixture(workspaceId);return {client:c,workspaceId};
 }
 async function product(c:APIRequestContext,ws:string,tag:string){
   const fields={brand:"Phase Four",name:`Video Cream ${tag}`,category:"Care",sku:`VIDEO-${tag}`,description:"First version",keySellingPoints:["Clear benefit"],targetAudience:"Adults"};
@@ -31,7 +32,7 @@ async function product(c:APIRequestContext,ws:string,tag:string){
   return {id,versionId:intent.versionId,fields};
 }
 function payload(productId:string,key:string,extra:Record<string,unknown>={}){return {productId,prompt:"A calm close-up of the product on a marble table with a gentle camera move.",tier:"QUALITY",durationSeconds:5,aspectRatio:"1:1",quantity:1,idempotencyKey:key,...extra};}
-async function create(c:APIRequestContext,ws:string,data:Record<string,unknown>,scenario?:string){return c.post(scenario?"/api/dev/ai-video-jobs":`/api/workspaces/${ws}/ai-videos`,{data:scenario?{...data,workspaceId:ws,scenario}:data});}
+async function create(c:APIRequestContext,ws:string,data:Record<string,unknown>,scenario?:string){if(!scenario)return paidPost(c,ws,"AI_VIDEO",data);return c.post(scenario?"/api/dev/ai-video-jobs":`/api/workspaces/${ws}/ai-videos`,{data:scenario?{...data,workspaceId:ws,scenario}:data});}
 async function settle(db:pg.Client,id:string,terminal:string[],timeout=60000){const start=Date.now();for(;;){tick();const row=(await db.query<{status:string}>("SELECT status FROM jobs WHERE id=$1",[id])).rows[0];if(terminal.includes(row?.status))return row.status;if(Date.now()-start>timeout)throw new Error(`Video Job ${id} stuck in ${row?.status}`);await new Promise(r=>setTimeout(r,350));}}
 
 test("AI Video durable provider path, failures and workspace isolation",async()=>{

@@ -42,6 +42,7 @@ export async function contentDetail(session:Session,workspaceId:string,id:string
 export type ContentDetail=Awaited<ReturnType<typeof contentDetail>>;
 export async function contentMedia(session:Session,workspaceId:string,id:string,versionId:string,kind:"preview"|"download"|"poster"|"source"|"reference",assetVersionId?:string){
   await requireActiveWorkspace(session,workspaceId,"workspace:read");const item=await scopedContent({query},workspaceId,id),v=await scopedVersion({query},workspaceId,id,versionId),storage=objectStorage();
+  if((await query("SELECT job_id FROM job_billing WHERE workspace_id=$1 AND job_id=$2 AND status='RELEASED'",[workspaceId,v.job_id])).rowCount)throw new AppError(409,"Content is held for billing reconciliation.");
   let key:string,filename=contentFilename(item.title,item.type);
   if(kind==="poster"){const p=(await query<{storage_key:string}>("SELECT storage_key FROM content_posters WHERE workspace_id=$1 AND content_item_id=$2 AND content_version_id=$3 AND status='READY'",[workspaceId,id,versionId])).rows[0];if(!p)throw new AppError(404,"Poster is not ready.");key=p.storage_key;filename="preview.jpg";}
   else if(kind==="source"){const s=(await query<{storage_key:string;original_filename:string;sha256:string}>("SELECT storage_key,original_filename,sha256 FROM source_assets WHERE workspace_id=$1 AND id=$2 AND status IN ('VERIFIED','ARCHIVED')",[workspaceId,v.source_asset_id])).rows[0];if(!s||s.sha256!==v.metadata.sourceSha256)throw new AppError(404,"Source is unavailable.");key=s.storage_key;filename=s.original_filename;}

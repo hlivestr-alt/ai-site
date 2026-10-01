@@ -7,14 +7,14 @@ import sharp from "sharp";
 
 process.loadEnvFile(".env.local");
 const base="http://127.0.0.1:3200",stamp=Date.now();
-const env={...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,OBJECT_STORAGE_BUCKET:process.env.TEST_OBJECT_STORAGE_BUCKET,APP_BASE_URL:base,APP_ENV:"local",MAIL_MODE:"development_file",VIDEO_PROVIDER:"fake",ENABLE_FAKE_VIDEO_PROVIDER:"1"};
+const env={...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,OBJECT_STORAGE_BUCKET:process.env.TEST_OBJECT_STORAGE_BUCKET,APP_BASE_URL:base,APP_ENV:"local",ENABLE_TEST_BILLING:"1",PAYMENT_PROVIDER:"fake",ENABLE_FAKE_PAYMENT_PROVIDER:"1",FAKE_PAYMENT_WEBHOOK_SECRET:"restart-test-webhook-secret-at-least-32",MAIL_MODE:"development_file",VIDEO_PROVIDER:"fake",ENABLE_FAKE_VIDEO_PROVIDER:"1"};
 if(!env.TEST_DATABASE_URL||!env.TEST_OBJECT_STORAGE_BUCKET)throw new Error("Isolated test database and bucket are required");
 const db=new pg.Client({connectionString:env.DATABASE_URL});let app;const logs=[];
 function check(value,message){if(!value)throw new Error(message);}
 function stop(child){if(!child?.pid)return;try{execFileSync("taskkill",["/PID",String(child.pid),"/T","/F"],{stdio:"ignore"});}catch{child.kill();}}
 function startApp(){const child=spawn(process.execPath,["node_modules/next/dist/bin/next","dev","-p","3200","-H","127.0.0.1"],{cwd:process.cwd(),env,stdio:["ignore","pipe","pipe"],windowsHide:true});child.stdout.on("data",x=>logs.push(String(x)));child.stderr.on("data",x=>logs.push(String(x)));return child;}
 async function until(fn,timeout=90000){const start=Date.now();for(;;){const value=await fn().catch(()=>null);if(value)return value;if(Date.now()-start>timeout)throw new Error(`Timed out. Recent app logs: ${logs.join("").slice(-1500)}`);await new Promise(r=>setTimeout(r,250));}}
-async function api(path,data,cookie=""){const response=await fetch(base+path,{method:"POST",headers:{"Content-Type":"application/json",Origin:base,...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(data)});return {response,payload:await response.json().catch(()=>({}))};}
+async function api(path,data,cookie=""){if(/\/api\/workspaces\/[^/]+\/ai-videos$/.test(path)){const ws=path.split('/')[3];execFileSync(process.execPath,["--env-file=.env.local","tests/fund-fixture.mjs",ws],{env,stdio:"pipe",windowsHide:true});const q=await api(`/api/workspaces/${ws}/billing/quotes`,{...data,operation:"AI_VIDEO"},cookie);data={...data,quoteId:q.payload.quote.id,quoteHash:q.payload.quote.quoteHash};}const response=await fetch(base+path,{method:"POST",headers:{"Content-Type":"application/json",Origin:base,...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(data)});return {response,payload:await response.json().catch(()=>({}))};}
 async function mail(email){return until(async()=>{const dir=join(process.cwd(),"data","mailbox"),files=(await readdir(dir).catch(()=>[])).filter(x=>x.endsWith(".json")).sort().reverse();for(const name of files){const item=JSON.parse(await readFile(join(dir,name),"utf8"));if(item.to===email&&item.subject.includes("Verify"))return item.url;}return null;},15000);}
 function dispatch(){execFileSync(process.execPath,["--env-file=.env.local","--import","tsx","scripts/dispatcher.ts","--once"],{cwd:process.cwd(),env,stdio:"pipe",timeout:30000});}
 async function main(){

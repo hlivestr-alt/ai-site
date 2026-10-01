@@ -19,6 +19,11 @@ export async function requireMembership(userId: string, workspaceId: string, db:
 export async function requireRole(userId: string, workspaceId: string, permission: Permission, db: DbClient = { query }) {
   const membership = await requireMembership(userId, workspaceId, db);
   if (!can(membership.role, permission)) throw new AppError(403, "You do not have permission for this action.");
+  if(permission==="future:spend"||permission==="billing:manage"){
+    const locked=await db.query<{role:Role}>("SELECT m.role FROM workspace_members m JOIN workspaces w ON w.id=m.workspace_id WHERE m.user_id=$1 AND m.workspace_id=$2 AND m.status='ACTIVE' AND w.status='ACTIVE' FOR SHARE OF m,w",[userId,workspaceId]);
+    if(!locked.rows[0])throw new AppError(404,"Workspace not found.");
+    if(!can(locked.rows[0].role,permission))throw new AppError(403,"You do not have permission for this action.");
+  }
   return membership;
 }
 
@@ -27,15 +32,15 @@ export async function requireWorkspaceObjectAccess(userId: string, workspaceId: 
   return requireMembership(userId, workspaceId, db);
 }
 
-export async function listWorkspaces(userId: string) {
-  const result = await query<{ id: string; name: string; slug: string; role: Role }>(`
+export async function listWorkspaces(userId: string, db:DbClient={query}) {
+  const result = await db.query<{ id: string; name: string; slug: string; role: Role }>(`
     SELECT w.id,w.name,w.slug,m.role FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id
     WHERE m.user_id=$1 AND m.status='ACTIVE' AND w.status='ACTIVE' ORDER BY m.created_at,w.name`, [userId]);
   return result.rows;
 }
 
-export async function currentWorkspace(session: Session) {
-  const memberships = await listWorkspaces(session.userId);
+export async function currentWorkspace(session: Session,db:DbClient={query}) {
+  const memberships = await listWorkspaces(session.userId,db);
   return memberships.find(w => w.id === session.activeWorkspaceId) ?? memberships[0] ?? null;
 }
 
@@ -46,6 +51,7 @@ export async function createWorkspace(userId: string, nameInput: unknown) {
     const workspace = await db.query<{ id: string; name: string; slug: string }>("INSERT INTO workspaces(name,slug,created_by) VALUES($1,$2,$3) RETURNING id,name,slug", [name, `${slugBase}-${randomToken().slice(0,8).toLowerCase()}`, userId]);
     await db.query("INSERT INTO workspace_members(workspace_id,user_id,role,status) VALUES($1,$2,'OWNER','ACTIVE')", [workspace.rows[0].id,userId]);
     await audit(db, { workspaceId: workspace.rows[0].id, actorUserId: userId, type: "WORKSPACE_CREATED", targetType: "workspace", targetId: workspace.rows[0].id });
+    await audit(db,{workspaceId:workspace.rows[0].id,actorUserId:userId,type:"WALLET_CREATED",targetType:"workspace",targetId:workspace.rows[0].id});
     return workspace.rows[0];
   });
 }

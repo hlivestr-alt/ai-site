@@ -1,3 +1,4 @@
+import {settleJob,jobBilling} from "./billing-core";
 import "server-only";
 import { timingSafeEqual } from "node:crypto";
 import { transaction } from "./db";
@@ -57,15 +58,17 @@ export async function customerJobList(session:Session,workspaceId:string,options
   await requireActiveWorkspace(session,workspaceId,"workspace:read");return listWorkspaceJobs(workspaceId,options);
 }
 export async function customerJobDetail(session:Session,workspaceId:string,jobId:string){
-  await requireActiveWorkspace(session,workspaceId,"workspace:read");return workspaceJobDetail(workspaceId,jobId);
+  await requireActiveWorkspace(session,workspaceId,"workspace:read");const detail=await workspaceJobDetail(workspaceId,jobId);return {...detail,billing:await jobBilling(workspaceId,jobId)};
 }
 export async function customerJobCounts(session:Session,workspaceId:string){
   await requireActiveWorkspace(session,workspaceId,"workspace:read");return workspaceJobCounts(workspaceId);
 }
 export async function customerCancelJob(session:Session,workspaceId:string,jobId:string){
   await requireActiveWorkspace(session,workspaceId,"future:edit");
-  return transaction(async db=>{
+  const result=await transaction(async db=>{
     await requireRole(session.userId,workspaceId,"future:edit",db);
     return cancelWorkspaceJob(db,workspaceId,jobId);
   });
+  await settleJob(workspaceId,jobId);
+  return result;
 }

@@ -30,11 +30,11 @@ export async function jobEvent(db:DbClient,workspaceId:string,jobId:string,type:
   await db.query("INSERT INTO job_events(workspace_id,job_id,attempt_id,worker_id,event_type,safe_data) VALUES($1,$2,$3,$4,$5,$6::jsonb)",[workspaceId,jobId,attemptId||null,workerId||null,type,JSON.stringify(data)]);
 }
 
-export async function insertJob(db:DbClient,args:{workspaceId:string;createdBy:string;type:"SYSTEM_TEST"|"AI_VIDEO"|"CLIPPER";capability:string;idempotencyKey:string;input:JobInput;maxAttempts:number;requestHash?:string}){
+export async function insertJob(db:DbClient,args:{workspaceId:string;createdBy:string;type:"SYSTEM_TEST"|"AI_VIDEO"|"CLIPPER";capability:string;idempotencyKey:string;input:JobInput;maxAttempts:number;requestHash?:string;billingMode?:"PAID"|"DIAGNOSTIC"}){
   const hash=inputHash(args.input),product=args.input.product;
-  const created=await db.query<{id:string}>(`INSERT INTO jobs(workspace_id,type,required_capability,input_snapshot,input_hash,idempotency_key,product_id,product_version_id,product_rule_version_id,created_by,max_attempts,client_request_hash)
-    VALUES($1,$2,$3,$4::jsonb,$5,$6,$7,$8,$9,$10,$11,$12)
-    ON CONFLICT(workspace_id,type,idempotency_key) DO NOTHING RETURNING id`,[args.workspaceId,args.type,args.capability,JSON.stringify(args.input),hash,args.idempotencyKey,product?.id||null,product?.versionId||null,product?.ruleVersionId||null,args.createdBy,args.maxAttempts,args.requestHash||null]);
+  const created=await db.query<{id:string}>(`INSERT INTO jobs(workspace_id,type,required_capability,input_snapshot,input_hash,idempotency_key,product_id,product_version_id,product_rule_version_id,created_by,max_attempts,client_request_hash,billing_mode)
+    VALUES($1,$2,$3,$4::jsonb,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+    ON CONFLICT(workspace_id,type,idempotency_key) DO NOTHING RETURNING id`,[args.workspaceId,args.type,args.capability,JSON.stringify(args.input),hash,args.idempotencyKey,product?.id||null,product?.versionId||null,product?.ruleVersionId||null,args.createdBy,args.maxAttempts,args.requestHash||null,args.billingMode||(args.type==="SYSTEM_TEST"?"DIAGNOSTIC":"PAID")]);
   if(!created.rows[0]){
     const existing=await db.query<{id:string;input_hash:string;client_request_hash:string|null;required_capability:string}>("SELECT id,input_hash,client_request_hash,required_capability FROM jobs WHERE workspace_id=$1 AND type=$2 AND idempotency_key=$3",[args.workspaceId,args.type,args.idempotencyKey]);
     if(!existing.rows[0]||(args.requestHash?existing.rows[0].client_request_hash!==args.requestHash:existing.rows[0].input_hash!==hash)||existing.rows[0].required_capability!==args.capability)throw new AppError(409,"Idempotency key was already used for different input.");

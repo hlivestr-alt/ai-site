@@ -6,7 +6,7 @@ import {createHash} from "node:crypto";
 import pg from "pg";
 process.loadEnvFile(".env.local");
 const base="http://127.0.0.1:3200",stamp=Date.now();
-const env={...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,OBJECT_STORAGE_BUCKET:process.env.TEST_OBJECT_STORAGE_BUCKET,APP_BASE_URL:base,APP_ENV:"local",MAIL_MODE:"development_file",ENABLE_FAKE_CLIP_ANALYZER:"1",VIDEO_PROVIDER:"fake",ENABLE_FAKE_VIDEO_PROVIDER:"1",JOB_RETRY_BASE_MS:"1000"};
+const env={...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,OBJECT_STORAGE_BUCKET:process.env.TEST_OBJECT_STORAGE_BUCKET,APP_BASE_URL:base,APP_ENV:"local",ENABLE_TEST_BILLING:"1",PAYMENT_PROVIDER:"fake",ENABLE_FAKE_PAYMENT_PROVIDER:"1",FAKE_PAYMENT_WEBHOOK_SECRET:"clipper-test-webhook-secret-at-least-32",MAIL_MODE:"development_file",ENABLE_FAKE_CLIP_ANALYZER:"1",VIDEO_PROVIDER:"fake",ENABLE_FAKE_VIDEO_PROVIDER:"1",JOB_RETRY_BASE_MS:"1000"};
 if(!env.DATABASE_URL||!env.TEST_OBJECT_STORAGE_BUCKET)throw new Error("Isolated test services required");
 const db=new pg.Client({connectionString:env.DATABASE_URL}),logs=[];let app,agent,dispatcher,browser,jobId,workerId;
 function check(v,m){if(!v)throw new Error(m);}
@@ -31,7 +31,7 @@ async function main(){
   }else{
   const email=`p5-browser-${stamp}@example.test`;
   await page.goto(base+"/register");await page.getByLabel("Email address").fill(email);await page.getByLabel("Your name").fill("Clipper Browser Owner");await page.getByLabel("Password",{exact:true}).fill("ValidPassword123!");await page.getByRole("button",{name:/Create account/}).click();await page.goto(await mail(email));await page.getByRole("button",{name:/Verify email/}).click();await page.getByLabel("Workspace name").fill(`Clipper Acceptance ${stamp}`);await page.getByRole("button",{name:/Create workspace/}).click();
-  const session=await until(async()=>{const r=await page.request.get(base+"/api/auth/session");const d=await r.json();return d.currentWorkspace?d:null;});ws=session.currentWorkspace.id;
+  const session=await until(async()=>{const r=await page.request.get(base+"/api/auth/session");const d=await r.json();return d.currentWorkspace?d:null;});ws=session.currentWorkspace.id;execFileSync(process.execPath,["--env-file=.env.local","tests/fund-fixture.mjs",ws],{env,stdio:"pipe",windowsHide:true});
   await page.locator('nav a[href="/clipper"]').click();await page.getByLabel("Upload source video").setInputFiles(resolve("tests/fixtures/clipper-speech.mp4"));await page.getByText("Source uploaded. It will be verified by the worker.").waitFor();await page.getByLabel("Number of clips").fill("2");await page.getByLabel("Minimum duration").fill("10");await page.getByLabel("Maximum duration").fill("30");await page.getByLabel("Language",{exact:true}).selectOption("en");await page.getByRole("button",{name:"Start clipping",exact:true}).click();await page.waitForURL(/\/clipper\/[0-9a-f-]+$/);jobId=page.url().split("/").pop();jobUrl=page.url();await page.close();
   }
   if((await status()).status!=="SUCCEEDED"){

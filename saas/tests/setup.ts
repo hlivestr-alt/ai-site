@@ -7,6 +7,7 @@ export default function setup() {
     env:{...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL},
     stdio:"inherit",
   });
+  execFileSync(process.execPath,["--import","tsx","scripts/billing-seed-test.ts"],{cwd:process.cwd(),env:{...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,APP_ENV:"local",ENABLE_TEST_BILLING:"1"},stdio:"inherit"});
   execFileSync(process.execPath,["scripts/storage-init.mjs"],{
     cwd:process.cwd(),env:process.env,stdio:"inherit",
   });

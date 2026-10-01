@@ -1,8 +1,8 @@
 export type Role = "OWNER" | "ADMIN" | "EDITOR" | "VIEWER";
-export type Permission = "workspace:read" | "workspace:update" | "team:read" | "team:manage" | "audit:read" | "future:edit" | "future:spend" | "future:billing";
+export type Permission = "workspace:read" | "workspace:update" | "team:read" | "team:manage" | "audit:read" | "future:edit" | "future:spend" | "future:billing" | "billing:manage";
 const grants: Record<Role, ReadonlySet<Permission>> = {
-  OWNER: new Set(["workspace:read","workspace:update","team:read","team:manage","audit:read","future:edit","future:spend","future:billing"]),
-  ADMIN: new Set(["workspace:read","workspace:update","team:read","team:manage","audit:read","future:edit","future:spend"]),
+  OWNER: new Set(["workspace:read","workspace:update","team:read","team:manage","audit:read","future:edit","future:spend","future:billing","billing:manage"]),
+  ADMIN: new Set(["workspace:read","workspace:update","team:read","team:manage","audit:read","future:edit","future:spend","billing:manage"]),
   EDITOR: new Set(["workspace:read","team:read","future:edit","future:spend"]),
   VIEWER: new Set(["workspace:read","team:read"]),
 };

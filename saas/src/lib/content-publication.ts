@@ -9,6 +9,7 @@ type Artifact={id:string;attempt_id:string;slot_name:string;mime_type:string;sta
 async function jsonArtifact(a:Artifact,maximum:number){let size=0;const chunks:Buffer[]=[];for await(const chunk of await objectStorage().stream(a.storage_key)){size+=chunk.length;if(size>maximum)throw new AppError(422,"Lineage artifact exceeds its limit.");chunks.push(Buffer.from(chunk));}return JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string,unknown>;}
 async function publish(db:DbClient,job:JobRow){
   if(job.status!=="SUCCEEDED"||!["AI_VIDEO","CLIPPER"].includes(job.type)||!job.result||!["AI_VIDEO","CLIPPER"].includes(job.input_snapshot.kind||""))throw new AppError(422,"Only successful supported jobs publish Content.");
+  if((await db.query("SELECT job_id FROM job_billing WHERE workspace_id=$1 AND job_id=$2 AND status='RELEASED'",[job.workspace_id,job.id])).rowCount)throw new AppError(409,"Late success is quarantined for billing reconciliation.");
   const input=job.input_snapshot as AiVideoInput|ClipperInput,result=job.result;
   const ids=result.artifactIds;
   if(!Array.isArray(ids)||!ids.length||ids.length>12||new Set(ids).size!==ids.length)throw new AppError(422,"Invalid publication artifacts.");

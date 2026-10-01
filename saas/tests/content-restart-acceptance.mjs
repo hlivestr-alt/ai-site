@@ -4,7 +4,7 @@ import pg from "pg";
 
 process.loadEnvFile(".env.local");
 const base="http://127.0.0.1:3200",stamp=Date.now(),guard=`p6_restart_${stamp}`;
-const env={...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,OBJECT_STORAGE_BUCKET:process.env.TEST_OBJECT_STORAGE_BUCKET,APP_BASE_URL:base,APP_ENV:"local",MAIL_MODE:"development_file",VIDEO_PROVIDER:"fake",ENABLE_FAKE_VIDEO_PROVIDER:"1",ENABLE_FAKE_CLIP_ANALYZER:"1",DISPATCHER_POLL_MS:"300"};
+const env={...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,OBJECT_STORAGE_BUCKET:process.env.TEST_OBJECT_STORAGE_BUCKET,APP_BASE_URL:base,APP_ENV:"local",ENABLE_TEST_BILLING:"1",PAYMENT_PROVIDER:"fake",ENABLE_FAKE_PAYMENT_PROVIDER:"1",FAKE_PAYMENT_WEBHOOK_SECRET:"restart-test-webhook-secret-at-least-32",MAIL_MODE:"development_file",VIDEO_PROVIDER:"fake",ENABLE_FAKE_VIDEO_PROVIDER:"1",ENABLE_FAKE_CLIP_ANALYZER:"1",DISPATCHER_POLL_MS:"300"};
 if(!env.TEST_DATABASE_URL||!env.TEST_OBJECT_STORAGE_BUCKET)throw new Error("An isolated test database and bucket are required");
 const db=new pg.Client({connectionString:env.DATABASE_URL});let app,dispatcher,guardCreated=false;
 function check(value,message){if(!value)throw new Error(message);}
@@ -14,7 +14,7 @@ function startApp(){return launch(["node_modules/next/dist/bin/next","dev","-p",
 function startDispatcher(){return launch(["--env-file=.env.local","--import","tsx","scripts/dispatcher.ts"]);}
 async function until(fn,timeout=60000){const deadline=Date.now()+timeout;for(;;){if(await fn().catch(()=>false))return;if(Date.now()>deadline)throw new Error("Timed out waiting for content restart acceptance state");await new Promise(r=>setTimeout(r,300));}}
 async function ready(){await until(async()=>{const r=await fetch(base+"/login");return r.ok;});}
-async function post(path,data,cookie=""){const r=await fetch(base+path,{method:"POST",headers:{"Content-Type":"application/json",Origin:base,...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(data)});return {status:r.status,ok:r.ok,cookie:r.headers.get("set-cookie")?.split(";")[0],body:await r.json().catch(()=>({}))};}
+async function post(path,data,cookie=""){if(/\/api\/workspaces\/[^/]+\/ai-videos$/.test(path)){const ws=path.split('/')[3];execFileSync(process.execPath,["--env-file=.env.local","tests/fund-fixture.mjs",ws],{env,stdio:"pipe",windowsHide:true});const q=await post(`/api/workspaces/${ws}/billing/quotes`,{...data,operation:"AI_VIDEO"},cookie);data={...data,quoteId:q.body.quote.id,quoteHash:q.body.quote.quoteHash};}const r=await fetch(base+path,{method:"POST",headers:{"Content-Type":"application/json",Origin:base,...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(data)});return {status:r.status,ok:r.ok,cookie:r.headers.get("set-cookie")?.split(";")[0],body:await r.json().catch(()=>({}))};}
 async function identity(jobId){const job=(await db.query("SELECT id,status,attempt_count,result FROM jobs WHERE id=$1",[jobId])).rows[0],execution=(await db.query("SELECT id,external_task_id,submit_count,state FROM provider_executions WHERE job_id=$1",[jobId])).rows[0],artifacts=(await db.query("SELECT id,sha256,byte_size,status FROM job_artifacts WHERE job_id=$1 ORDER BY id",[jobId])).rows;return {job,execution,artifacts};}
 async function dropGuard(){if(guardCreated){await db.query(`DROP TRIGGER IF EXISTS ${guard} ON content_versions`);await db.query(`DROP FUNCTION IF EXISTS ${guard}()`);guardCreated=false;}}
 async function main(){

@@ -1,4 +1,4 @@
-import { query } from "../db";
+import { query,type DbClient } from "../db";
 import { AppError } from "../core";
 import { BytePlusVideoProvider } from "./byteplus";
 import { FakeVideoProvider } from "./fake";
@@ -20,8 +20,8 @@ export function providerForExecution(name:ProviderName):VideoProvider{
   }
   return byteplus;
 }
-export async function activeVideoPolicy(){
-  const rows=await query<VideoPolicy>("SELECT * FROM provider_configurations WHERE customer_tier='QUALITY' AND enabled=true ORDER BY created_at DESC LIMIT 1");
+export async function activeVideoPolicy(db:DbClient={query}){
+  const rows=await db.query<VideoPolicy>("SELECT * FROM provider_configurations WHERE customer_tier='QUALITY' AND enabled=true ORDER BY created_at DESC LIMIT 1");
   return rows.rows[0]||null;
 }
 export async function customerVideoOptions(){

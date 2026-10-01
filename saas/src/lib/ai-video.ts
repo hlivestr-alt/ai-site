@@ -1,12 +1,13 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { query, transaction } from "./db";
+import { query, transaction, type DbClient } from "./db";
 import { AppError, audit, isUuid } from "./core";
 import { requireRole } from "./workspaces";
 import { getProductSnapshot, requireActiveWorkspace } from "./products";
 import { frozenProductFromSnapshot } from "./jobs";
 import { insertJob, type AiVideoInput, type FrozenAsset, type FrozenProduct } from "./job-core";
 import { activeVideoPolicy, customerVideoOptions, fakeEnabled, providerForNewJob } from "./video-providers";
+import {billingRealm,createQuote,validateQuote,lockWallet,reserveJob,jobBilling} from "./billing-core";
 import { objectStorage } from "./storage";
 import type { Session } from "./auth";
 
@@ -47,18 +48,9 @@ function selectReferences(product:FrozenProduct,requested:string[],max:number){
   if(!chosen.length)throw new AppError(409,"Add a compatible READY Product image before generating (for example, 640 × 640 px).");
   return chosen;
 }
-export async function createAiVideoJob(session:Session,workspaceId:string,raw:Record<string,unknown>,scenario?:Scenario){
-  if(scenario&&!fakeEnabled())throw new AppError(404,"Not found.");
-  const input=parseRequest(raw,scenario),requestHash=createHash("sha256").update(JSON.stringify({productId:input.productId,prompt:input.prompt,tier:input.tier,durationSeconds:input.durationSeconds,aspectRatio:input.aspectRatio,quantity:input.quantity,referenceAssetVersionIds:input.referenceAssetVersionIds,scenario:input.scenario||null})).digest("hex");
-  await requireActiveWorkspace(session,workspaceId,"future:edit");
-  return transaction(async db=>{
-    await requireRole(session.userId,workspaceId,"future:edit",db);
-    const prior=await db.query<{id:string;client_request_hash:string|null}>("SELECT id,client_request_hash FROM jobs WHERE workspace_id=$1 AND type='AI_VIDEO' AND idempotency_key=$2",[workspaceId,input.idempotencyKey]);
-    if(prior.rows[0]){
-      if(prior.rows[0].client_request_hash!==requestHash)throw new AppError(409,"Idempotency key was already used for different input.");
-      return {id:prior.rows[0].id,existing:true};
-    }
-    const policy=await activeVideoPolicy();
+function customerScenario(raw:Record<string,unknown>):Scenario|undefined{if(raw.testScenario===undefined)return undefined;if(billingRealm()!=="TEST"||!fakeEnabled())throw new AppError(400,"Test controls are unavailable.");return diagnosticVideoScenario(raw.testScenario);}
+async function prepareAiVideo(db:DbClient,session:Session,workspaceId:string,input:ReturnType<typeof parseRequest>,scenario?:Scenario){
+    const policy=await activeVideoPolicy(db);
     if(!policy||!policy.enabled)throw new AppError(503,"Video generation is not available.");
     const provider=providerForNewJob();
     if(input.durationSeconds<policy.min_duration_seconds||input.durationSeconds>policy.max_duration_seconds||!policy.aspect_ratios.includes(input.aspectRatio)||input.quantity>policy.max_quantity)throw new AppError(400,"The selected video settings are not supported.");
@@ -67,7 +59,26 @@ export async function createAiVideoJob(session:Session,workspaceId:string,raw:Re
     const product=frozenProductFromSnapshot(snapshot),references=selectReferences(product,input.referenceAssetVersionIds,policy.max_reference_images);
     const frozen:AiVideoInput={schemaVersion:1,kind:"AI_VIDEO",product,customerPrompt:input.prompt,accuracyInstructions:accuracyInstructions(product),tier:"QUALITY",durationSeconds:input.durationSeconds,aspectRatio:input.aspectRatio,quantity:1,referenceAssetVersionIds:references,providerPolicyVersion:policy.policy_version,executionProvider:provider.name,...(scenario?{testScenario:scenario}:{})};
     provider.validateInput(frozen);
-    const result=await insertJob(db,{workspaceId,createdBy:session.userId,type:"AI_VIDEO",capability:"CLOUD_AI_VIDEO",idempotencyKey:input.idempotencyKey,input:frozen,maxAttempts:2,requestHash});
+    return frozen;
+}
+export async function quoteAiVideo(session:Session,workspaceId:string,raw:Record<string,unknown>){const input=parseRequest({...raw,idempotencyKey:raw.idempotencyKey||"quote-request"},customerScenario(raw));const requestHash=createHash("sha256").update(JSON.stringify({productId:input.productId,prompt:input.prompt,tier:input.tier,durationSeconds:input.durationSeconds,aspectRatio:input.aspectRatio,quantity:input.quantity,referenceAssetVersionIds:input.referenceAssetVersionIds,scenario:input.scenario||null})).digest("hex");await requireActiveWorkspace(session,workspaceId,"future:spend");return transaction(async db=>{await requireRole(session.userId,workspaceId,"future:spend",db);return createQuote(db,workspaceId,session.userId,"AI_VIDEO",await prepareAiVideo(db,session,workspaceId,input,input.scenario),requestHash);});}
+export async function createAiVideoJob(session:Session,workspaceId:string,raw:Record<string,unknown>,scenario?:Scenario){
+  if(scenario&&!fakeEnabled())throw new AppError(404,"Not found.");
+  const input=parseRequest(raw,scenario||customerScenario(raw)),requestHash=createHash("sha256").update(JSON.stringify({productId:input.productId,prompt:input.prompt,tier:input.tier,durationSeconds:input.durationSeconds,aspectRatio:input.aspectRatio,quantity:input.quantity,referenceAssetVersionIds:input.referenceAssetVersionIds,scenario:input.scenario||null})).digest("hex");
+  await requireActiveWorkspace(session,workspaceId,"future:spend");
+  return transaction(async db=>{
+    await requireRole(session.userId,workspaceId,"future:spend",db);
+    const wallet=scenario?null:await lockWallet(db,workspaceId);
+    const prior=await db.query<{id:string;client_request_hash:string|null;billing_mode:string}>("SELECT id,client_request_hash,billing_mode FROM jobs WHERE workspace_id=$1 AND type='AI_VIDEO' AND idempotency_key=$2",[workspaceId,input.idempotencyKey]);
+    if(prior.rows[0]){
+      if((prior.rows[0].billing_mode==="DIAGNOSTIC")!==!!scenario||prior.rows[0].client_request_hash!==requestHash)throw new AppError(409,"Idempotency key was already used for different input.");
+      return {id:prior.rows[0].id,existing:true};
+    }
+    const frozen=await prepareAiVideo(db,session,workspaceId,input,input.scenario);
+    const quote=scenario?null:await validateQuote(db,workspaceId,"AI_VIDEO",raw,frozen,requestHash);
+    if(quote&&BigInt(wallet!.available_tokens)<BigInt(quote.token_amount))throw new AppError(402,"Insufficient tokens. Buy tokens in Billing.");
+    const result=await insertJob(db,{workspaceId,createdBy:session.userId,type:"AI_VIDEO",capability:"CLOUD_AI_VIDEO",idempotencyKey:input.idempotencyKey,input:frozen,maxAttempts:2,requestHash,billingMode:scenario?"DIAGNOSTIC":"PAID"});
+    if(!result.existing&&quote)await reserveJob(db,workspaceId,result.id,quote);
     if(!result.existing)await audit(db,{workspaceId,actorUserId:session.userId,type:"AI_VIDEO_JOB_CREATED",targetType:"job",targetId:result.id});
     return result;
   });
@@ -91,13 +102,13 @@ export async function aiVideoDetail(session:Session,workspaceId:string,jobId:str
   const row=rows.rows[0];if(!row)throw new AppError(404,"Video Job not found.");
   const input=row.input_snapshot;
   const artifacts=await query<{id:string;mime_type:string;byte_size:string;sha256:string;created_at:Date}>("SELECT id,mime_type,byte_size,sha256,created_at FROM job_artifacts WHERE workspace_id=$1 AND job_id=$2 AND status='READY' ORDER BY created_at,id",[workspaceId,jobId]);
-  return {job:{id:row.id,status:row.status,progressPercent:row.progress_percent,progressStage:row.progress_stage,progressMessage:row.progress_message,errorMessage:row.error_message_safe,createdAt:row.created_at,startedAt:row.started_at,finishedAt:row.finished_at,cancelRequested:!!row.cancel_requested_at,prompt:input.customerPrompt,productId:input.product.id,productName:String(input.product.information.name||"Product"),productVersionId:input.product.versionId,productVersion:input.product.versionNumber,ruleVersion:input.product.ruleVersionNumber,tier:input.tier,durationSeconds:input.durationSeconds,aspectRatio:input.aspectRatio,referenceAssetVersionIds:input.referenceAssetVersionIds,artifacts:artifacts.rows.map(x=>({id:x.id,mimeType:x.mime_type,byteSize:Number(x.byte_size),sha256:x.sha256,createdAt:x.created_at}))}};
+  return {job:{billing:await jobBilling(workspaceId,jobId),id:row.id,status:row.status,progressPercent:row.progress_percent,progressStage:row.progress_stage,progressMessage:row.progress_message,errorMessage:row.error_message_safe,createdAt:row.created_at,startedAt:row.started_at,finishedAt:row.finished_at,cancelRequested:!!row.cancel_requested_at,prompt:input.customerPrompt,productId:input.product.id,productName:String(input.product.information.name||"Product"),productVersionId:input.product.versionId,productVersion:input.product.versionNumber,ruleVersion:input.product.ruleVersionNumber,tier:input.tier,durationSeconds:input.durationSeconds,aspectRatio:input.aspectRatio,referenceAssetVersionIds:input.referenceAssetVersionIds,artifacts:artifacts.rows.map(x=>({id:x.id,mimeType:x.mime_type,byteSize:Number(x.byte_size),sha256:x.sha256,createdAt:x.created_at}))}};
 }
 export async function aiVideoArtifactDownload(session:Session,workspaceId:string,jobId:string,artifactId:string){
   await requireActiveWorkspace(session,workspaceId,"workspace:read");
   if(!isUuid(jobId)||!isUuid(artifactId))throw new AppError(404,"Video artifact not found.");
   const rows=await query<{storage_key:string;byte_size:string;sha256:string;mime_type:string}>(`SELECT a.storage_key,a.byte_size,a.sha256,a.mime_type FROM job_artifacts a JOIN jobs j ON j.workspace_id=a.workspace_id AND j.id=a.job_id
-    WHERE a.workspace_id=$1 AND a.job_id=$2 AND a.id=$3 AND a.status='READY' AND j.type='AI_VIDEO' AND j.status='SUCCEEDED'`,[workspaceId,jobId,artifactId]);
+    WHERE a.workspace_id=$1 AND a.job_id=$2 AND a.id=$3 AND a.status='READY' AND j.type='AI_VIDEO' AND j.status='SUCCEEDED' AND NOT EXISTS(SELECT 1 FROM job_billing b WHERE b.job_id=j.id AND b.status='RELEASED')`,[workspaceId,jobId,artifactId]);
   const artifact=rows.rows[0];if(!artifact)throw new AppError(404,"Video artifact not found.");
   if(!await objectStorage().head(artifact.storage_key))throw new AppError(503,"Video file is temporarily unavailable.");
   return {url:await objectStorage().issueDownload(artifact.storage_key,`${jobId}.mp4`,300),expiresInSeconds:300,mimeType:artifact.mime_type,byteSize:Number(artifact.byte_size),sha256:artifact.sha256};

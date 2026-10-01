@@ -1,3 +1,4 @@
+import {fundFixture} from "../billing-helpers";
 import { test, expect } from "@playwright/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
@@ -14,6 +15,7 @@ test("customer creates a video, closes the page, and returns to a private result
   await page.goto("/register");await page.getByLabel("Email address").fill(email);await page.getByLabel("Your name").fill("Video Browser Owner");await page.getByLabel("Password").fill("ValidPassword123!");await page.getByRole("button",{name:/Create account/}).click();
   await page.goto(await mail(email));await page.getByRole("button",{name:/Verify email/}).click();await page.getByLabel("Workspace name").fill(`Video Browser ${tag}`);await page.getByRole("button",{name:/Create workspace/}).click();
   const ws=(await (await page.request.get("/api/auth/session")).json()).currentWorkspace.id as string;
+  fundFixture(ws);
   const created=await page.request.post(`/api/workspaces/${ws}/products`,{headers:{Origin:"http://127.0.0.1:3200"},data:{brand:"Video Brand",name:"Hero Product",category:"Care",sku:`VIDEO-UI-${tag}`,description:"Simple Product",keySellingPoints:["A clear benefit"],targetAudience:"Adults"}});expect(created.status(),await created.text()).toBe(201);const productId=(await created.json()).product.id as string;
   const png=await sharp({create:{width:640,height:640,channels:3,background:"#edcab2"}}).png().toBuffer();
   const intentResponse=await page.request.post(`/api/workspaces/${ws}/products/${productId}/assets/upload-intents`,{headers:{Origin:"http://127.0.0.1:3200"},data:{purpose:"FRONT",mimeType:"image/png",byteSize:png.length,filename:"hero.png",sha256:createHash("sha256").update(png).digest("hex"),sourceType:"CUSTOMER_OWNED",permissionConfirmed:true,permissionNote:"Test image"}});expect(intentResponse.status(),await intentResponse.text()).toBe(201);

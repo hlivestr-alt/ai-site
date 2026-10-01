@@ -24,7 +24,11 @@
     "storage:cleanup": "node --env-file=.env.local scripts/cleanup-pending.mjs",
     "content:reconcile": "node --env-file=.env.local --import tsx scripts/content-reconcile.ts",
     "dispatcher": "node --env-file=.env.local --import tsx scripts/dispatcher.ts",
-    "worker:admin": "node --env-file=.env.local scripts/worker-admin.mjs"
+    "worker:admin": "node --env-file=.env.local scripts/worker-admin.mjs",
+    "billing:seed:test": "node --env-file=.env.local --import tsx scripts/billing-seed-test.ts",
+    "billing:support": "node --env-file=.env.local --import tsx scripts/billing-support.ts",
+    "billing:reconcile": "node --env-file=.env.local --import tsx scripts/billing-reconcile.ts",
+    "test:billing-restart": "node tests/billing-restart-acceptance.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1142.0",

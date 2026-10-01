@@ -10,7 +10,7 @@ export type ProductFields = {brand:string;name:string;category:string;sku:string
 export type RuleFields = {keepLogo:boolean;keepPackagingText:boolean;keepProductShape:boolean;keepCapPump:boolean;keepProductColorMaterial:boolean;keepApplicationMethod:boolean;customInstructions:string};
 
 export async function requireActiveWorkspace(session: Session, workspaceId: string, permission: Permission, db?: DbClient) {
-  const active = await currentWorkspace(session);
+  const active = await currentWorkspace(session,db);
   if (!active || active.id !== workspaceId) throw new AppError(404,"Workspace not found.");
   return requireRole(session.userId,workspaceId,permission,db);
 }
@@ -157,7 +157,7 @@ export async function productCounts(session:Session,workspaceId:string) {
 }
 
 export async function getProductSnapshot(session:Session,workspaceId:string,productId:string,db?:DbClient) {
-  await requireActiveWorkspace(session,workspaceId,"workspace:read");
+  await requireActiveWorkspace(session,workspaceId,"workspace:read",db);
   const client=db??{query};
   const product=await scopedProduct(client,workspaceId,productId,!!db);
   const version=await client.query<ProductVersionRow>("SELECT * FROM product_versions WHERE workspace_id=$1 AND product_id=$2 AND id=$3",[workspaceId,productId,product.current_version_id]);
