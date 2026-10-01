@@ -8,7 +8,7 @@ export type FrozenAsset={assetId:string;assetVersionId:string;purpose:string;typ
 export type FrozenProduct={id:string;versionId:string;versionNumber:number;ruleVersionId:string;ruleVersionNumber:number;information:Record<string,unknown>;rules:Record<string,unknown>;assets:FrozenAsset[]};
 export type SystemTestInput={schemaVersion:1;kind?:"SYSTEM_TEST";fixture:{steps:number;delayMs:number};product?:FrozenProduct};
 export type AiVideoInput={schemaVersion:1;kind:"AI_VIDEO";product:FrozenProduct;customerPrompt:string;accuracyInstructions:string;tier:"QUALITY";durationSeconds:number;aspectRatio:"9:16"|"16:9"|"1:1";quantity:1;referenceAssetVersionIds:string[];providerPolicyVersion:string;executionProvider:"BYTEPLUS"|"FAKE";testScenario?:"SUCCESS"|"FAILURE"|"RATE_LIMIT"|"SUBMISSION_UNKNOWN"|"DOWNLOAD_FAIL_ONCE"|"OVERSIZED_OUTPUT"|"INVALID_MIME"|"INVALID_CHECKSUM"};
-export type ClipperInput={schemaVersion:1;kind:"CLIPPER";analyzerProvider:"openai"|"fake";source:{origin:"SOURCE_ASSET";sourceAssetId:string;byteSize:number;mimeType:string;storageIdentity:string;storageKey:string;filename:string};product?:FrozenProduct;language:string;goal:string;targetClipCount:number;minClipSeconds:number;maxClipSeconds:number;aspectRatio:"9:16";captions:boolean;analyzerPolicyVersion:string;renderPolicyVersion:string};
+export type ClipperInput={schemaVersion:1;kind:"CLIPPER";analyzerProvider:"openai"|"fake";source:{origin:"SOURCE_ASSET";sourceAssetId:string;byteSize:number;mimeType:string;storageIdentity:string;storageKey:string;filename:string;sha256?:string};product?:FrozenProduct;language:string;goal:string;targetClipCount:number;minClipSeconds:number;maxClipSeconds:number;aspectRatio:"9:16";captions:boolean;analyzerPolicyVersion:string;renderPolicyVersion:string};
 export type JobInput=SystemTestInput|AiVideoInput|ClipperInput;
 export type JobRow={id:string;workspace_id:string;type:string;required_capability:string;status:JobStatus;input_snapshot:JobInput;input_hash:string;progress_percent:number;progress_stage:string;progress_message:string;progress_sequence:number;attempt_count:number;max_attempts:number;available_at:Date;cancel_requested_at:Date|null;result:Record<string,unknown>|null};
 
@@ -30,11 +30,11 @@ export async function jobEvent(db:DbClient,workspaceId:string,jobId:string,type:
   await db.query("INSERT INTO job_events(workspace_id,job_id,attempt_id,worker_id,event_type,safe_data) VALUES($1,$2,$3,$4,$5,$6::jsonb)",[workspaceId,jobId,attemptId||null,workerId||null,type,JSON.stringify(data)]);
 }
 
-export async function insertJob(db:DbClient,args:{workspaceId:string;createdBy:string;type:"SYSTEM_TEST"|"AI_VIDEO"|"CLIPPER";capability:string;idempotencyKey:string;input:JobInput;maxAttempts:number;requestHash?:string;billingMode?:"PAID"|"DIAGNOSTIC"}){
+export async function insertJob(db:DbClient,args:{workspaceId:string;createdBy:string;type:"SYSTEM_TEST"|"AI_VIDEO"|"CLIPPER";capability:string;idempotencyKey:string;input:JobInput;maxAttempts:number;requestHash?:string;billingMode?:"PAID"|"DIAGNOSTIC";workflow?:{runId:string;stepId:string}}){
   const hash=inputHash(args.input),product=args.input.product;
-  const created=await db.query<{id:string}>(`INSERT INTO jobs(workspace_id,type,required_capability,input_snapshot,input_hash,idempotency_key,product_id,product_version_id,product_rule_version_id,created_by,max_attempts,client_request_hash,billing_mode)
-    VALUES($1,$2,$3,$4::jsonb,$5,$6,$7,$8,$9,$10,$11,$12,$13)
-    ON CONFLICT(workspace_id,type,idempotency_key) DO NOTHING RETURNING id`,[args.workspaceId,args.type,args.capability,JSON.stringify(args.input),hash,args.idempotencyKey,product?.id||null,product?.versionId||null,product?.ruleVersionId||null,args.createdBy,args.maxAttempts,args.requestHash||null,args.billingMode||(args.type==="SYSTEM_TEST"?"DIAGNOSTIC":"PAID")]);
+  const created=await db.query<{id:string}>(`INSERT INTO jobs(workspace_id,type,required_capability,input_snapshot,input_hash,idempotency_key,product_id,product_version_id,product_rule_version_id,created_by,max_attempts,client_request_hash,billing_mode,workflow_run_id,workflow_step_id)
+    VALUES($1,$2,$3,$4::jsonb,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+    ON CONFLICT(workspace_id,type,idempotency_key) DO NOTHING RETURNING id`,[args.workspaceId,args.type,args.capability,JSON.stringify(args.input),hash,args.idempotencyKey,product?.id||null,product?.versionId||null,product?.ruleVersionId||null,args.createdBy,args.maxAttempts,args.requestHash||null,args.billingMode||(args.type==="SYSTEM_TEST"?"DIAGNOSTIC":"PAID"),args.workflow?.runId||null,args.workflow?.stepId||null]);
   if(!created.rows[0]){
     const existing=await db.query<{id:string;input_hash:string;client_request_hash:string|null;required_capability:string}>("SELECT id,input_hash,client_request_hash,required_capability FROM jobs WHERE workspace_id=$1 AND type=$2 AND idempotency_key=$3",[args.workspaceId,args.type,args.idempotencyKey]);
     if(!existing.rows[0]||(args.requestHash?existing.rows[0].client_request_hash!==args.requestHash:existing.rows[0].input_hash!==hash)||existing.rows[0].required_capability!==args.capability)throw new AppError(409,"Idempotency key was already used for different input.");
@@ -100,8 +100,8 @@ export async function cancelWorkspaceJob(db:DbClient,workspaceId:string,jobId:st
 export async function snapshotMediaAvailable(job:JobRow,db:DbClient={query}){
   if(job.input_snapshot.kind==="CLIPPER"){
     const source=job.input_snapshot.source;
-    const found=await db.query<{storage_key:string;byte_size:string;status:string}>("SELECT storage_key,byte_size,status FROM source_assets WHERE workspace_id=$1 AND id=$2",[job.workspace_id,source.sourceAssetId]);
-    const row=found.rows[0];return !!row&&["UPLOADED","VERIFIED"].includes(row.status)&&row.storage_key===source.storageKey&&Number(row.byte_size)===source.byteSize&&!!await objectStorage().head(row.storage_key);
+    const found=await db.query<{storage_key:string;byte_size:string;status:string;sha256:string|null;mime_type:string}>("SELECT storage_key,byte_size,status,sha256,mime_type FROM source_assets WHERE workspace_id=$1 AND id=$2",[job.workspace_id,source.sourceAssetId]);
+    const row=found.rows[0];return !!row&&["UPLOADED","VERIFIED"].includes(row.status)&&row.storage_key===source.storageKey&&Number(row.byte_size)===source.byteSize&&row.mime_type===source.mimeType&&(!source.sha256||row.sha256===source.sha256)&&!!await objectStorage().head(row.storage_key);
   }
   const product=job.input_snapshot.product;
   if(!product)return true;

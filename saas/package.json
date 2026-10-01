@@ -24,6 +24,8 @@
     "storage:cleanup": "node --env-file=.env.local scripts/cleanup-pending.mjs",
     "content:reconcile": "node --env-file=.env.local --import tsx scripts/content-reconcile.ts",
     "dispatcher": "node --env-file=.env.local --import tsx scripts/dispatcher.ts",
+    "workflow:dispatcher": "node --env-file=.env.local --import tsx scripts/workflow-dispatcher.ts",
+    "test:workflow-restart": "node tests/workflow-restart-acceptance.mjs",
     "worker:admin": "node --env-file=.env.local scripts/worker-admin.mjs",
     "billing:seed:test": "node --env-file=.env.local --import tsx scripts/billing-seed-test.ts",
     "billing:support": "node --env-file=.env.local --import tsx scripts/billing-support.ts",

@@ -5,6 +5,7 @@ import {requireActiveWorkspace} from "./products";
 import {requireRole} from "./workspaces";
 import {objectStorage} from "./storage";
 import {contentFilename,contentFilters,reviewRequest,type ContentListOptions} from "./content-core";
+import {jobWorkflowLineage} from "./workflows";
 import type {Session} from "./auth";
 import type {FrozenProduct} from "./job-core";
 
@@ -34,7 +35,7 @@ export async function contentDetail(session:Session,workspaceId:string,id:string
     query<{status:string}>("SELECT status FROM content_posters WHERE workspace_id=$1 AND content_item_id=$2 AND content_version_id=$3",[workspaceId,id,v.id])
   ]);
   const product=job.input_snapshot.product,clip=item.type==="CLIP"?{start:Number(v.metadata.start),end:Number(v.metadata.end),hook:String(v.metadata.hook),reason:String(v.metadata.reason),score:Number(v.metadata.score),tags:v.metadata.tags as string[]}:null;
-  return {id:item.id,type:item.type,status:item.status,title:item.title,reviewRevision:item.review_revision,createdAt:item.created_at,archivedAt:item.archived_at,
+  return {workflow:await jobWorkflowLineage(session,workspaceId,v.job_id),id:item.id,type:item.type,status:item.status,title:item.title,reviewRevision:item.review_revision,createdAt:item.created_at,archivedAt:item.archived_at,
     version:{id:v.id,number:v.version_number,artifactId:v.artifact_id,byteSize:Number(v.byte_size),sha256:v.sha256,durationSeconds:v.duration_seconds,width:v.width,height:v.height,transcriptArtifactId:v.transcript_artifact_id,planArtifactId:v.plan_artifact_id},
     originJob:{id:item.origin_job_id,type:item.type==="AI_VIDEO"?"AI_VIDEO":"CLIPPER"},job:{id:v.job_id,type:job.type},product:product?{id:product.id,versionId:product.versionId,versionNumber:product.versionNumber,ruleVersionId:product.ruleVersionId,ruleVersionNumber:product.ruleVersionNumber,information:product.information,rules:product.rules}:null,
     source:item.source_asset_id?{id:item.source_asset_id,filename:item.source_filename,sha256:String(v.metadata.sourceSha256)}:null,clip,references:refs.rows,reviews:reviews.rows,relations:relations.rows,versions:versions.rows,posterStatus:poster.rows[0]?.status||"PENDING"};

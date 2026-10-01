@@ -4,35 +4,30 @@ import { AppError, isUuid } from "./core";
 import { requireActiveWorkspace, getProductSnapshot } from "./products";
 import { requireRole } from "./workspaces";
 import { frozenProductFromSnapshot } from "./jobs";
-import { insertJob, scopedJob, type ClipperInput } from "./job-core";
+import { scopedJob, type ClipperInput } from "./job-core";
 import { scopedSource } from "./sources";
-import { clipperRequest, clipperRequestHash, ANALYZER_POLICY, RENDER_POLICY } from "./clipper-core";
-import {createQuote,validateQuote,lockWallet,reserveJob,jobBilling} from "./billing-core";
+import { clipperRequest, clipperRequestHash } from "./clipper-core";
+import {createQuote,lockWallet,jobBilling} from "./billing-core";
 import { objectStorage } from "./storage";
+import {prepareClipperInput} from "./clipper-operation";
+import {admitOperation} from "./paid-operations";
 import type { Session } from "./auth";
 async function prepareClipper(db:DbClient,session:Session,workspaceId:string,request:ReturnType<typeof clipperRequest>){
     const source=await scopedSource(db,workspaceId,request.sourceAssetId);if(!["UPLOADED","VERIFIED"].includes(source.status))throw new AppError(409,"Finalize the source before clipping.");
     let product:ClipperInput["product"];
     if(request.productId){const snapshot=await getProductSnapshot(session,workspaceId,request.productId,db);if(snapshot.product.status!=="ACTIVE")throw new AppError(409,"Select an active Product.");product={...frozenProductFromSnapshot(snapshot),assets:[]};}
-    const {idempotencyKey,productId,sourceAssetId,...settings}=request;void productId;void idempotencyKey;
-    const fake=process.env.APP_ENV==="local"&&process.env.ENABLE_FAKE_CLIP_ANALYZER==="1";
-    const input:ClipperInput={schemaVersion:1,kind:"CLIPPER",analyzerProvider:fake?"fake":"openai",source:{origin:"SOURCE_ASSET",sourceAssetId,byteSize:Number(source.byte_size),mimeType:source.mime_type,storageKey:source.storage_key,storageIdentity:source.id,filename:source.original_filename},...settings,...(product?{product}:{}),analyzerPolicyVersion:ANALYZER_POLICY,renderPolicyVersion:RENDER_POLICY};
-    return input;
+    return prepareClipperInput(request,source,product);
 }
 export async function quoteClipper(session:Session,workspaceId:string,raw:Record<string,unknown>){const request=clipperRequest({...raw,idempotencyKey:raw.idempotencyKey||"quote-request"});await requireActiveWorkspace(session,workspaceId,"future:spend");return transaction(async db=>{await requireRole(session.userId,workspaceId,"future:spend",db);return createQuote(db,workspaceId,session.userId,"CLIPPER",await prepareClipper(db,session,workspaceId,request),clipperRequestHash(request));});}
 export async function createClipperJob(session:Session,workspaceId:string,raw:Record<string,unknown>){
   const request=clipperRequest(raw),requestHash=clipperRequestHash(request);await requireActiveWorkspace(session,workspaceId,"future:spend");
   return transaction(async db=>{
     await requireRole(session.userId,workspaceId,"future:spend",db);
-    const wallet=await lockWallet(db,workspaceId);
+    await lockWallet(db,workspaceId);
     const prior=await db.query<{id:string;client_request_hash:string;billing_mode:string}>("SELECT id,client_request_hash,billing_mode FROM jobs WHERE workspace_id=$1 AND type='CLIPPER' AND idempotency_key=$2",[workspaceId,request.idempotencyKey]);
     if(prior.rows[0]){if(prior.rows[0].billing_mode==="DIAGNOSTIC"||prior.rows[0].client_request_hash!==requestHash)throw new AppError(409,"Idempotency key was already used for different input.");return {id:prior.rows[0].id,existing:true};}
     const input=await prepareClipper(db,session,workspaceId,request);
-    const quote=await validateQuote(db,workspaceId,"CLIPPER",raw,input,requestHash);
-    if(BigInt(wallet.available_tokens)<BigInt(quote.token_amount))throw new AppError(402,"Insufficient tokens. Buy tokens in Billing.");
-    const fake=input.analyzerProvider==="fake",idempotencyKey=request.idempotencyKey;
-    const result=await insertJob(db,{workspaceId,createdBy:session.userId,type:"CLIPPER",capability:fake?"CLIPPER_TEST_V1":"CLIPPER_V1",idempotencyKey,input,maxAttempts:3,requestHash});
-    if(!result.existing)await reserveJob(db,workspaceId,result.id,quote);return result;
+    return admitOperation(db,{workspaceId,userId:session.userId,input,requestHash,key:request.idempotencyKey,quote:raw});
   });
 }
 export async function clipperHistory(session:Session,workspaceId:string){await requireActiveWorkspace(session,workspaceId,"workspace:read");const r=await query<{id:string;status:string;created_at:Date;finished_at:Date|null;input_snapshot:ClipperInput;result:{clips?:unknown[]}|null}>("SELECT id,status,created_at,finished_at,input_snapshot,result FROM jobs WHERE workspace_id=$1 AND type='CLIPPER' ORDER BY created_at DESC,id DESC LIMIT 50",[workspaceId]);return r.rows.map(({input_snapshot:i,result,...r})=>({...r,filename:i.source.filename,productName:i.product?.information.name||null,requested:i.targetClipCount,found:result?.clips?.length||0}));}

@@ -1,3 +1,4 @@
+import {jobWorkflowLineage} from "@/lib/workflows";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Shell } from "@/components/shell";
@@ -12,10 +13,12 @@ export default async function JobDetailPage({params}:{params:Promise<{jobId:stri
   const {session,workspaces,current}=await pageWorkspace(),{jobId}=await params;
   const data=await customerJobDetail(session,current.id,jobId).catch(error=>{if(error instanceof AppError&&error.status===404)notFound();throw error;});
   const job=data.job as {id:string;type:string;status:string;progress_percent:number;progress_stage:string;progress_message:string;created_at:Date;started_at:Date|null;finished_at:Date|null;attempt_count:number;max_attempts:number;error_message_safe:string|null;cancel_requested_at:Date|null};
+  const workflow=await jobWorkflowLineage(session,current.id,jobId);
   const active=["QUEUED","WAITING_FOR_WORKER","RUNNING","RECONCILING"].includes(job.status);
   return <Shell user={session} workspaces={workspaces} current={current}>
     <div className="breadcrumb"><Link href="/jobs">Jobs</Link> <span>›</span> {job.id.slice(0,8)}</div>
     <div className="page-heading"><div><p className="eyebrow">{job.type.replaceAll("_"," ")}</p><h1>Job {job.id.slice(0,8)}</h1><p>Workspace processing activity</p></div><span className="pill">{job.status.replaceAll("_"," ")}</span></div>
+    {workflow&&<p className="notice">Workflow: <Link href={`/workflows/runs/${workflow.runId}`}>{workflow.name}</Link></p>}
     <div className="detail-actions"><JobRefresh active={active||data.billing?.status==="RESERVED"}/>{can(current.role as Role,"future:edit")&&active&&job.status!=="RECONCILING"&&<JobCancel workspaceId={current.id} jobId={job.id}/>}</div>
     {data.billing&&<p className="notice">Token cost: {data.billing.token_amount} · {data.billing.status}</p>}
     <section className="panel"><p className="eyebrow">PROGRESS</p><h2>{job.progress_percent}% · {job.progress_stage.replaceAll("_"," ")}</h2><progress className="job-progress" value={job.progress_percent} max={100}/><p>{job.cancel_requested_at?"Cancellation requested. The worker will stop at a safe checkpoint.":job.progress_message||"Waiting for the next update."}</p>{job.error_message_safe&&<p className="notice error">{job.error_message_safe}</p>}</section>

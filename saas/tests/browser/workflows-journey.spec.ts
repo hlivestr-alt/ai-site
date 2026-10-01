@@ -1,0 +1,24 @@
+import {test,expect} from "@playwright/test";
+import {spawn,type ChildProcess} from "node:child_process";
+import {randomUUID} from "node:crypto";
+import {mkdir} from "node:fs/promises";
+import {owner} from "../clipper-helpers";
+import {product} from "../content-helpers";
+import {workflowEnv} from "../workflow-helpers";
+function processFor(file:string):ChildProcess{return spawn(process.execPath,["--env-file=.env.local","--import","tsx",file],{env:{...workflowEnv(),DISPATCHER_POLL_MS:"200",WORKFLOW_POLL_MS:"200"},stdio:["ignore","pipe","pipe"],windowsHide:true});}
+test("customer saves a recipe, closes the browser, returns to review four outputs and sees real final results",async({browser})=>{
+  test.setTimeout(180000);const a=await owner(`p8-browser-${randomUUID()}@example.test`),p=await product(a.c,a.workspaceId),state=await a.c.storageState();const context=await browser.newContext({storageState:state}),page=await context.newPage();let reconciler:ChildProcess|undefined,dispatcher:ChildProcess|undefined;
+  try{
+    await page.goto("/workflows");await page.getByRole("link",{name:"Create workflow"}).click();await page.getByLabel("Workflow name").fill("Morning and problem-solution videos");await page.getByLabel("Saved Product").selectOption(p.id);await page.getByLabel("Script / prompt 1").fill("Morning skincare routine with the saved Product on a bright studio table.");await page.getByRole("button",{name:"Add script variant"}).click();await page.getByLabel("Script / prompt 2").fill("Problem-solution hook showing the saved Product with a gentle close-up.");await page.getByLabel("Videos per script").selectOption("2");await page.getByLabel("Aspect ratio").selectOption("1:1");await page.getByRole("button",{name:"Estimate cost",exact:true}).click();await expect(page.getByText("Estimated using current pricing: 2800 tokens")).toBeVisible();await page.getByRole("button",{name:"Save workflow",exact:true}).click();await expect(page).toHaveURL(/\/workflows\/[0-9a-f-]+$/);await page.getByRole("button",{name:"Estimate run cost"}).click();await page.getByRole("button",{name:"Start workflow",exact:true}).click();await expect(page).toHaveURL(/\/workflows\/runs\/[0-9a-f-]+$/);const url=page.url(),id=url.split("/").pop()!;
+    await context.close();reconciler=processFor("scripts/workflow-dispatcher.ts");dispatcher=processFor("scripts/dispatcher.ts");
+    await expect.poll(async()=>{const r=await a.c.get(`/api/workspaces/${a.workspaceId}/workflows/runs/${id}`,{maxRetries:2});return (await r.json()).run.status;},{timeout:90000,intervals:[500,1000,2000]}).toBe("WAITING_FOR_REVIEW");
+    const reopened=await browser.newContext({storageState:state}),view=await reopened.newPage();try{
+      await view.goto(url);await expect(view.getByText("WAITING FOR REVIEW",{exact:true})).toBeVisible();await expect(view.locator(".workflow-outputs .video-history-row")).toHaveCount(4);await expect(view.getByText("Parent workflow charge: 0 tokens")).toBeVisible();await mkdir("data/phase8",{recursive:true});await view.screenshot({path:"data/phase8/workflow-review.png",fullPage:true});
+      const detail=await (await a.c.get(`/api/workspaces/${a.workspaceId}/workflows/runs/${id}`)).json();for(const [index,o] of detail.outputs.entries()){
+        await view.goto(`/content/${o.contentId}`);if(index<2)await view.getByRole("button",{name:"Approve content",exact:true}).click();else{await view.getByLabel("Rejection category").selectOption("QUALITY_ISSUE");await view.getByRole("button",{name:"Reject content",exact:true}).click();}await expect(view.locator(".page-heading .pill")).toHaveText(index<2?"APPROVED":"REJECTED");
+      }
+      await view.goto(url);await expect(view.getByText("SUCCEEDED",{exact:true}).first()).toBeVisible({timeout:30000});await expect(view.getByText("2 approved · 2 rejected")).toBeVisible();await view.screenshot({path:"data/phase8/workflow-success.png",fullPage:true});await view.setViewportSize({width:390,height:844});await view.screenshot({path:"data/phase8/workflow-mobile.png",fullPage:true});expect(await view.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+      await view.goto("/workflows");await expect(view.getByRole("heading",{name:"Run history"})).toBeVisible();await view.getByRole("link",{name:/Morning and problem-solution videos/}).first().click();await view.getByRole("link",{name:"Edit workflow",exact:true}).click();await view.getByLabel("Workflow name").fill("Edited recipe");await view.getByRole("button",{name:"Estimate cost",exact:true}).click();await view.getByRole("button",{name:"Save new version",exact:true}).click();await expect(view.getByRole("heading",{name:"Edited recipe",exact:true})).toBeVisible();await expect(view.getByText("Version 2 · PRODUCT_AI_VIDEO_REVIEW_V1",{exact:false})).toBeVisible();
+    }finally{await reopened.close();}
+  }finally{reconciler?.kill();dispatcher?.kill();await context.close().catch(()=>{});await a.c.dispose();}
+});

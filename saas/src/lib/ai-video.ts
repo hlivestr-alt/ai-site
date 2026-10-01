@@ -1,86 +1,39 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { query, transaction, type DbClient } from "./db";
-import { AppError, audit, isUuid } from "./core";
+import { AppError, isUuid } from "./core";
 import { requireRole } from "./workspaces";
 import { getProductSnapshot, requireActiveWorkspace } from "./products";
 import { frozenProductFromSnapshot } from "./jobs";
-import { insertJob, type AiVideoInput, type FrozenAsset, type FrozenProduct } from "./job-core";
-import { activeVideoPolicy, customerVideoOptions, fakeEnabled, providerForNewJob } from "./video-providers";
-import {billingRealm,createQuote,validateQuote,lockWallet,reserveJob,jobBilling} from "./billing-core";
+import { type AiVideoInput } from "./job-core";
+import { customerVideoOptions, fakeEnabled } from "./video-providers";
+import {createQuote,lockWallet,jobBilling} from "./billing-core";
 import { objectStorage } from "./storage";
 import type { Session } from "./auth";
 
-const rank=["FRONT","BACK","LEFT_SIDE","RIGHT_SIDE","PACKAGING","CAP_PUMP","TEXTURE"];
-const scenarios=["SUCCESS","FAILURE","RATE_LIMIT","SUBMISSION_UNKNOWN","DOWNLOAD_FAIL_ONCE","OVERSIZED_OUTPUT","INVALID_MIME","INVALID_CHECKSUM"] as const;
-type Scenario=(typeof scenarios)[number];
-function parseRequest(raw:Record<string,unknown>,scenario?:Scenario){
-  const productId=raw.productId,prompt=raw.prompt,tier=raw.tier,duration=raw.durationSeconds,ratio=raw.aspectRatio,quantity=raw.quantity,key=raw.idempotencyKey,selected=raw.referenceAssetVersionIds;
-  if(typeof productId!=="string"||!isUuid(productId))throw new AppError(400,"Select a valid Product.");
-  if(typeof prompt!=="string"||prompt.trim().length<20||prompt.length>2000||/[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(prompt))throw new AppError(400,"Prompt must be 20–2000 readable characters.");
-  if(tier!=="QUALITY")throw new AppError(400,"This quality tier is unavailable.");
-  if(typeof duration!=="number"||!Number.isInteger(duration)||duration<4||duration>30)throw new AppError(400,"Choose a supported duration.");
-  if(ratio!=="9:16"&&ratio!=="16:9"&&ratio!=="1:1")throw new AppError(400,"Choose a supported aspect ratio.");
-  if(quantity!==1)throw new AppError(400,"One video per request is supported in this preview.");
-  if(typeof key!=="string"||!/^[A-Za-z0-9:_-]{8,160}$/.test(key))throw new AppError(400,"Invalid idempotency key.");
-  if(selected!==undefined&&(!Array.isArray(selected)||selected.length>4||selected.some(x=>typeof x!=="string"||!isUuid(x))||new Set(selected).size!==selected.length))throw new AppError(400,"Invalid reference selection.");
-  const ids=(selected||[]) as string[];
-  return {productId,prompt:prompt.trim(),tier,durationSeconds:duration,aspectRatio:ratio as "9:16"|"16:9"|"1:1",quantity:1 as const,idempotencyKey:key,referenceAssetVersionIds:ids,scenario};
-}
-function accuracyInstructions(product:FrozenProduct){
-  const r=product.rules,phrases=[
-    r.keepLogo&&"Keep the product logo visually faithful.",r.keepPackagingText&&"Keep packaging text and claims faithful; do not invent wording.",
-    r.keepProductShape&&"Preserve the product silhouette and proportions.",r.keepCapPump&&"Preserve the cap or pump structure.",
-    r.keepProductColorMaterial&&"Preserve the product color and material.",r.keepApplicationMethod&&"Show only the documented application method.",
-  ].filter(Boolean) as string[];
-  const custom=typeof r.customInstructions==="string"?r.customInstructions.trim().slice(0,700):"";
-  if(custom)phrases.push(custom);
-  return phrases.join(" ").slice(0,1400)||"Represent the saved Product reference faithfully.";
-}
-function validImage(asset:FrozenAsset){
-  const width=asset.width||0,height=asset.height||0;
-  return asset.type==="IMAGE"&&["image/png","image/jpeg","image/webp"].includes(asset.mimeType)&&asset.byteSize>0&&asset.byteSize<=4*1024*1024&&width>=300&&height>=300&&width<=6000&&height<=6000&&width*height>=407696&&width*height<=8295044&&width/height>=0.4&&width/height<=2.5;
-}
-function selectReferences(product:FrozenProduct,requested:string[],max:number){
-  const candidates=product.assets.filter(validImage).sort((a,b)=>rank.indexOf(a.purpose)-rank.indexOf(b.purpose)||a.assetId.localeCompare(b.assetId));
-  if(requested.length){const chosen=requested.map(id=>candidates.find(a=>a.assetVersionId===id));if(chosen.some(x=>!x))throw new AppError(409,"A selected Product reference is unavailable or unsupported.");return requested;}
-  const chosen=candidates.slice(0,max).map(x=>x.assetVersionId);
-  if(!chosen.length)throw new AppError(409,"Add a compatible READY Product image before generating (for example, 640 × 640 px).");
-  return chosen;
-}
-function customerScenario(raw:Record<string,unknown>):Scenario|undefined{if(raw.testScenario===undefined)return undefined;if(billingRealm()!=="TEST"||!fakeEnabled())throw new AppError(400,"Test controls are unavailable.");return diagnosticVideoScenario(raw.testScenario);}
-async function prepareAiVideo(db:DbClient,session:Session,workspaceId:string,input:ReturnType<typeof parseRequest>,scenario?:Scenario){
-    const policy=await activeVideoPolicy(db);
-    if(!policy||!policy.enabled)throw new AppError(503,"Video generation is not available.");
-    const provider=providerForNewJob();
-    if(input.durationSeconds<policy.min_duration_seconds||input.durationSeconds>policy.max_duration_seconds||!policy.aspect_ratios.includes(input.aspectRatio)||input.quantity>policy.max_quantity)throw new AppError(400,"The selected video settings are not supported.");
-    const snapshot=await getProductSnapshot(session,workspaceId,input.productId,db);
-    if(snapshot.product.status!=="ACTIVE")throw new AppError(409,"Select an active Product.");
-    const product=frozenProductFromSnapshot(snapshot),references=selectReferences(product,input.referenceAssetVersionIds,policy.max_reference_images);
-    const frozen:AiVideoInput={schemaVersion:1,kind:"AI_VIDEO",product,customerPrompt:input.prompt,accuracyInstructions:accuracyInstructions(product),tier:"QUALITY",durationSeconds:input.durationSeconds,aspectRatio:input.aspectRatio,quantity:1,referenceAssetVersionIds:references,providerPolicyVersion:policy.policy_version,executionProvider:provider.name,...(scenario?{testScenario:scenario}:{})};
-    provider.validateInput(frozen);
-    return frozen;
+import {parseAiVideoRequest as parseRequest,customerVideoScenario as customerScenario,prepareAiVideoInput,diagnosticVideoScenario} from "./video-operation";
+import {admitOperation} from "./paid-operations";
+export {diagnosticVideoScenario} from "./video-operation";
+async function prepareAiVideo(db:DbClient,session:Session,workspaceId:string,input:ReturnType<typeof parseRequest>,scenario?:ReturnType<typeof diagnosticVideoScenario>){
+ const snapshot=await getProductSnapshot(session,workspaceId,input.productId,db);
+ if(snapshot.product.status!=="ACTIVE")throw new AppError(409,"Select an active Product.");
+ return prepareAiVideoInput(db,input,frozenProductFromSnapshot(snapshot),scenario);
 }
 export async function quoteAiVideo(session:Session,workspaceId:string,raw:Record<string,unknown>){const input=parseRequest({...raw,idempotencyKey:raw.idempotencyKey||"quote-request"},customerScenario(raw));const requestHash=createHash("sha256").update(JSON.stringify({productId:input.productId,prompt:input.prompt,tier:input.tier,durationSeconds:input.durationSeconds,aspectRatio:input.aspectRatio,quantity:input.quantity,referenceAssetVersionIds:input.referenceAssetVersionIds,scenario:input.scenario||null})).digest("hex");await requireActiveWorkspace(session,workspaceId,"future:spend");return transaction(async db=>{await requireRole(session.userId,workspaceId,"future:spend",db);return createQuote(db,workspaceId,session.userId,"AI_VIDEO",await prepareAiVideo(db,session,workspaceId,input,input.scenario),requestHash);});}
-export async function createAiVideoJob(session:Session,workspaceId:string,raw:Record<string,unknown>,scenario?:Scenario){
+export async function createAiVideoJob(session:Session,workspaceId:string,raw:Record<string,unknown>,scenario?:ReturnType<typeof diagnosticVideoScenario>){
   if(scenario&&!fakeEnabled())throw new AppError(404,"Not found.");
   const input=parseRequest(raw,scenario||customerScenario(raw)),requestHash=createHash("sha256").update(JSON.stringify({productId:input.productId,prompt:input.prompt,tier:input.tier,durationSeconds:input.durationSeconds,aspectRatio:input.aspectRatio,quantity:input.quantity,referenceAssetVersionIds:input.referenceAssetVersionIds,scenario:input.scenario||null})).digest("hex");
   await requireActiveWorkspace(session,workspaceId,"future:spend");
   return transaction(async db=>{
     await requireRole(session.userId,workspaceId,"future:spend",db);
-    const wallet=scenario?null:await lockWallet(db,workspaceId);
+    if(!scenario)await lockWallet(db,workspaceId);
     const prior=await db.query<{id:string;client_request_hash:string|null;billing_mode:string}>("SELECT id,client_request_hash,billing_mode FROM jobs WHERE workspace_id=$1 AND type='AI_VIDEO' AND idempotency_key=$2",[workspaceId,input.idempotencyKey]);
     if(prior.rows[0]){
       if((prior.rows[0].billing_mode==="DIAGNOSTIC")!==!!scenario||prior.rows[0].client_request_hash!==requestHash)throw new AppError(409,"Idempotency key was already used for different input.");
       return {id:prior.rows[0].id,existing:true};
     }
     const frozen=await prepareAiVideo(db,session,workspaceId,input,input.scenario);
-    const quote=scenario?null:await validateQuote(db,workspaceId,"AI_VIDEO",raw,frozen,requestHash);
-    if(quote&&BigInt(wallet!.available_tokens)<BigInt(quote.token_amount))throw new AppError(402,"Insufficient tokens. Buy tokens in Billing.");
-    const result=await insertJob(db,{workspaceId,createdBy:session.userId,type:"AI_VIDEO",capability:"CLOUD_AI_VIDEO",idempotencyKey:input.idempotencyKey,input:frozen,maxAttempts:2,requestHash,billingMode:scenario?"DIAGNOSTIC":"PAID"});
-    if(!result.existing&&quote)await reserveJob(db,workspaceId,result.id,quote);
-    if(!result.existing)await audit(db,{workspaceId,actorUserId:session.userId,type:"AI_VIDEO_JOB_CREATED",targetType:"job",targetId:result.id});
-    return result;
+    return admitOperation(db,{workspaceId,userId:session.userId,input:frozen,requestHash,key:input.idempotencyKey,quote:raw,diagnostic:!!scenario});
   });
 }
 export async function aiVideoOptions(session:Session,workspaceId:string){await requireActiveWorkspace(session,workspaceId,"workspace:read");return customerVideoOptions();}
@@ -112,8 +65,4 @@ export async function aiVideoArtifactDownload(session:Session,workspaceId:string
   const artifact=rows.rows[0];if(!artifact)throw new AppError(404,"Video artifact not found.");
   if(!await objectStorage().head(artifact.storage_key))throw new AppError(503,"Video file is temporarily unavailable.");
   return {url:await objectStorage().issueDownload(artifact.storage_key,`${jobId}.mp4`,300),expiresInSeconds:300,mimeType:artifact.mime_type,byteSize:Number(artifact.byte_size),sha256:artifact.sha256};
-}
-export function diagnosticVideoScenario(raw:unknown):Scenario{
-  if(typeof raw!=="string"||!scenarios.includes(raw as Scenario))throw new AppError(400,"Invalid diagnostic scenario.");
-  return raw as Scenario;
 }
