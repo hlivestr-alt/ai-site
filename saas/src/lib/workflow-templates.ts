@@ -19,7 +19,7 @@ export type IntendedChild={childKey:string;inputIndex:number;requestHash:string}
 export type PlannedStep={key:string;type:"INPUT"|"SCRIPT_INPUT"|"AI_VIDEO"|"CLIPPER"|"REVIEW_GATE"|"COMPLETE";parentKey?:string;state:"SUCCEEDED"|"READY"|"PENDING";input:Record<string,unknown>};
 export type ReviewOutcome={contentId:string;versionId:string;decision:"APPROVED"|"REJECTED"|"PENDING"|"UNAVAILABLE"};
 export function workflowBudgetLimit(){
-  const raw=process.env.WORKFLOW_MAX_TOKENS||(process.env.APP_ENV==="local"?"100000":"");
+  const raw=process.env.WORKFLOW_MAX_TOKENS||(['local','test'].includes(process.env.APP_ENV||'')?"100000":"");
   if(!raw)throw new AppError(503,"Workflow budget limit must be configured.");
   try{return integer(raw,true);}catch{throw new AppError(503,"Workflow budget limit configuration is invalid.");}
 }

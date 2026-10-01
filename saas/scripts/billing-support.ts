@@ -1,4 +1,4 @@
 import {supportEntry} from "../src/lib/billing-core";
 import {pool} from "../src/lib/db";
 async function main(){if(process.env.ENABLE_BILLING_SUPPORT_CLI!=="1")throw new Error("Support CLI requires ENABLE_BILLING_SUPPORT_CLI=1; never expose it as a customer API");const [command,workspaceId,operatorId,key,value,reason]=process.argv.slice(2);if(!['grant','adjust','refund'].includes(command)||!reason)throw new Error('Usage: billing-support.ts grant|adjust|refund workspaceId operatorUserId stableKey integerAmount|jobId "reason"');const type=command==="grant"?"PROMOTIONAL_GRANT":command==="adjust"?"ADMIN_ADJUSTMENT":"REFUND";console.log(JSON.stringify(await supportEntry({workspaceId,operatorId,key,reason,type,...(type==="REFUND"?{jobId:value}:{amount:value})})));}
-main().catch(e=>{console.error(e.message);process.exitCode=1;}).finally(()=>pool().end());
+main().catch(()=>{console.error(JSON.stringify({code:'BILLING_SUPPORT_REJECTED',detail:'Check operator authorization, reason, and append-only correction identity.'}));process.exitCode=1;}).finally(()=>pool().end());

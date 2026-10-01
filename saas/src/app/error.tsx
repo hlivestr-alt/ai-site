@@ -1,0 +1,2 @@
+'use client';
+export default function ErrorPage({error,reset}:{error:Error&{digest?:string};reset:()=>void}){return <main className="content"><section className="panel"><h1>Service temporarily unavailable</h1><p>Your saved work is preserved. Retry or return later.</p>{error.digest&&<p>Support reference: {error.digest}</p>}<button className="button primary" onClick={reset}>Try again</button></section></main>;}

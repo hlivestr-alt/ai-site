@@ -5,13 +5,14 @@ import {admitOperation} from "./paid-operations";
 import {cancelWorkspaceJob,inputHash} from "./job-core";
 import {isContentApproved} from "./content-eligibility";
 import {workflowTemplate,type WorkflowSnapshot,type ReviewOutcome} from "./workflow-templates";
+import {correlationMetadata} from './operational-logging';
 
 export type RunStatus="QUEUED"|"RUNNING"|"WAITING_FOR_FUNDS"|"WAITING_FOR_REVIEW"|"PAUSED"|"SUCCEEDED"|"FAILED"|"CANCELLED";
 export type RunRow={id:string;workspace_id:string;definition_id:string;definition_version_id:string;template_key:string;template_version:number;status:RunStatus;input_snapshot:WorkflowSnapshot;max_tokens:string;tokens_committed:string;request_key:string;request_hash:string;created_by:string;created_at:Date;started_at:Date|null;paused_at:Date|null;finished_at:Date|null;cancel_requested_at:Date|null;failure_code:string|null;failure_message_safe:string|null;result:Record<string,unknown>|null};
 export const terminalRun=(status:string)=>["SUCCEEDED","FAILED","CANCELLED"].includes(status);
 export async function workflowEvent(db:DbClient,run:Pick<RunRow,"workspace_id"|"id">,type:string,stepId:string|null=null,data:Record<string,string|number|boolean|null>={}){
   if(Buffer.byteLength(JSON.stringify(data))>4096)throw new Error("Workflow event metadata is too large");
-  await db.query("INSERT INTO workflow_events(workspace_id,workflow_run_id,workflow_step_id,event_type,safe_data) VALUES($1,$2,$3,$4,$5::jsonb)",[run.workspace_id,run.id,stepId,type,JSON.stringify(data)]);
+  await db.query("INSERT INTO workflow_events(workspace_id,workflow_run_id,workflow_step_id,event_type,safe_data) VALUES($1,$2,$3,$4,$5::jsonb)",[run.workspace_id,run.id,stepId,type,JSON.stringify({...data,...correlationMetadata()})]);
 }
 // JobBilling is authoritative; REFUNDED retains historical consumption in v1 (no paid reruns).
 export async function workflowTotals(db:DbClient,workspaceId:string,runId:string){
@@ -128,6 +129,7 @@ export async function reconcileWorkflowOne(options:ReconcileOptions={}){
       }catch(error){
         if(!(error instanceof AppError))throw error;
         if(error.status===402){await state(db,run,"WAITING_FOR_FUNDS","INSUFFICIENT_FUNDS","Add tokens in Billing to continue this workflow.");return true;}
+        if(error.safeCode==='WORKSPACE_QUOTA'){await state(db,run,'RUNNING','WORKSPACE_QUOTA','Waiting for workspace capacity. Existing children continue.');return true;}
         if(error.status===409){await stepState(db,s.id,"READY",{});await state(db,run,"RUNNING");return true;}
         await state(db,run,"PAUSED","ADMISSION_UNAVAILABLE",error.message.slice(0,240));return true;
       }

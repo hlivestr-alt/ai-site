@@ -1,0 +1,26 @@
+# Coordinated backup and restore
+
+Use a protected, encrypted backup volume with a dedicated operator account. Backups contain customer information, password hashes, credentials/tokens in database form and private media. Restrict access and retention; checksums detect corruption, not malicious replacement. Keep mail encryption keys in a separate recoverable secret store. No keys or signed URLs enter the manifest.
+
+From `saas`, with the selected environment loaded:
+
+```powershell
+node --env-file=.env.local --import tsx scripts/backup.ts create C:\Data\ai-site\saas\data\backups\reviewed-backup-name
+node --env-file=.env.local --import tsx scripts/backup.ts verify C:\Data\ai-site\saas\data\backups\reviewed-backup-name
+```
+
+The destination must be a new child of BACKUP_ROOT (default `data/backups`); traversal/junction escape is rejected. Install matching PostgreSQL tools on the operator host (PG_DUMP_PATH/PG_RESTORE_PATH optional) or explicitly select POSTGRES_TOOLS_CONTAINER. The local acceptance drill selects only `ai-site-saas-postgres-1`. Container PGHOST/PGPORT default to its localhost:5432; override POSTGRES_TOOLS_HOST/PORT deliberately when using a different topology. Passwords are inherited through environment names, not command arguments.
+
+Creation holds a read-only repeatable-read exported snapshot, uses pg_dump custom format with that same snapshot, and copies the deduplicated sealed object references visible in it. Each size and known SHA-256 is checked. Files include database.dump, hash-named objects, manifest.json and manifest.sha256; the manifest records snapshot, migration checksums, DB/bucket identities, all object hashes/sizes, total bytes and completion time. The normal mutation pool/timeouts do not constrain this separate backup connection. Missing objects or partial writes fail the command and leave INCOMPLETE evidence, not a usable completed backup.
+
+Sealed references are immutable and retained, so live admission need not corrupt the snapshot. For a planned deployment restore, pause new admission, drain active uploads/tasks and run audits first. In-flight pending uploads are not sealed assets and their staging files are not backed up; require customer reupload after recovery. Never expire/delete sealed objects while a backup is copying them.
+
+Restore requires a separately created empty database and a **new** bucket. Supply RESTORE_DATABASE_URL, RESTORE_OBJECT_STORAGE_BUCKET, RESTORE_CONFIRM_DATABASE (exact database name) and RESTORE_CONFIRM_BUCKET (exact bucket name). Both must differ from backup source and current normal targets. `backup.ts restore <directory>` verifies every file before any target mutation, blocks a nonempty database/existing bucket, creates private public-access blocks/CORS, uploads inventory objects and runs pg_restore in a single transaction. Failure leaves clearly incomplete isolated targets for investigation; never overwrite the source to repair it.
+
+`npm run test:phase9` performs the hard restore gate: representative Product/references/source, fake AI outputs, deterministic Clipper transcript/plan/clips, Content/reviews, wallet/ledger, verified fake Payment and Workflows; fresh source and restore databases/buckets; every object checksum; private unsigned access; app sign-in, historical pages, fresh signed media, Workflow bindings and read-only accounting reconciliation. Restore verification is recorded only after application checks pass. No adjustment/grant/refund is used to make the restored ledger balance.
+
+After a production drill, keep the independent application/media/lineage/accounting evidence in protected storage and hash that receipt. An allowlisted active operator can record the completed checklist using `operations.ts action <file.json>` with OPERATOR_USER_ID set. The action JSON must contain action=RECORD_RESTORE_VERIFICATION, targetId=the completed backup UUID, a reason of 8–240 characters, its exact dumpSha256, evidenceSha256, and checks with isolatedTargets/database/objectChecksums/privateMedia/signIn/pages/lineage/financialReconciliation/noCompensation all true. Incomplete receipts or a different dump identity are refused. The operation records the actor/reason/evidence hash in append-only audit and updates operational restore metadata. It is an operator attestation of completed checks; those booleans do not independently prove them. The deterministic test exercises this audited receipt action on both isolated targets.
+
+Production preflight requires a fresh backup (default 24 hours) and a recent recorded drill (default RESTORE_DRILL_STALE_DAYS=30). A newer daily backup retains previous drill evidence. Preserve the exact released migration-file bytes alongside the release: migration identity uses byte checksums, so changing line endings on the restore host changes that identity.
+
+For a real incident: stop admission and outbound mail, preserve evidence, restore isolated targets, verify migration identity/media/lineage/financial invariants, revoke old sessions and rotate restored credentials as appropriate, evaluate unresolved external submissions/payments without resubmitting, test SMTP URLs against the intended origin, then authorize cutover. Keep the previous environment and backup until recovery is signed off. Never edit ledger, immutable snapshots or Content history to hide a mismatch.

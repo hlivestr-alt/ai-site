@@ -1,12 +1,13 @@
 import {createHmac,timingSafeEqual} from "node:crypto";
 import {query} from "./db";
 import {AppError} from "./core";
+import {nonProductionTestAllowed,featureEnabled} from './operational-config';
 export type PaymentState="PENDING"|"PAID"|"FAILED"|"EXPIRED"|"REFUNDED";
 export type PaymentEvent={eventKey:string;referenceId:string;externalId:string;status:PaymentState;fiatMinor:string;currency:string;businessId?:string;providerPaymentId?:string;providerRequestId?:string;kind?:"REFUND";refundId?:string;refundOutcome?:"SUCCEEDED"|"FAILED"};
 export type PaymentRequest={id:string;workspaceId:string;referenceId:string;fiatMinor:string;currency:string;email:string};
 export interface PaymentProvider {name:"fake"|"xendit";mode:"TEST"|"SANDBOX";createPayment(input:PaymentRequest):Promise<{event:PaymentEvent;checkoutUrl:string;expiresAt:string}>;getPayment(externalId:string):Promise<PaymentEvent>;verifyWebhook(raw:Buffer,headers:Headers):void;parseWebhook(raw:Buffer):PaymentEvent;refundPayment?: (requestId:string,referenceId:string,fiatMinor:string,currency:string)=>Promise<unknown>;}
 function secretEqual(actual:string,expected:string){const a=Buffer.from(actual),b=Buffer.from(expected);return a.length===b.length&&timingSafeEqual(a,b);}
-export function fakePaymentsEnabled(){return process.env.APP_ENV==="local"&&process.env.ENABLE_TEST_BILLING==="1"&&process.env.ENABLE_FAKE_PAYMENT_PROVIDER==="1";}
+export function fakePaymentsEnabled(){return nonProductionTestAllowed()&&process.env.ENABLE_TEST_BILLING==="1"&&process.env.ENABLE_FAKE_PAYMENT_PROVIDER==="1";}
 export function fakeWebhookSignature(raw:Buffer){const secret=process.env.FAKE_PAYMENT_WEBHOOK_SECRET;if(!secret||secret.length<32)throw new AppError(503,"Simulation webhook secret is not configured.");return createHmac("sha256",secret).update(raw).digest("hex");}
 function normalizedFake(v:Record<string,unknown>):PaymentEvent {if(typeof v.externalId!=="string"||!/^fake_[a-f0-9-]{36}$/.test(v.externalId)||typeof v.referenceId!=="string"||v.referenceId.length>64||typeof v.eventKey!=="string"||v.eventKey.length>200||!["PENDING","PAID","FAILED","EXPIRED","REFUNDED"].includes(String(v.status))||typeof v.fiatMinor!=="string"||! /^[1-9][0-9]{0,15}$/.test(v.fiatMinor)||typeof v.currency!=="string"||! /^[A-Z]{3}$/.test(v.currency))throw new AppError(400,"Invalid simulation event.");return {eventKey:v.eventKey,referenceId:v.referenceId,externalId:v.externalId,status:v.status as PaymentState,fiatMinor:v.fiatMinor,currency:v.currency};}
 class FakePaymentProvider implements PaymentProvider {
@@ -41,3 +42,4 @@ class XenditPaymentProvider implements PaymentProvider {
  async refundPayment(requestId:string,referenceId:string,fiatMinor:string,currency:string){if(currency!=="IDR"||!/^pr-[A-Za-z0-9-]+$/.test(requestId))throw new AppError(400,"Unsupported refund request.");const amount=Number(fiatMinor);if(!/^[1-9][0-9]{0,15}$/.test(fiatMinor)||!Number.isSafeInteger(amount)||amount<=0)throw new AppError(400,"Invalid refund amount.");return xenditRequest("/refunds","POST",{reference_id:referenceId,payment_request_id:requestId,amount,currency,reason:"REQUESTED_BY_CUSTOMER"});}
 }
 export function paymentProvider(name?:string):PaymentProvider{const selected=name||process.env.PAYMENT_PROVIDER;if(selected==="fake"){if(!fakePaymentsEnabled())throw new AppError(503,"Fake payments require explicit local test mode.");return new FakePaymentProvider();}if(selected==="xendit"){xenditConfig();return new XenditPaymentProvider();}throw new AppError(503,"Payment provider is not configured.");}
+export function paymentsConfigured(){if(!featureEnabled('PAYMENTS'))return false;try{return paymentProvider().name==='fake'||process.env.XENDIT_RETURN_BASE_URL?.startsWith('https://')===true;}catch{return false;}}

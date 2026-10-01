@@ -6,6 +6,7 @@ import {execFile} from "node:child_process";
 import {promisify} from "node:util";
 import {query,transaction} from "./db";
 import {objectStorage} from "./storage";
+import {checkStorageQuota} from './operational-limits';
 type PosterTask={workspace_id:string;content_item_id:string;content_version_id:string;attempts:number;storage_key:string;byte_size:string;sha256:string;duration_seconds:string|null};
 async function poster(task:PosterTask){
   const folder=await mkdtemp(join(tmpdir(),"saas-poster-")),path=join(folder,"input.mp4"),output=join(folder,"poster.jpg");
@@ -27,7 +28,7 @@ export async function contentPosterBatch(limit=2,versionId?:string){let processe
         JOIN content_versions v ON v.id=p.content_version_id AND v.workspace_id=p.workspace_id AND v.content_item_id=p.content_item_id
         JOIN job_artifacts a ON a.id=v.artifact_id AND a.workspace_id=v.workspace_id AND a.job_id=v.job_id
         WHERE p.status IN ('PENDING','PROCESSING') AND p.available_at<=now() AND p.attempts<3 AND ($1::uuid IS NULL OR p.content_version_id=$1) ORDER BY p.available_at,p.content_version_id LIMIT 1 FOR UPDATE OF p SKIP LOCKED`,[versionId||null]);
-      if(!r.rows[0])return null;const row=r.rows[0];row.attempts++;
+      if(!r.rows[0])return null;const row=r.rows[0];await checkStorageQuota(db,row.workspace_id,1048576);row.attempts++;
       await db.query("UPDATE content_posters SET status='PROCESSING',attempts=$1,available_at=now()+interval '3 minutes' WHERE content_version_id=$2",[row.attempts,row.content_version_id]);return row;
     });
     if(!task)break;

@@ -13,6 +13,8 @@ import {canonicalHash,createQuote} from "./billing-core";
 import {workflowTemplate,workflowBudget,runRequest,type WorkflowConfiguration,type WorkflowSnapshot} from "./workflow-templates";
 import {workflowEvent,workflowTotals,terminalRun,type RunRow} from "./workflow-core";
 import type {Session} from "./auth";
+import {checkWorkflowQuota} from './operational-limits';
+import {featureEnabled} from './operational-config';
 
 type Definition={id:string;workspace_id:string;name:string;status:string;current_version_id:string;created_at:Date;updated_at:Date};
 type DefinitionVersion={id:string;workspace_id:string;workflow_definition_id:string;version_number:number;template_key:string;template_version:1;configuration:WorkflowConfiguration;created_at:Date};
@@ -61,6 +63,8 @@ export async function startWorkflowRun(session:Session,workspaceId:string,defini
     // Serialize same workspace request keys without reserving the wallet or admitting children.
     await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1,8))",[`${workspaceId}:${request.key}`]);
     const prior=(await db.query<{id:string;request_hash:string}>("SELECT id,request_hash FROM workflow_runs WHERE workspace_id=$1 AND request_key=$2",[workspaceId,request.key])).rows[0];if(prior){if(prior.request_hash!==hash)throw new AppError(409,"Workflow start key was already used for different input.");return {id:prior.id,existing:true};}
+    if(!featureEnabled('WORKFLOWS'))throw new AppError(503,'Workflows are temporarily unavailable.');
+    await checkWorkflowQuota(db,workspaceId);
     const definition=await scopedDefinition(db,workspaceId,definitionId,true);if(definition.status!=="ACTIVE")throw new AppError(409,"Only active workflow definitions can start runs.");
     const version=(await db.query<DefinitionVersion>("SELECT * FROM workflow_definition_versions WHERE workspace_id=$1 AND workflow_definition_id=$2 AND id=$3",[workspaceId,definitionId,request.versionId||definition.current_version_id])).rows[0];if(!version)throw new AppError(404,"Workflow version not found.");
     const template=workflowTemplate(version.template_key),configuration=template.validateDefinition(version.configuration),maxTokens=request.maxTokens||configuration.maxTokens;

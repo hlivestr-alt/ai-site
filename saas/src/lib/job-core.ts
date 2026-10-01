@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { query, transaction, type DbClient } from "./db";
 import { AppError, isUuid } from "./core";
 import { objectStorage } from "./storage";
+import {correlationMetadata} from './operational-logging';
 
 export type JobStatus="QUEUED"|"WAITING_FOR_WORKER"|"RUNNING"|"RECONCILING"|"SUCCEEDED"|"FAILED"|"CANCELLED";
 export type FrozenAsset={assetId:string;assetVersionId:string;purpose:string;type:string;storageKey:string;sha256:string;byteSize:number;mimeType:string;width?:number|null;height?:number|null};
@@ -27,7 +28,7 @@ export function safeWorkerInput(input:JobInput){
   }:undefined};
 }
 export async function jobEvent(db:DbClient,workspaceId:string,jobId:string,type:string,attemptId?:string|null,workerId?:string|null,data:Record<string,string|number|boolean|null>={}){
-  await db.query("INSERT INTO job_events(workspace_id,job_id,attempt_id,worker_id,event_type,safe_data) VALUES($1,$2,$3,$4,$5,$6::jsonb)",[workspaceId,jobId,attemptId||null,workerId||null,type,JSON.stringify(data)]);
+  await db.query("INSERT INTO job_events(workspace_id,job_id,attempt_id,worker_id,event_type,safe_data) VALUES($1,$2,$3,$4,$5,$6::jsonb)",[workspaceId,jobId,attemptId||null,workerId||null,type,JSON.stringify({...data,...correlationMetadata()})]);
 }
 
 export async function insertJob(db:DbClient,args:{workspaceId:string;createdBy:string;type:"SYSTEM_TEST"|"AI_VIDEO"|"CLIPPER";capability:string;idempotencyKey:string;input:JobInput;maxAttempts:number;requestHash?:string;billingMode?:"PAID"|"DIAGNOSTIC";workflow?:{runId:string;stepId:string}}){

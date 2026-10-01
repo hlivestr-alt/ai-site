@@ -8,12 +8,14 @@ import Link from "next/link";
 import {billingSummary} from "@/lib/billing";
 import {workflowCounts} from "@/lib/workflows";
 import {contentCounts} from "@/lib/content";
+import {ServiceNotice} from '@/components/service-notice';
 
 export default async function Home() {
   const { session, workspaces, current } = await pageWorkspace();
   const [team,counts,jobCounts,libraryCounts,wallet,workflow] = await Promise.all([members(session.userId, current.id),productCounts(session,current.id),customerJobCounts(session,current.id),contentCounts(session,current.id),billingSummary(session,current.id),workflowCounts(session,current.id)]);
   const canEdit=can(current.role as Role,"future:edit");
   return <Shell user={session} workspaces={workspaces} current={current}>
+    <ServiceNotice workspaceId={current.id}/>
     <div className="page-heading"><div><p className="eyebrow">WORKSPACE OVERVIEW</p><h1>Welcome to {current.name}.</h1><p>Your team space is ready for the next stage.</p></div><span className="pill">{current.role}</span></div>
     <div className="stat-grid"><div className="stat-card"><span>Active products</span><strong>{counts.products}</strong><small>In this workspace</small></div><div className="stat-card"><span>Ready assets</span><strong>{counts.assets}</strong><small>Private references</small></div><div className="stat-card"><span>Active jobs</span><strong>{jobCounts.active}</strong><small><Link href="/jobs">View processing</Link></small></div><div className="stat-card"><span>Team members</span><strong>{team.length}</strong><small>With active access</small></div></div>
     <div className="stat-grid wallet-counts"><div className="stat-card"><span>Available tokens</span><strong>{BigInt(wallet.availableTokens).toLocaleString()}</strong><small>{BigInt(wallet.reservedTokens).toLocaleString()} reserved · <Link href="/billing">Buy Tokens</Link></small></div></div><div className="stat-grid content-counts"><div className="stat-card"><span>Content Assets</span><strong>{libraryCounts.assets}</strong><small><Link href="/content">Open Content Library</Link></small></div><div className="stat-card"><span>Pending Review</span><strong>{libraryCounts.pending}</strong><small><Link href="/review">Open Review Center</Link></small></div></div>

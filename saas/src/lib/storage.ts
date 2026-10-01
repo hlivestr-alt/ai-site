@@ -1,4 +1,4 @@
-import { AbortMultipartUploadCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand, ListPartsCommand, UploadPartCommand, UploadPartCopyCommand, CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { HeadBucketCommand, AbortMultipartUploadCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand, ListPartsCommand, UploadPartCommand, UploadPartCopyCommand, CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { AppError } from "./core";
 import { createReadStream } from "node:fs";
@@ -30,13 +30,13 @@ export function storageBucket(): string {
   return bucket;
 }
 
-function client(): S3Client {
+export function storageClient(): S3Client {
   const endpoint = process.env.OBJECT_STORAGE_ENDPOINT;
   const region = process.env.OBJECT_STORAGE_REGION;
   const accessKeyId = process.env.OBJECT_STORAGE_ACCESS_KEY;
   const secretAccessKey = process.env.OBJECT_STORAGE_SECRET_KEY;
   if (!endpoint || !region || !accessKeyId || !secretAccessKey) throw new Error("Object storage is not configured");
-  return new S3Client({ endpoint, region, credentials: { accessKeyId, secretAccessKey }, forcePathStyle: true });
+    return new S3Client({ endpoint, region, credentials: { accessKeyId, secretAccessKey }, forcePathStyle: true, maxAttempts: 2, requestHandler: { connectionTimeout: 5000, requestTimeout: 120000, socketTimeout: 30000 } });
 }
 
 function notFound(error: unknown): boolean {
@@ -44,7 +44,7 @@ function notFound(error: unknown): boolean {
 }
 
 class S3ObjectStorage implements ObjectStorage {
-  private s3 = client();
+  private s3 = storageClient();
   private bucket = storageBucket();
 
   async createMultipart(key:string,mimeType:string){const r=await this.s3.send(new CreateMultipartUploadCommand({Bucket:this.bucket,Key:key,ContentType:mimeType}));if(!r.UploadId)throw new AppError(503,"Upload unavailable.");return r.UploadId;}
@@ -69,7 +69,7 @@ class S3ObjectStorage implements ObjectStorage {
 
   async head(key: string): Promise<ObjectHead | null> {
     try {
-      const result = await this.s3.send(new HeadObjectCommand({ Bucket: this.bucket, Key: key }));
+      const result = await this.s3.send(new HeadObjectCommand({ Bucket: this.bucket, Key: key }),{abortSignal:AbortSignal.timeout(5000)});
       return { byteSize: Number(result.ContentLength ?? 0), etag: result.ETag, contentType: result.ContentType };
     } catch (error) { if (notFound(error)) return null; throw error; }
   }
@@ -98,6 +98,7 @@ class S3ObjectStorage implements ObjectStorage {
 }
 
 export function objectStorage(): ObjectStorage { return singleton ??= new S3ObjectStorage(); }
+export async function storageReachable(){const s3=storageClient();try{await s3.send(new HeadBucketCommand({Bucket:storageBucket()}),{abortSignal:AbortSignal.timeout(5000)});}finally{s3.destroy();}}
 
 export function originalObjectKey(workspaceId: string, productId: string, assetId: string, versionId: string): string {
   return `workspaces/${workspaceId}/products/${productId}/assets/${assetId}/versions/${versionId}/original`;

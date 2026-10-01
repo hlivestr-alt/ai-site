@@ -10,5 +10,5 @@ export async function POST(request: Request) { return handle(async () => {
   const next = safeNext(input.next);
   const link = `${process.env.APP_BASE_URL}/verify?token=${created.verifyToken}&next=${encodeURIComponent(next)}`;
   await deliverLocalMail(created.email,"Verify your account",link);
-  return ok({message:"Account created. Open the local development mailbox to verify your email."},201);
+  return ok({message:"Account created. Check your email to verify your account."},201);
 }); }

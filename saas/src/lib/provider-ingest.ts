@@ -6,6 +6,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { query, transaction } from "./db";
 import { objectStorage } from "./storage";
+import {checkStorageQuota,additionalArtifactBytes} from './operational-limits';
 import { ProviderSafeError, type ProviderPoll, type VideoProvider } from "./video-providers/types";
 
 const execFileAsync=promisify(execFile);
@@ -38,6 +39,8 @@ export async function ingestProviderOutput(args:{provider:VideoProvider;poll:Pro
     if(retrieved.expectedSha256&&checksum!==retrieved.expectedSha256)throw new ProviderSafeError("OUTPUT_INVALID","The provider output checksum did not match.");
     const media=await probe(path);
     const artifact=await transaction(async db=>{
+      const prior=await db.query("SELECT id FROM job_artifacts WHERE workspace_id=$1 AND attempt_id=$2 AND slot_name='video'",[args.workspaceId,args.attemptId]);
+      await checkStorageQuota(db,args.workspaceId,prior.rowCount?0:await additionalArtifactBytes(db,args.jobId,size));
       const artifactId=randomUUID(),key=`workspaces/${args.workspaceId}/jobs/${args.jobId}/outputs/${artifactId}/video.mp4`;
       await db.query(`INSERT INTO job_artifacts(id,workspace_id,job_id,attempt_id,slot_name,storage_key,mime_type,expected_byte_size,expected_sha256)
         VALUES($1,$2,$3,$4,'video',$5,'video/mp4',$6,$7) ON CONFLICT(attempt_id,slot_name) DO NOTHING`,[artifactId,args.workspaceId,args.jobId,args.attemptId,key,size,checksum]);

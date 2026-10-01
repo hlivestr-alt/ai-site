@@ -3,7 +3,9 @@ import { query, transaction, type DbClient } from "./db";
 import { AppError, hashToken, isUuid } from "./core";
 import { objectStorage } from "./storage";
 import { jobEvent, safeWorkerInput, scheduleRetry, scopedJob, snapshotMediaAvailable, type JobRow } from "./job-core";
-import { completeClipper, clipperArtifactLimit, clipperSlotAllowed } from "./clipper-worker";
+import { completeClipper, clipperArtifactLimit, clipperSlotAllowed,type CompletionPlan } from "./clipper-worker";
+import {checkStorageQuota,additionalArtifactBytes} from './operational-limits';
+import {boundedSetting,nonProductionTestAllowed} from './operational-config';
 
 export type Worker={id:string;name:string;status:string;capabilities:string[];max_concurrency:number;available_slots:number;last_heartbeat_at:Date|null};
 export type Lease={id:string;workspace_id:string;job_id:string;attempt_id:string;worker_id:string;fencing_token:string;status:string;expires_at:Date;valid:boolean};
@@ -52,12 +54,16 @@ export async function workerClaim(worker:Worker){
     if(own.available_slots<1)return {claim:null,reason:"no_available_slots"};
     const active=await db.query<{count:string}>("SELECT count(*) FROM worker_leases WHERE worker_id=$1 AND status='ACTIVE' AND expires_at>now()",[worker.id]);
     if(Number(active.rows[0].count)>=own.max_concurrency)return {claim:null,reason:"at_capacity"};
+    const health=(await db.query<{clipper_health:Record<string,unknown>}>('SELECT clipper_health FROM workers WHERE id=$1',[worker.id])).rows[0].clipper_health;
+    const realClipperReady=health.transcriberAvailable===true&&health.ffmpegAvailable===true&&health.gpuAvailable===true&&typeof health.freeDiskBytes==='number'&&health.freeDiskBytes>=boundedSetting('WORKER_MIN_FREE_DISK_BYTES',5*1024**3,1,Number.MAX_SAFE_INTEGER);
     const picked=await db.query<JobRow&{attempt_id:string}>(`SELECT j.*,a.id AS attempt_id FROM jobs j
       JOIN job_attempts a ON a.workspace_id=j.workspace_id AND a.job_id=j.id AND a.attempt_number=j.attempt_count+1 AND a.status='PENDING'
       JOIN workspaces w ON w.id=j.workspace_id AND w.status='ACTIVE'
       WHERE j.type IN ('SYSTEM_TEST','CLIPPER') AND j.status='WAITING_FOR_WORKER' AND j.available_at<=now() AND $1::jsonb ? j.required_capability
+      AND (j.required_capability<>'CLIPPER_V1' OR ($3 AND (j.input_snapshot->'source'->>'byteSize')::bigint*3<$4))
+      AND ($5 OR j.type<>'SYSTEM_TEST' AND j.required_capability<>'CLIPPER_TEST_V1')
       AND (j.type<>'CLIPPER' OR NOT EXISTS (SELECT 1 FROM worker_leases l JOIN jobs busy ON busy.id=l.job_id WHERE l.worker_id=$2 AND l.status='ACTIVE' AND busy.type='CLIPPER'))
-      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[JSON.stringify(own.capabilities),worker.id]);
+      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[JSON.stringify(own.capabilities),worker.id,realClipperReady,typeof health.freeDiskBytes==='number'?health.freeDiskBytes:0,nonProductionTestAllowed()]);
     const job=picked.rows[0];if(!job)return {claim:null,reason:"no_compatible_job"};
     if(!await snapshotMediaAvailable(job,db)){
       await db.query("UPDATE jobs SET status='FAILED',error_code='INPUT_UNAVAILABLE',error_message_safe='Required reference media is unavailable.',finished_at=now(),updated_at=now() WHERE id=$1",[job.id]);
@@ -159,13 +165,21 @@ export async function workerComplete(worker:Worker,jobId:string,raw:Record<strin
   const id=identity(raw,jobId),digest=raw.digest;
   const artifactIds=raw.artifactIds||[];
   if(!Array.isArray(artifactIds)||artifactIds.length>12||artifactIds.some(x=>typeof x!=="string"||!isUuid(x)))throw new AppError(400,"Invalid output manifest.");
+  const plan=await transaction(async db=>{
+    const lease=await lockedLease(db,worker.id,id),job=await scopedJob(db,lease.workspace_id,jobId);
+    if(lease.status==='COMPLETED'&&job.status==='SUCCEEDED'||job.input_snapshot.kind!=='CLIPPER')return null;
+    activeLease(lease);const row=(await db.query<{id:string;storage_key:string;sha256:string;byte_size:string}>("SELECT id,storage_key,sha256,byte_size FROM job_artifacts WHERE workspace_id=$1 AND job_id=$2 AND attempt_id=$3 AND slot_name='clip-plan' AND status='READY'",[lease.workspace_id,jobId,id.attemptId])).rows[0];
+    if(!row||row.id!==raw.planArtifactId)throw new AppError(422,'Completion plan is unavailable.');return row;
+  });
+  let verifiedPlan:CompletionPlan|null=null;
+  if(plan){const chunks:Buffer[]=[],hash=createHash('sha256');let bytes=0;for await(const chunk of await objectStorage().stream(plan.storage_key)){bytes+=chunk.length;if(bytes>20971520)throw new AppError(422,'Plan exceeds limit.');hash.update(chunk);chunks.push(Buffer.from(chunk));}if(bytes!==Number(plan.byte_size)||hash.digest('hex')!==plan.sha256)throw new AppError(422,'Completion plan checksum differs.');let document;try{document=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new AppError(422,'Invalid completion plan.');}verifiedPlan={artifactId:plan.id,sha256:plan.sha256,document};}
   return transaction(async db=>{
     const lease=await lockedLease(db,worker.id,id);
     const job=await scopedJob(db,lease.workspace_id,lease.job_id,true);
     if(lease.status==="COMPLETED"&&job.status==="SUCCEEDED")return {status:"SUCCEEDED",result:job.result,duplicate:true};
     activeLease(lease);
     if(job.status!=="RUNNING"||job.cancel_requested_at)throw new AppError(409,"Job is no longer completable.");
-    if(job.input_snapshot.kind==="CLIPPER")return completeClipper(db,lease,job,raw);
+    if(job.input_snapshot.kind==="CLIPPER")return completeClipper(db,lease,job,raw,verifiedPlan);
     if(job.type!=="SYSTEM_TEST")throw new AppError(409,"No executor is configured for this Job type.");
     if(artifactIds.length>10)throw new AppError(400,"Invalid output manifest.");
     if(job.input_snapshot.kind==="AI_VIDEO")throw new AppError(409,"Cloud video Jobs do not use worker completion.");
@@ -215,6 +229,7 @@ export async function workerOutputSlot(worker:Worker,jobId:string,raw:Record<str
       if(row.mime_type!==mimeType||Number(row.expected_byte_size)!==byteSize||row.expected_sha256!==(expectedSha||null)||row.status!=="PENDING")throw new AppError(409,"Output slot already exists with different input.");
       return row;
     }
+    await checkStorageQuota(db,lease.workspace_id,await additionalArtifactBytes(db,jobId,byteSize));
     const artifactId=randomUUID(),key=`pending/workspaces/${lease.workspace_id}/jobs/${jobId}/attempts/${id.attemptId}/artifacts/${artifactId}/upload`;
     const added=await db.query<{id:string;storage_key:string}>(`INSERT INTO job_artifacts(id,workspace_id,job_id,attempt_id,slot_name,storage_key,mime_type,expected_byte_size,expected_sha256)
       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id,storage_key`,[artifactId,lease.workspace_id,jobId,id.attemptId,slotName,key,mimeType,byteSize,expectedSha||null]);

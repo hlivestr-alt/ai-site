@@ -2,9 +2,11 @@ import {createHash,randomUUID} from "node:crypto";
 import {AppError,audit,isUuid} from "./core";
 import {query,transaction,type DbClient} from "./db";
 import {inputHash,type JobInput} from "./job-core";
+import {allowlistedOperator} from './platform-access';
+import {nonProductionTestAllowed} from './operational-config';
 
 export type Operation="AI_VIDEO"|"CLIPPER";
-export function billingRealm(){return process.env.APP_ENV==="local"&&process.env.ENABLE_TEST_BILLING==="1"?"TEST":"PRODUCTION";}
+export function billingRealm(){return ['local','test'].includes(process.env.APP_ENV||'')&&process.env.ENABLE_TEST_BILLING==="1"?"TEST":"PRODUCTION";}
 export function integer(value:unknown,positive=false){if(typeof value!=="string"||! /^(0|[1-9][0-9]{0,15})$/.test(value))throw new AppError(400,"Use an integer decimal amount.");const n=BigInt(value);if(n>BigInt(9007199254740991)||positive&&n<=BigInt(0))throw new AppError(400,"Invalid amount.");return n;}
 export function canonicalHash(value:unknown):string{function sorted(v:unknown):unknown{if(Array.isArray(v))return v.map(sorted);if(v&&typeof v==="object")return Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>[k,sorted(x)]));return v;}return createHash("sha256").update(JSON.stringify(sorted(value))).digest("hex");}
 export function calculateTokens(operation:Operation,input:JobInput,rules:Record<string,unknown>){
@@ -66,7 +68,8 @@ export async function settlementBatch(limit=25){const jobs=(await query<{workspa
 export async function supportEntry(args:{workspaceId:string;operatorId:string;reason:string;key:string;amount?:string;type:"PROMOTIONAL_GRANT"|"ADMIN_ADJUSTMENT"|"REFUND";jobId?:string}){
  if(!isUuid(args.workspaceId)||!isUuid(args.operatorId)||args.reason.trim().length<5||args.reason.length>500||! /^[A-Za-z0-9:_-]{8,160}$/.test(args.key))throw new AppError(400,"Operator, reason and stable key are required.");
  return transaction(async db=>{await lockWallet(db,args.workspaceId);
- if(!(await db.query("SELECT id FROM users WHERE id=$1 AND status='ACTIVE'",[args.operatorId])).rowCount)throw new AppError(400,"Active operator identity is required.");
+ const actor=(await db.query<{id:string;email:string}>("SELECT id,email FROM users WHERE id=$1 AND status='ACTIVE'",[args.operatorId])).rows[0];
+ if(!actor||!allowlistedOperator(actor)&&!(nonProductionTestAllowed()&&process.env.DATABASE_URL===process.env.TEST_DATABASE_URL))throw new AppError(403,"Allowlisted active operator identity is required.");
  const previous=(await db.query<{id:string;entry_type:string;reason:string;operator_id:string;available_delta:string;job_id:string|null}>("SELECT * FROM token_ledger_entries WHERE workspace_id=$1 AND idempotency_key=$2",[args.workspaceId,args.key])).rows[0];
  let amount:bigint;if(args.type==="REFUND"){if(!args.jobId||!isUuid(args.jobId))throw new AppError(400,"Job is required.");const b=(await db.query<{status:string;token_amount:string}>("SELECT status,token_amount FROM job_billing WHERE workspace_id=$1 AND job_id=$2 FOR UPDATE",[args.workspaceId,args.jobId])).rows[0];if(!b)throw new AppError(404,"Job billing not found.");amount=BigInt(b.token_amount);if(!previous&&b.status!=="CAPTURED")throw new AppError(409,"Only a captured job can be refunded once.");}else {const negative=args.amount?.startsWith("-");amount=integer(negative?args.amount!.slice(1):args.amount,true)*(negative?-BigInt(1):BigInt(1));if(args.type==="PROMOTIONAL_GRANT"&&amount<BigInt(0))throw new AppError(400,"Grant must be positive.");}
  if(previous){if(previous.entry_type!==args.type||previous.reason!==args.reason||previous.operator_id!==args.operatorId||previous.available_delta!==amount.toString()||previous.job_id!==(args.jobId||null))throw new AppError(409,"Support key was used for different input.");return {id:previous.id,existing:true};}

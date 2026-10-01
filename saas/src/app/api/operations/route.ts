@@ -1,0 +1,4 @@
+import {handle,ok,body,requestSession,requireSameOrigin} from '@/lib/http';
+import {requireOperator,operationStatus,operatorAction,supportLookup,operationalAudits,storageAudit} from '@/lib/operations';
+export async function GET(request:Request){return handle(async()=>{requireOperator(await requestSession(request));const p=new URL(request.url).searchParams;if(p.has('q'))return ok(await supportLookup(p.get('q')||''));if(p.get('view')==='audit')return ok(await operationalAudits());if(p.get('view')==='storage')return ok(await storageAudit(p.get('workspaceId')||'',Number(p.get('limit')||100)));return ok(await operationStatus());});}
+export async function POST(request:Request){return handle(async()=>{requireSameOrigin(request);const session=await requestSession(request);requireOperator(session);return ok(await operatorAction(session,await body(request)));});}

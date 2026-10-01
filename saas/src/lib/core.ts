@@ -1,10 +1,11 @@
 import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import type { DbClient } from "./db";
+import {correlationMetadata} from './operational-logging';
 
 const scrypt = promisify(scryptCallback);
 export class AppError extends Error {
-  constructor(public status: number, message: string) { super(message); }
+  constructor(public status: number, message: string, public safeCode?:string,public retryAfter?:number) { super(message); }
 }
 
 export function normalizeEmail(value: unknown): string {
@@ -59,18 +60,18 @@ export function safeNext(value: unknown): string {
 
 export async function audit(db: DbClient, event: { workspaceId?: string | null; actorUserId?: string | null; type: string; targetType: string; targetId?: string | null; metadata?: Record<string, string | number | boolean | null> }) {
   await db.query("INSERT INTO audit_events(workspace_id,actor_user_id,event_type,target_type,target_id,safe_metadata) VALUES($1,$2,$3,$4,$5,$6::jsonb)",
-    [event.workspaceId ?? null, event.actorUserId ?? null, event.type, event.targetType, event.targetId ?? null, JSON.stringify(event.metadata ?? {})]);
+    [event.workspaceId ?? null, event.actorUserId ?? null, event.type, event.targetType, event.targetId ?? null, JSON.stringify({...correlationMetadata(),...event.metadata})]);
 }
 
-export async function rateLimit(db: DbClient, action: string, identity: string, maxAttempts = 8): Promise<void> {
+export async function rateLimit(db: DbClient, action: string, identity: string, maxAttempts = 8,windowSeconds=900): Promise<void> {
   const key = hashToken(`${action}:${identity}`);
   const row = await db.query<{ attempts: number; blocked: boolean }>(`
     INSERT INTO auth_rate_limits(key_hash,window_started_at,attempts,blocked_until)
     VALUES($1,now(),1,NULL)
     ON CONFLICT(key_hash) DO UPDATE SET
-      window_started_at=CASE WHEN auth_rate_limits.window_started_at < now()-interval '15 minutes' THEN now() ELSE auth_rate_limits.window_started_at END,
-      attempts=CASE WHEN auth_rate_limits.window_started_at < now()-interval '15 minutes' THEN 1 ELSE auth_rate_limits.attempts+1 END,
-      blocked_until=CASE WHEN auth_rate_limits.window_started_at < now()-interval '15 minutes' THEN NULL WHEN auth_rate_limits.attempts+1 > $2 THEN now()+interval '15 minutes' ELSE auth_rate_limits.blocked_until END
-    RETURNING attempts, blocked_until > now() AS blocked`, [key, maxAttempts]);
-  if (row.rows[0]?.blocked) throw new AppError(429, "Too many attempts. Try again later.");
+      window_started_at=CASE WHEN auth_rate_limits.window_started_at < now()-($3::integer*interval '1 second') THEN now() ELSE auth_rate_limits.window_started_at END,
+      attempts=CASE WHEN auth_rate_limits.window_started_at < now()-($3::integer*interval '1 second') THEN 1 ELSE auth_rate_limits.attempts+1 END,
+      blocked_until=CASE WHEN auth_rate_limits.window_started_at < now()-($3::integer*interval '1 second') THEN NULL WHEN auth_rate_limits.attempts+1 > $2 THEN auth_rate_limits.window_started_at+($3::integer*interval '1 second') ELSE auth_rate_limits.blocked_until END
+    RETURNING attempts, blocked_until > now() AS blocked`, [key, maxAttempts,windowSeconds]);
+  if (row.rows[0]?.blocked) throw new AppError(429, "Too many attempts. Try again later.",'RATE_LIMITED',windowSeconds);
 }

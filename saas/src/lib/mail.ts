@@ -1,7 +1,7 @@
 import "server-only";
-import { mkdir, writeFile, readdir, readFile } from "node:fs/promises";
+import { mkdir, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { randomUUID } from "node:crypto";
+import {deliverMail} from './mail-core';
 
 const mailbox = join(process.cwd(), "data", "mailbox");
 
@@ -11,9 +11,7 @@ function localMailAllowed(): boolean {
 }
 
 export async function deliverLocalMail(to: string, subject: string, url: string) {
-  if (!localMailAllowed()) throw new Error("No mail transport is configured");
-  await mkdir(mailbox, { recursive: true });
-  await writeFile(join(mailbox, `${Date.now()}-${randomUUID()}.json`), JSON.stringify({ to, subject, url, createdAt: new Date().toISOString() }), { encoding: "utf8", flag: "wx", mode: 0o600 });
+  await deliverMail(to,subject,url);
 }
 
 export async function localMailbox() {

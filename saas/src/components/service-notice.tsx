@@ -1,0 +1,3 @@
+'use client';
+import {useEffect,useState} from 'react';
+export function ServiceNotice({workspaceId}:{workspaceId:string}){const [delayed,setDelayed]=useState(false);useEffect(()=>{let active=true;const refresh=async()=>{try{const r=await fetch(`/api/workspaces/${workspaceId}/status`,{cache:'no-store'}),d=await r.json();if(active)setDelayed(d.services?.execution!=='AVAILABLE'||d.services?.workflows!=='AVAILABLE');}catch{if(active)setDelayed(true);}};void refresh();const timer=setInterval(()=>void refresh(),30000);return()=>{active=false;clearInterval(timer);};},[workspaceId]);return delayed?<p className="notice" role="status">Processing is currently delayed. Your saved work will resume when service is available.</p>:null;}

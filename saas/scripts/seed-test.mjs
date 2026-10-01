@@ -23,6 +23,6 @@ try {
     if (slug==="seed-brand-a") await client.query("INSERT INTO workspace_members(workspace_id,user_id,role,status) VALUES($1,$2,'EDITOR','ACTIVE') ON CONFLICT(workspace_id,user_id) DO UPDATE SET role='EDITOR',status='ACTIVE'",[id,users.editor]);
   }
   await client.query("COMMIT");
-  console.log("Seeded isolated Brand A and Brand B test workspaces. Seed account password:",password);
+  console.log("Seeded isolated Brand A and Brand B test workspaces. Fixture credentials are documented in the local test guide.");
 } catch(error) { await client.query("ROLLBACK"); throw error; }
 finally { await client.end(); }

@@ -1,0 +1,13 @@
+# Email transport and recovery
+
+MAIL_PROVIDER=smtp is the provider-neutral production transport. Configure SMTP_HOST/PORT/USER/PASSWORD, MAIL_FROM, public APP_BASE_URL and a random 64-hex-character MAIL_ENCRYPTION_KEY. Port 465 uses implicit TLS; other configured ports require STARTTLS; certificate verification remains enabled. Connection/greeting/socket timeouts are explicit, debug logging is disabled and message file/URL attachment access is disabled. Transport behavior follows [Nodemailer SMTP documentation](https://nodemailer.com/smtp).
+
+Registration verification, invitation and password-reset flows enqueue existing links into `mail_deliveries`. Link payloads use authenticated AES-256-GCM encryption at rest; plaintext URLs/tokens/bodies are absent from database records and operational logs. Pending accounts are not activated by a mail failure. Delivery is at-least-once: a crash after SMTP acceptance may deliver the same valid link again, with a stable Message-ID. Verification/reset tokens remain single-use and expiring.
+
+The execution dispatcher retries due mail with row locking/fencing, a one-minute delay and at most five attempts. Provider failure is safe MAIL_UNAVAILABLE; attempts remain observable. Exhausted deliveries become FAILED and require an audited RETRY_MAIL or customer resend/recovery. `/api/auth/resend-verification` regenerates a pending account's expiring single-use link under per-email/IP limits without exposing whether the account exists or activating it.
+
+Local/test loopback development_file/fake writes ignored `data/mailbox` fixtures. Production/staging reject these modes and test failure switches. The deterministic failure test forces local transport failure, verifies encrypted pending state and then succeeds on retry; it sends zero real emails. The local mailbox page is explicitly guarded and unavailable in production.
+
+Production acceptance remains blocked: choose/configure a transport and sender domain, verify SPF/DKIM/DMARC and TLS, send controlled registration/invitation/reset/resend messages to an authorized real recipient, open HTTPS links, confirm delivery/failure signals and recovery. Set PRODUCTION_MAIL_VERIFIED only after that evidence exists. Do not use deterministic fixture delivery as proof.
+
+Key rotation: stop mail admission/retries, finish or reissue outstanding links, preserve the old key with backups during required retention, install the new key, then resume and test. Changing the key without addressing queued ciphertext causes delivery failure; reset/resend is the safe recovery. Do not log either key or decrypt links into support logs.

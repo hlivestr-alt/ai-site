@@ -8,6 +8,7 @@ import { requireRole } from "./workspaces";
 import { objectStorage, originalObjectKey, thumbnailObjectKey, uploadObjectKey } from "./storage";
 import { signatureMatches, uploadInput } from "./media-validation";
 import type { Session } from "./auth";
+import {checkAssetQuota,checkStorageQuota} from './operational-limits';
 
 type AssetRow={id:string;workspace_id:string;product_id:string;type:"IMAGE"|"VIDEO";purpose:string;status:string;current_version_id:string|null};
 type AssetVersionRow={id:string;workspace_id:string;product_id:string;asset_id:string;version_number:number;status:string;storage_key:string;upload_key:string;original_filename:string;mime_type:string;expected_byte_size:string;expected_sha256:string|null;byte_size:string|null;sha256:string|null;thumbnail_key:string|null};
@@ -35,6 +36,7 @@ export async function createUploadIntent(session:Session,workspaceId:string,prod
   const storageKey=originalObjectKey(workspaceId,productId,assetId,versionId);
   const result=await transaction(async db=>{
     await requireRole(session.userId,workspaceId,"future:edit",db);
+    await checkAssetQuota(db,workspaceId,input.byteSize,input.mimeType.startsWith('image/'),!!replaceAssetId);
     const product=await db.query<{status:string}>("SELECT status FROM products WHERE workspace_id=$1 AND id=$2 FOR UPDATE",[workspaceId,productId]);
     if(!product.rows[0])throw new AppError(404,"Product not found.");
     if(product.rows[0].status==="ARCHIVED")throw new AppError(409,"Archived products cannot receive media.");
@@ -110,6 +112,7 @@ export async function finalizeUpload(session:Session,workspaceId:string,productI
   const version=await scopedVersion({query},workspaceId,productId,assetId,versionId);
   if(version.status==="READY")return {assetId,versionId,status:"READY",alreadyFinalized:true};
   if(version.status!=="PENDING_UPLOAD")throw new AppError(409,"Upload is not pending.");
+  await transaction(async db=>{await checkStorageQuota(db,workspaceId);});
   const max=version.mime_type.startsWith("image/")?Number(process.env.MAX_IMAGE_BYTES||20*1024*1024):Number(process.env.MAX_VIDEO_BYTES||500*1024*1024);
   const storage=objectStorage();
   const staged=await storage.head(version.upload_key);
@@ -133,10 +136,12 @@ export async function finalizeUpload(session:Session,workspaceId:string,productI
   }
   const result=await transaction(async db=>{
     await requireRole(session.userId,workspaceId,"future:edit",db);
+    await checkStorageQuota(db,workspaceId);
     const asset=await scopedAsset(db,workspaceId,productId,assetId,true);
     const current=await scopedVersion(db,workspaceId,productId,assetId,versionId);
     if(current.status==="READY")return {assetId,versionId,status:"READY" as const,alreadyFinalized:true};
     if(current.status!=="PENDING_UPLOAD"||asset.status==="ARCHIVED")throw new AppError(409,"Upload can no longer be finalized.");
+    if(thumbnailKey&&verified.thumbnail)await db.query('INSERT INTO storage_object_observations(workspace_id,storage_key,byte_size) VALUES($1,$2,$3) ON CONFLICT(workspace_id,storage_key) DO UPDATE SET byte_size=$3,last_checked_at=now()',[workspaceId,thumbnailKey,verified.thumbnail.length]);
     await db.query(`UPDATE asset_versions SET status='READY',byte_size=$1,sha256=$2,width=$3,height=$4,thumbnail_key=$5,verified_at=now(),failure_code=$6
       WHERE workspace_id=$7 AND product_id=$8 AND asset_id=$9 AND id=$10`,[verified.total,verified.sha256,verified.width,verified.height,thumbnailKey,verified.thumbnail?thumbnailKey?null:"THUMBNAIL_FAILED":null,workspaceId,productId,assetId,versionId]);
     await db.query("UPDATE assets SET current_version_id=$1,status='READY',updated_at=now() WHERE workspace_id=$2 AND product_id=$3 AND id=$4",[versionId,workspaceId,productId,assetId]);

@@ -69,6 +69,15 @@ export async function logout(session: Session): Promise<void> {
   });
 }
 
+export async function requestVerification(emailInput:unknown){
+  const email=normalizeEmail(emailInput);await rateLimit({query},'resend-verification',email,4);
+  const token=randomToken();const found=await transaction(async db=>{
+    const u=(await db.query<{id:string}>("SELECT id FROM users WHERE email=$1 AND status='PENDING_VERIFICATION' FOR UPDATE",[email])).rows[0];if(!u)return false;
+    await db.query("UPDATE auth_tokens SET used_at=now() WHERE user_id=$1 AND kind='VERIFY_EMAIL' AND used_at IS NULL",[u.id]);
+    await db.query("INSERT INTO auth_tokens(user_id,kind,token_hash,expires_at) VALUES($1,'VERIFY_EMAIL',$2,now()+interval '24 hours')",[u.id,hashToken(token)]);
+    await audit(db,{actorUserId:u.id,type:'EMAIL_VERIFICATION_REQUESTED',targetType:'user',targetId:u.id});return true;
+  });return found?{email,token}:null;
+}
 export async function requestPasswordReset(emailInput: unknown): Promise<{ email: string; token: string } | null> {
   const email = normalizeEmail(emailInput);
   await rateLimit({ query }, "reset-request", email, 4);

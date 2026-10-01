@@ -1,0 +1,29 @@
+# Review paths/account/permissions on the deployment host. This file installs nothing.
+[Unit]
+Description=AI Site customer SaaS web
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=ai-site-saas
+Group=ai-site-saas
+WorkingDirectory=/srv/ai-site/saas
+ExecStart=/usr/bin/node --env-file=/etc/ai-site-saas/runtime.env /srv/ai-site/saas/node_modules/next/dist/bin/next start -p 3200 -H 127.0.0.1
+Restart=on-failure
+RestartSec=10
+KillSignal=SIGTERM
+TimeoutStopSec=300
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/srv/ai-site/saas/.next/cache /srv/ai-site/saas/data
+UMask=0077
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -4,6 +4,7 @@ import { jobEvent, scopedJob, type AiVideoInput, type JobRow } from "./job-core"
 import { providerForExecution } from "./video-providers";
 import { ProviderSafeError, SubmissionUnknownError, type ProviderPoll } from "./video-providers/types";
 import { ingestProviderOutput } from "./provider-ingest";
+import {boundedSetting} from './operational-config';
 
 type Execution={id:string;workspace_id:string;job_id:string;attempt_id:string;attempt_number:number;provider:"BYTEPLUS"|"FAKE";model:string;provider_policy_version:string;request_hash:string;submission_token:string;state:string;external_task_id:string|null;submit_count:number;poll_count:number;ingest_count:number;submission_started_at:Date|null;submitted_at:Date|null;input_snapshot:AiVideoInput;cancel_requested_at:Date|null};
 function dueMs(ms:number){return Math.max(1000,Math.min(300000,ms));}
@@ -28,10 +29,15 @@ async function safeRetry(db:DbClient,e:Execution,code:string,message:string){
 }
 export async function reserveProviderOne(){
   return transaction(async db=>{
+    await db.query('SELECT pg_advisory_xact_lock(731052139)');
+    const global=boundedSetting('PROVIDER_MAX_CONCURRENCY',10,1,100),workspace=boundedSetting('PROVIDER_WORKSPACE_CONCURRENCY',3,1,100);
+    const active=await db.query<{n:string}>("SELECT count(*) AS n FROM provider_executions WHERE state NOT IN('SUCCEEDED','FAILED','CANCELLED')");
+    if(Number(active.rows[0].n)>=global)return false;
     const picked=await db.query<JobRow&{attempt_id:string;input_hash:string}>(`SELECT j.*,a.id AS attempt_id FROM jobs j JOIN job_attempts a ON a.workspace_id=j.workspace_id AND a.job_id=j.id AND a.attempt_number=j.attempt_count+1 AND a.status='PENDING'
       JOIN workspaces w ON w.id=j.workspace_id AND w.status='ACTIVE'
       WHERE j.type='AI_VIDEO' AND j.status='WAITING_FOR_WORKER' AND j.available_at<=now()
-      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`);
+      AND (SELECT count(*) FROM provider_executions e WHERE e.workspace_id=j.workspace_id AND e.state NOT IN('SUCCEEDED','FAILED','CANCELLED'))<$1
+      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[workspace]);
     const job=picked.rows[0];if(!job)return false;
     if(job.input_snapshot.kind!=="AI_VIDEO"){
       await db.query("UPDATE jobs SET status='FAILED',error_code='INVALID_INPUT',error_message_safe='Video input is invalid.',finished_at=now() WHERE id=$1",[job.id]);return true;

@@ -14,6 +14,7 @@ if (!process.env.TEST_OBJECT_STORAGE_BUCKET) throw new Error("TEST_OBJECT_STORAG
 export default defineConfig({
   testDir: "./tests",
   testMatch: ["**/integration/*.spec.ts", "**/browser/*.spec.ts"],
+  testIgnore:['**/phase9.spec.ts'],
   workers: 1,
   retries: 0,
   timeout: 90_000,

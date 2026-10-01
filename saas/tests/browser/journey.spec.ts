@@ -21,7 +21,7 @@ test("customer registration to shared workspace, role controls and sign-out",asy
   await page.getByLabel("Your name").fill("UI Owner");
   await page.getByLabel("Password").fill("ValidPassword123!");
   await page.getByRole("button",{name:/Create account/}).click();
-  await expect(page.getByRole("status")).toContainText("local development mailbox");
+  await expect(page.getByRole("status")).toContainText("Check your email");
   await page.goto(await localLink(owner,"Verify"));
   await page.getByRole("button",{name:/Verify email/}).click();
   await expect(page.getByRole("heading",{name:/Welcome, UI Owner/})).toBeVisible();

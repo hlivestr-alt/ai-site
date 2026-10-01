@@ -1,0 +1,1 @@
+export function allowlistedOperator(user:{id:string;email:string}){return (process.env.PLATFORM_OPERATOR_USER_IDS||'').split(',').map(s=>s.trim()).includes(user.id)||(process.env.PLATFORM_OPERATOR_EMAILS||'').split(',').map(s=>s.trim().toLowerCase()).includes(user.email.toLowerCase());}

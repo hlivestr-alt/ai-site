@@ -7,5 +7,5 @@ export async function POST(request: Request) { return handle(async () => {
   const input = await body(request);
   const reset = await requestPasswordReset(input.email);
   if (reset) await deliverLocalMail(reset.email,"Reset your password",`${process.env.APP_BASE_URL}/reset-password?token=${reset.token}`);
-  return ok({message:"If an active account matches, a recovery link is in the local development mailbox."});
+  return ok({message:"If an active account matches, a recovery link has been queued by email."});
 }); }

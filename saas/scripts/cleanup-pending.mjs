@@ -3,6 +3,7 @@ import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const apply=process.argv.includes("--apply");
 const test=process.argv.includes("--test");
+if(apply&&!['local','test'].includes(process.env.APP_ENV||''))throw new Error('Staging/production cleanup is report-only; use a reviewed audited retention procedure.');
 const hours=Number(process.env.PENDING_UPLOAD_RETENTION_HOURS||24);
 if(!Number.isFinite(hours)||hours<1)throw new Error("PENDING_UPLOAD_RETENTION_HOURS must be at least 1");
 const databaseUrl=process.env[test?"TEST_DATABASE_URL":"DATABASE_URL"];
@@ -27,7 +28,7 @@ try {
       await db.query(`UPDATE assets SET status='FAILED',updated_at=now() WHERE id=$1 AND workspace_id=$2 AND product_id=$3
         AND status='PENDING_UPLOAD' AND current_version_id IS NULL`,[row.asset_id,row.workspace_id,row.product_id]);
       try {await s3.send(new DeleteObjectCommand({Bucket:bucket,Key:row.upload_key}));}
-      catch(error){console.error(`Staging cleanup failed for upload ${row.id}:`,error);failed++;}
+      catch{console.error(JSON.stringify({event:'STAGING_CLEANUP_FAILED',assetVersionId:row.id}));failed++;}
     }
     console.log(`${candidates.rowCount-failed} staging objects removed or absent; ${failed} need retry.`);
     if(failed)process.exitCode=1;
