@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
 process.loadEnvFile(".env.local");
+// Single-PC regressions remain local even when the operator enables remote signing.
+process.env.APP_ENV="local";
+process.env.APP_BASE_URL="http://127.0.0.1:3200";
+process.env.OBJECT_STORAGE_PUBLIC_ENDPOINT="";
 process.env.ENABLE_TEST_BILLING="1";
 process.env.PAYMENT_PROVIDER="fake";
 process.env.ENABLE_FAKE_PAYMENT_PROVIDER="1";
@@ -14,7 +18,7 @@ if (!process.env.TEST_OBJECT_STORAGE_BUCKET) throw new Error("TEST_OBJECT_STORAG
 export default defineConfig({
   testDir: "./tests",
   testMatch: ["**/integration/*.spec.ts", "**/browser/*.spec.ts"],
-  testIgnore:['**/phase9.spec.ts'],
+  testIgnore:['**/phase9.spec.ts','**/remote-storage.spec.ts'],
   workers: 1,
   retries: 0,
   timeout: 90_000,
@@ -25,6 +29,6 @@ export default defineConfig({
     url: "http://127.0.0.1:3200/login",
     reuseExistingServer: false,
     timeout: 90_000,
-    env: { ENABLE_TEST_BILLING:"1",PAYMENT_PROVIDER:"fake",ENABLE_FAKE_PAYMENT_PROVIDER:"1",FAKE_PAYMENT_WEBHOOK_SECRET:process.env.FAKE_PAYMENT_WEBHOOK_SECRET!, DATABASE_URL: process.env.TEST_DATABASE_URL, OBJECT_STORAGE_BUCKET: process.env.TEST_OBJECT_STORAGE_BUCKET, APP_BASE_URL: "http://127.0.0.1:3200", APP_ENV: "local", MAIL_MODE: "development_file", VIDEO_PROVIDER: "fake", ENABLE_FAKE_VIDEO_PROVIDER: "1", ENABLE_FAKE_CLIP_ANALYZER: "1" },
+    env: { OBJECT_STORAGE_PUBLIC_ENDPOINT:"", ENABLE_TEST_BILLING:"1",PAYMENT_PROVIDER:"fake",ENABLE_FAKE_PAYMENT_PROVIDER:"1",FAKE_PAYMENT_WEBHOOK_SECRET:process.env.FAKE_PAYMENT_WEBHOOK_SECRET!, DATABASE_URL: process.env.TEST_DATABASE_URL, OBJECT_STORAGE_BUCKET: process.env.TEST_OBJECT_STORAGE_BUCKET, APP_BASE_URL: "http://127.0.0.1:3200", APP_ENV: "local", MAIL_MODE: "development_file", VIDEO_PROVIDER: "fake", ENABLE_FAKE_VIDEO_PROVIDER: "1", ENABLE_FAKE_CLIP_ANALYZER: "1" },
   },
 });

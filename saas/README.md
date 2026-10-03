@@ -13,4 +13,6 @@ This separate customer application runs at `http://127.0.0.1:3200`. Its Postgres
 
 Run `npm run db:status`, `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build` to validate. Browser tests use installed Google Chrome and the isolated test database and bucket.
 
+For multi-PC testing through the existing Cloudflare Tunnel, follow [remote-test private storage](docs/remote-test-storage.md) to configure a separate browser signing endpoint, exact-origin CORS and the storage route's canonical Host.
+
 See [Phase 2 documentation](docs/phase2/README.md) for Products, assets, storage, isolation, lifecycle, and Phase 3 contracts. See [Phase 1 documentation](docs/phase1/README.md) for identity and workspaces.

@@ -1,0 +1,46 @@
+export const storageBrowserMethods = ["GET", "HEAD", "PUT"];
+export const storageBrowserHeaders = ["content-type", "authorization", "range", "if-match", "if-none-match", "x-amz-content-sha256", "x-amz-date", "x-amz-security-token", "x-amz-user-agent", "x-amz-checksum-crc32", "x-amz-checksum-crc32c", "x-amz-checksum-crc64nvme", "x-amz-checksum-sha1", "x-amz-checksum-sha256", "x-amz-sdk-checksum-algorithm"];
+export const storageExposedHeaders = ["ETag", "Content-Length", "Content-Range", "Accept-Ranges"];
+
+/** @param {Record<string, string | undefined>} env */
+export function allowedStorageOrigins(env = process.env) {
+  const origins = (env.OBJECT_STORAGE_ALLOWED_ORIGINS || "http://127.0.0.1:3200")
+    .split(",").map(value => value.trim()).filter(Boolean);
+  if (!origins.length) throw new Error("At least one exact storage browser origin is required");
+  for (const origin of origins) {
+    const url = new URL(origin);
+    if (origin.includes("*") || !["http:", "https:"].includes(url.protocol) || url.origin !== origin || url.username || url.password) {
+      throw new Error("OBJECT_STORAGE_ALLOWED_ORIGINS requires exact HTTP(S) origins; wildcards are forbidden");
+    }
+  }
+  return [...new Set(origins)];
+}
+
+/** @param {Record<string, string | undefined>} env */
+export function storageGatewayConfig(env = process.env) {
+  if (!["local", "test"].includes(env.APP_ENV || "local")) throw new Error("Local S3 gateway is local/test-only");
+  if (!env.OBJECT_STORAGE_ACCESS_KEY || !env.OBJECT_STORAGE_SECRET_KEY) throw new Error("Gateway signing credentials are required");
+  const internal = new URL(env.OBJECT_STORAGE_ENDPOINT || "http://127.0.0.1:9000");
+  if (internal.protocol !== "http:" || !["localhost", "127.0.0.1"].includes(internal.hostname) || internal.port !== "9000" || internal.username || internal.password || internal.pathname !== "/" || internal.search || internal.hash) {
+    throw new Error("Local S3 gateway requires a loopback OBJECT_STORAGE_ENDPOINT on port 9000");
+  }
+  const internalHosts = new Set(["127.0.0.1:9000", "localhost:9000"]);
+  const allowedHosts = new Set(internalHosts);
+  if (env.OBJECT_STORAGE_PUBLIC_ENDPOINT) {
+    const external = new URL(env.OBJECT_STORAGE_PUBLIC_ENDPOINT);
+    if (external.host.includes("*") || external.protocol !== "https:" || external.username || external.password || external.pathname !== "/" || external.search || external.hash) {
+      throw new Error("Remote-test public storage endpoint must be an HTTPS origin");
+    }
+    allowedHosts.add(external.host);
+  }
+  return {
+    targetHost: env.TARGET_HOST || "object-storage",
+    targetPort: Number(env.TARGET_PORT || 4566),
+    accessKey: env.OBJECT_STORAGE_ACCESS_KEY,
+    secretKey: env.OBJECT_STORAGE_SECRET_KEY,
+    region: env.OBJECT_STORAGE_REGION || "us-east-1",
+    internalHosts,
+    allowedHosts,
+    allowedOrigins: new Set(allowedStorageOrigins(env)),
+  };
+}

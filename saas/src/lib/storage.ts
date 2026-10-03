@@ -30,25 +30,34 @@ export function storageBucket(): string {
   return bucket;
 }
 
-export function storageClient(): S3Client {
-  const endpoint = process.env.OBJECT_STORAGE_ENDPOINT;
+function createStorageClient(endpoint: string | undefined): S3Client {
   const region = process.env.OBJECT_STORAGE_REGION;
   const accessKeyId = process.env.OBJECT_STORAGE_ACCESS_KEY;
   const secretAccessKey = process.env.OBJECT_STORAGE_SECRET_KEY;
   if (!endpoint || !region || !accessKeyId || !secretAccessKey) throw new Error("Object storage is not configured");
-    return new S3Client({ endpoint, region, credentials: { accessKeyId, secretAccessKey }, forcePathStyle: true, maxAttempts: 2, requestHandler: { connectionTimeout: 5000, requestTimeout: 120000, socketTimeout: 30000 } });
+  return new S3Client({ endpoint, region, credentials: { accessKeyId, secretAccessKey }, forcePathStyle: true, maxAttempts: 2, requestHandler: { connectionTimeout: 5000, requestTimeout: 120000, socketTimeout: 30000 } });
+}
+
+export function storageClient(): S3Client {
+  return createStorageClient(process.env.OBJECT_STORAGE_ENDPOINT);
+}
+
+// Sign against the browser's actual endpoint; changing the host after signing invalidates SigV4.
+export function storageSigningClient(): S3Client {
+  return createStorageClient(process.env.OBJECT_STORAGE_PUBLIC_ENDPOINT || process.env.OBJECT_STORAGE_ENDPOINT);
 }
 
 function notFound(error: unknown): boolean {
   return !!error && typeof error === "object" && "name" in error && (error.name === "NotFound" || error.name === "NoSuchKey" || error.name === "NoSuchBucket");
 }
 
-class S3ObjectStorage implements ObjectStorage {
+export class S3ObjectStorage implements ObjectStorage {
   private s3 = storageClient();
+  private signingS3 = storageSigningClient();
   private bucket = storageBucket();
 
   async createMultipart(key:string,mimeType:string){const r=await this.s3.send(new CreateMultipartUploadCommand({Bucket:this.bucket,Key:key,ContentType:mimeType}));if(!r.UploadId)throw new AppError(503,"Upload unavailable.");return r.UploadId;}
-  async issuePart(key:string,uploadId:string,partNumber:number,expiresSeconds:number){return getSignedUrl(this.s3,new UploadPartCommand({Bucket:this.bucket,Key:key,UploadId:uploadId,PartNumber:partNumber}),{expiresIn:expiresSeconds});}
+  async issuePart(key:string,uploadId:string,partNumber:number,expiresSeconds:number){return getSignedUrl(this.signingS3,new UploadPartCommand({Bucket:this.bucket,Key:key,UploadId:uploadId,PartNumber:partNumber}),{expiresIn:expiresSeconds});}
   async listParts(key:string,uploadId:string){const parts:UploadPart[]=[];let marker:string|undefined;do{const r=await this.s3.send(new ListPartsCommand({Bucket:this.bucket,Key:key,UploadId:uploadId,PartNumberMarker:marker}));for(const p of r.Parts||[])if(p.PartNumber&&p.ETag)parts.push({partNumber:p.PartNumber,etag:p.ETag,byteSize:Number(p.Size)});marker=r.IsTruncated?r.NextPartNumberMarker:undefined;}while(marker);return parts.sort((a,b)=>a.partNumber-b.partNumber);}
   async completeMultipart(key:string,uploadId:string,parts:UploadPart[]){await this.s3.send(new CompleteMultipartUploadCommand({Bucket:this.bucket,Key:key,UploadId:uploadId,MultipartUpload:{Parts:parts.map(p=>({PartNumber:p.partNumber,ETag:p.etag}))}}));}
   async abortMultipart(key:string,uploadId:string){await this.s3.send(new AbortMultipartUploadCommand({Bucket:this.bucket,Key:key,UploadId:uploadId}));}
@@ -59,12 +68,12 @@ class S3ObjectStorage implements ObjectStorage {
   }
 
   async issueUpload(key: string, mimeType: string, expiresSeconds: number) {
-    return getSignedUrl(this.s3, new PutObjectCommand({ Bucket: this.bucket, Key: key, ContentType: mimeType }), { expiresIn: expiresSeconds });
+    return getSignedUrl(this.signingS3, new PutObjectCommand({ Bucket: this.bucket, Key: key, ContentType: mimeType }), { expiresIn: expiresSeconds });
   }
 
   async issueDownload(key: string, filename: string, expiresSeconds: number, attachment=false) {
     const safeName = filename.replace(/[^A-Za-z0-9._-]/g, "_").slice(0, 100) || "asset";
-    return getSignedUrl(this.s3, new GetObjectCommand({ Bucket: this.bucket, Key: key, ResponseContentDisposition: `${attachment?"attachment":"inline"}; filename="${safeName}"` }), { expiresIn: expiresSeconds });
+    return getSignedUrl(this.signingS3, new GetObjectCommand({ Bucket: this.bucket, Key: key, ResponseContentDisposition: `${attachment?"attachment":"inline"}; filename="${safeName}"` }), { expiresIn: expiresSeconds });
   }
 
   async head(key: string): Promise<ObjectHead | null> {

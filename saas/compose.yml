@@ -41,12 +41,18 @@ services:
     environment:
       TARGET_HOST: object-storage
       TARGET_PORT: "4566"
+      APP_ENV: ${APP_ENV:-local}
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-http://127.0.0.1:9000}
+      OBJECT_STORAGE_PUBLIC_ENDPOINT: ${OBJECT_STORAGE_PUBLIC_ENDPOINT:-}
+      OBJECT_STORAGE_ALLOWED_ORIGINS: ${OBJECT_STORAGE_ALLOWED_ORIGINS:-http://127.0.0.1:3200}
+      OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-us-east-1}
       OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:?set OBJECT_STORAGE_ACCESS_KEY}
       OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:?set OBJECT_STORAGE_SECRET_KEY}
     ports:
       - "127.0.0.1:9000:9000"
     volumes:
       - ./docker/s3-gateway.mjs:/app/s3-gateway.mjs:ro
+      - ./docker/storage-gateway-config.mjs:/app/storage-gateway-config.mjs:ro
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9000/health"]
       interval: 5s

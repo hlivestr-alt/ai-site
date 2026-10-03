@@ -1,19 +1,16 @@
 import http from "node:http";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
-
-const targetHost=process.env.TARGET_HOST||"object-storage";
-const targetPort=Number(process.env.TARGET_PORT||4566);
-const allowedOrigin="http://127.0.0.1:3200";
-const accessKey=process.env.OBJECT_STORAGE_ACCESS_KEY;
-const secretKey=process.env.OBJECT_STORAGE_SECRET_KEY;
-if(!accessKey||!secretKey)throw new Error("Gateway signing credentials are required");
+import { pathToFileURL } from "node:url";
+import { storageGatewayConfig, storageBrowserMethods, storageBrowserHeaders, storageExposedHeaders } from "./storage-gateway-config.mjs";
 
 const sha=value=>createHash("sha256").update(value).digest("hex");
 const hmac=(key,value)=>createHmac("sha256",key).update(value).digest();
 const encode=value=>encodeURIComponent(value).replace(/[!'()*]/g,c=>`%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 const normal=value=>String(value).trim().replace(/\s+/g," ");
 function forbidden(response){response.writeHead(403,{"Content-Type":"application/json"});response.end(JSON.stringify({error:"Valid signed S3 request required"}));}
-function verify(request,parsed){
+function verify(request,parsed,config){
+  // The tunnel must preserve Host. Forwarded headers are untrusted and never replace it.
+  if(!config.allowedHosts.has(request.headers.host))return false;
   const query=parsed.searchParams;
   const isQuery=query.has("X-Amz-Signature");
   const auth=request.headers.authorization||"";
@@ -27,11 +24,11 @@ function verify(request,parsed){
   const expires=Number(fields.Expires);
   if(isQuery?(!Number.isInteger(expires)||expires<1||expires>604800||Date.now()>stamp+expires*1000):Date.now()>stamp+15*60_000)return false;
   const credential=fields.Credential?.split("/");
-  if(credential?.length!==5||credential[0]!==accessKey||credential[1]!==date.slice(0,8)||credential[3]!=="s3"||credential[4]!=="aws4_request")return false;
+  if(credential?.length!==5||credential[0]!==config.accessKey||credential[1]!==date.slice(0,8)||credential[2]!==config.region||credential[3]!=="s3"||credential[4]!=="aws4_request")return false;
   const signedHeaders=fields.SignedHeaders;
   if(!signedHeaders||!/^[-a-z0-9;]+$/.test(signedHeaders)||!signedHeaders.split(";").includes("host"))return false;
   const headers=signedHeaders.split(";");
-  if(headers.join(";")!==[...headers].sort().join(";"))return false;
+  if(new Set(headers).size!==headers.length||headers.join(";")!==[...headers].sort().join(";"))return false;
   let canonicalHeaders="";
   for(const name of headers){const value=request.headers[name];if(typeof value!=="string")return false;canonicalHeaders+=`${name}:${normal(value)}\n`;}
   const canonicalUri=parsed.pathname.split("/").map(x=>encode(decodeURIComponent(x))).join("/");
@@ -42,28 +39,50 @@ function verify(request,parsed){
   const canonical=[request.method,canonicalUri,canonicalQuery,canonicalHeaders,signedHeaders,payload].join("\n");
   const scope=credential.slice(1).join("/");
   const toSign=["AWS4-HMAC-SHA256",date,scope,sha(canonical)].join("\n");
-  const key=hmac(hmac(hmac(hmac(`AWS4${secretKey}`,credential[1]),credential[2]),"s3"),"aws4_request");
+  const key=hmac(hmac(hmac(hmac(`AWS4${config.secretKey}`,credential[1]),credential[2]),"s3"),"aws4_request");
   const expected=hmac(key,toSign).toString("hex");
   const actual=fields.Signature||"";
   return /^[a-f0-9]{64}$/.test(actual)&&timingSafeEqual(Buffer.from(expected,"hex"),Buffer.from(actual,"hex"));
 }
 
-http.createServer((request,response)=>{
-  if(request.url==="/health"){response.writeHead(200,{"Content-Type":"text/plain"});response.end("ready");return;}
-  const origin=request.headers.origin;
-  if(origin===allowedOrigin){response.setHeader("Access-Control-Allow-Origin",allowedOrigin);response.setHeader("Vary","Origin");}
-  if(request.method==="OPTIONS"){
-    if(origin!==allowedOrigin){forbidden(response);return;}
-    response.writeHead(204,{"Access-Control-Allow-Methods":"GET, HEAD, PUT, OPTIONS","Access-Control-Allow-Headers":"content-type, authorization, x-amz-content-sha256, x-amz-date, x-amz-security-token, x-amz-user-agent, x-amz-checksum-sha256, x-amz-sdk-checksum-algorithm","Access-Control-Max-Age":"300"});response.end();return;
-  }
-  let parsed;
-  try{parsed=new URL(request.url||"/","http://localhost");if(!verify(request,parsed)){forbidden(response);return;}}
-  catch{forbidden(response);return;}
-  const upstream=http.request({hostname:targetHost,port:targetPort,method:request.method,path:request.url,headers:{...request.headers,host:request.headers.host}},upstreamResponse=>{
-    const headers={...upstreamResponse.headers};
-    if(origin===allowedOrigin)headers["access-control-allow-origin"]=allowedOrigin;
-    response.writeHead(upstreamResponse.statusCode||502,headers);upstreamResponse.pipe(response);
+/** @param {Record<string, string | undefined>} env */
+export function createStorageGateway(env=process.env){
+  const config=storageGatewayConfig(env);
+  return http.createServer((request,response)=>{
+    response.setHeader("Cache-Control","private, no-store");
+    response.setHeader("Vary","Origin");
+    if(!config.allowedHosts.has(request.headers.host)){forbidden(response);return;}
+    if(request.url==="/health"&&request.method==="GET"&&config.internalHosts.has(request.headers.host)){
+      response.writeHead(200,{"Content-Type":"text/plain"});response.end("ready");return;
+    }
+    const origin=request.headers.origin;
+    if(origin&&!config.allowedOrigins.has(origin)){forbidden(response);return;}
+    if(origin){
+      response.setHeader("Access-Control-Allow-Origin",origin);
+      response.setHeader("Access-Control-Expose-Headers",storageExposedHeaders.join(", "));
+    }
+    if(request.method==="OPTIONS"){
+      const method=request.headers["access-control-request-method"];
+      const headers=String(request.headers["access-control-request-headers"]||"").split(",").map(v=>v.trim().toLowerCase()).filter(Boolean);
+      if(!origin||!storageBrowserMethods.includes(method)||headers.some(v=>!storageBrowserHeaders.includes(v))){forbidden(response);return;}
+      response.writeHead(204,{"Access-Control-Allow-Methods":storageBrowserMethods.concat("OPTIONS").join(", "),"Access-Control-Allow-Headers":storageBrowserHeaders.join(", "),"Access-Control-Max-Age":"300"});response.end();return;
+    }
+    let parsed;
+    try{parsed=new URL(request.url||"/","http://localhost");if(!verify(request,parsed,config)){forbidden(response);return;}}
+    catch{forbidden(response);return;}
+    const upstream=http.request({hostname:config.targetHost,port:config.targetPort,method:request.method,path:request.url,headers:{...request.headers,host:request.headers.host}},upstreamResponse=>{
+      const headers={...upstreamResponse.headers};
+      // Only this gateway controls browser CORS, even if the emulator returns permissive headers.
+      for(const name of Object.keys(headers))if(name.startsWith("access-control-"))delete headers[name];
+      headers.vary=[...new Set(String(headers.vary||"").split(",").map(v=>v.trim()).filter(Boolean).concat("Origin"))].join(", ");
+      headers["cache-control"]="private, no-store";
+      response.writeHead(upstreamResponse.statusCode||502,headers);upstreamResponse.pipe(response);
+    });
+    upstream.on("error",()=>{if(!response.headersSent)response.writeHead(502);response.end();});
+    request.pipe(upstream);
   });
-  upstream.on("error",()=>{if(!response.headersSent)response.writeHead(502);response.end();});
-  request.pipe(upstream);
-}).listen(9000,"0.0.0.0");
+}
+
+if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
+  createStorageGateway().listen(9000,"0.0.0.0");
+}

@@ -16,6 +16,7 @@ export function configurationChecks(env:Record<string,string|undefined>=process.
   add('DATABASE_URL',v=>{try{return /^postgres(ql)?:$/.test(new URL(v).protocol);}catch{return false;}});
   for(const name of ['OBJECT_STORAGE_BUCKET','OBJECT_STORAGE_REGION','OBJECT_STORAGE_ACCESS_KEY','OBJECT_STORAGE_SECRET_KEY'])add(name,v=>v.length>0);
   add('OBJECT_STORAGE_ENDPOINT',v=>{try{const u=new URL(v);return !u.username&&!u.password&&(strict?u.protocol==='https:':['http:','https:'].includes(u.protocol));}catch{return false;}});
+  if(env.OBJECT_STORAGE_PUBLIC_ENDPOINT)add('OBJECT_STORAGE_PUBLIC_ENDPOINT',v=>{try{const u=new URL(v);return !u.host.includes('*')&&!u.username&&!u.password&&u.pathname==='/'&&!u.search&&!u.hash&&(strict?u.protocol==='https:'&&!localHost(v):['http:','https:'].includes(u.protocol));}catch{return false;}});
   add('WORKFLOW_MAX_TOKENS',v=>/^\d+$/.test(v)&&BigInt(v)>0&&BigInt(v)<=9007199254740991n,strict);
   const mail=env.MAIL_PROVIDER||(env.MAIL_MODE==='development_file'?'development_file':'');
   checks.push({name:'MAIL_PROVIDER',status:mail&&(strict?mail==='smtp':['smtp','development_file','fake'].includes(mail))?'configured':mail?'invalid':'missing',required:true});

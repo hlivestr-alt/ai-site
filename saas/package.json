@@ -11,6 +11,7 @@
     "test": "npm run test:unit && npm run test:browser",
     "test:unit": "tsx --test tests/unit/*.test.ts",
     "test:integration": "playwright test tests/integration",
+    "test:remote-storage": "playwright test -c playwright.remote-storage.config.ts",
     "test:browser": "playwright test",
     "test:restart": "node tests/restart-acceptance.mjs",
     "test:clipper-acceptance": "node tests/clipper-acceptance.mjs",
