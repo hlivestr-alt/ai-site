@@ -11,6 +11,7 @@ class TranscriptAnalyzer(Protocol):
 
 class FakeTranscriptAnalyzer:
     """Explicit fixture provider, using the same chunk/selection pipeline."""
+    model = "fake-transcript-v1"
     def analyze(self, request: dict) -> dict:
         chunk = request["chunk"]
         span = request["minClipSeconds"]
@@ -58,7 +59,7 @@ class OpenAITranscriptAnalyzer:
         except (ValueError, KeyError, TypeError):
             raise PipelineError("ANALYZER_INVALID_OUTPUT") from None
 
-def configured_analyzer(expected_provider: str) -> TranscriptAnalyzer:
+def configured_analyzer(expected_provider: str, expected_model: str | None = None) -> TranscriptAnalyzer:
     provider = os.getenv("CLIP_ANALYZER_PROVIDER", "")
     if provider != expected_provider:
         raise PipelineError("ANALYZER_PROVIDER_MISMATCH")
@@ -66,4 +67,21 @@ def configured_analyzer(expected_provider: str) -> TranscriptAnalyzer:
         return FakeTranscriptAnalyzer()
     if provider == "openai":
         return OpenAITranscriptAnalyzer()
+    if provider == "wavespeed":
+        from .wavespeed_analyzer import WaveSpeedTranscriptAnalyzer
+        return WaveSpeedTranscriptAnalyzer(expected_model)
     raise PipelineError("ANALYZER_NOT_CONFIGURED")
+
+def analyzer_health() -> dict:
+    # Only validated provider/model names and a boolean leave the private worker.
+    provider = os.getenv("CLIP_ANALYZER_PROVIDER", "")
+    provider = provider if provider in {"openai", "wavespeed", "fake"} else ""
+    try:
+        analyzer = configured_analyzer(provider)
+        import re
+        model = analyzer.model
+        if not isinstance(model, str) or not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9/._:-]{0,191}", model):
+            raise PipelineError("ANALYZER_NOT_CONFIGURED")
+        return {"analyzerConfigured": True, "analyzerProvider": provider, "analyzerModel": model}
+    except PipelineError:
+        return {"analyzerConfigured": False, "analyzerProvider": provider, "analyzerModel": ""}

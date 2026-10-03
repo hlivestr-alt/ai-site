@@ -8,7 +8,7 @@ import { join } from "node:path";
 import sharp from "sharp";
 import pg from "pg";
 
-const base="http://127.0.0.1:3200",password="ValidPassword123!",run=promisify(execFile);
+const base=(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200"),password="ValidPassword123!",run=promisify(execFile);
 const dispatcherArgs=["--env-file=.env.local","--import","tsx","scripts/dispatcher.ts","--once"];
 function dispatcherEnv(){return {...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,OBJECT_STORAGE_BUCKET:process.env.TEST_OBJECT_STORAGE_BUCKET,APP_ENV:"local",VIDEO_PROVIDER:"fake",ENABLE_FAKE_VIDEO_PROVIDER:"1"};}
 function tick(){execFileSync(process.execPath,dispatcherArgs,{cwd:process.cwd(),env:dispatcherEnv(),stdio:"pipe",timeout:30000});}

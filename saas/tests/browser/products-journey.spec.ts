@@ -73,10 +73,10 @@ test("real product wizard, private references, versions and tenant-limited viewi
     const deniedMedia=await b.request.get(`/api/workspaces/${ws}/products/${productId}/assets/${front.id}/download`);expect([403,404]).toContain(deniedMedia.status());
   }finally{await bContext.close();}
 
-  const invite=await page.request.post(`/api/workspaces/${ws}/invitations`,{headers:{Origin:"http://127.0.0.1:3200"},data:{email:viewerEmail,role:"VIEWER"}});expect(invite.status()).toBe(201);
+  const invite=await page.request.post(`/api/workspaces/${ws}/invitations`,{headers:{Origin:(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200")},data:{email:viewerEmail,role:"VIEWER"}});expect(invite.status()).toBe(201);
   const viewContext=await browser.newContext();const viewer=await viewContext.newPage();
   try{await viewer.goto(await localLink(viewerEmail,"Invitation"));await viewer.getByRole("link",{name:"Create account"}).click();await viewer.getByLabel("Email address").fill(viewerEmail);await viewer.getByLabel("Your name").fill("Product Viewer");await viewer.getByLabel("Password").fill("ValidPassword123!");await viewer.getByRole("button",{name:/Create account/}).click();await viewer.goto(await localLink(viewerEmail,"Verify"));await viewer.getByRole("button",{name:/Verify email/}).click();await expect(viewer.getByRole("heading",{name:/Join P2 UI Brand/})).toBeVisible();await viewer.getByRole("button",{name:/Join workspace/}).click();await expect(viewer.getByRole("heading",{name:/Welcome to P2 UI Brand/})).toBeVisible();
     await viewer.goto(`/products/${productId}`);await expect(viewer.getByRole("heading",{name:"Reference Cream"})).toBeVisible();await expect(viewer.getByRole("link",{name:"Edit product"})).toHaveCount(0);
-    const patch=await viewer.request.patch(`/api/workspaces/${ws}/products/${productId}`,{headers:{Origin:"http://127.0.0.1:3200"},data:{}});expect(patch.status()).toBe(403);
+    const patch=await viewer.request.patch(`/api/workspaces/${ws}/products/${productId}`,{headers:{Origin:(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200")},data:{}});expect(patch.status()).toBe(403);
   }finally{await viewContext.close();}
 });

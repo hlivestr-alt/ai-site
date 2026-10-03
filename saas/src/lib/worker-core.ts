@@ -38,7 +38,7 @@ export async function workerHeartbeat(worker:Worker,raw:Record<string,unknown>){
   if(typeof slots!=="number"||!Number.isInteger(slots)||slots<0||slots>worker.max_concurrency)throw new AppError(400,"Invalid available slots.");
   if(raw.activeLeaseIds!==undefined&&(!Array.isArray(raw.activeLeaseIds)||raw.activeLeaseIds.length>16||raw.activeLeaseIds.some(x=>typeof x!=="string"||!isUuid(x))))throw new AppError(400,"Invalid active lease list.");
   const health=raw.clipperHealth as Record<string,unknown>|undefined;
-  if(health&&(!["transcriberAvailable","ffmpegAvailable","gpuAvailable","freeDiskBytes"].every(k=>k in health)||Object.keys(health).length!==4||["transcriberAvailable","ffmpegAvailable","gpuAvailable"].some(k=>typeof health[k]!=="boolean")||typeof health.freeDiskBytes!=="number"||!Number.isSafeInteger(health.freeDiskBytes)||health.freeDiskBytes<0))throw new AppError(400,"Invalid worker health.");
+  if(health&&(!["transcriberAvailable","ffmpegAvailable","gpuAvailable","freeDiskBytes"].every(k=>k in health)||![4,7].includes(Object.keys(health).length)||["transcriberAvailable","ffmpegAvailable","gpuAvailable"].some(k=>typeof health[k]!=="boolean")||typeof health.freeDiskBytes!=="number"||!Number.isSafeInteger(health.freeDiskBytes)||health.freeDiskBytes<0||Object.keys(health).some(k=>!["transcriberAvailable","ffmpegAvailable","gpuAvailable","freeDiskBytes","analyzerConfigured","analyzerProvider","analyzerModel"].includes(k))||Object.keys(health).length===7&&(typeof health.analyzerConfigured!=="boolean"||!["","openai","wavespeed","fake"].includes(String(health.analyzerProvider))||typeof health.analyzerModel!=="string"||health.analyzerModel!==""&&!/^[a-zA-Z0-9][a-zA-Z0-9/._:-]{0,191}$/.test(health.analyzerModel))))throw new AppError(400,"Invalid worker health.");
   await query("UPDATE workers SET clipper_health=$1::jsonb WHERE id=$2",[JSON.stringify(health||{}),worker.id]);
   const result=await query<Worker>(`UPDATE workers SET agent_version=$1,pipeline_version=$2,available_slots=$3,last_heartbeat_at=now()
     WHERE id=$4 AND status<>'DISABLED' RETURNING id,name,status,capabilities,max_concurrency,available_slots,last_heartbeat_at`,[agentVersion,pipelineVersion,slots,worker.id]);
@@ -55,15 +55,16 @@ export async function workerClaim(worker:Worker){
     const active=await db.query<{count:string}>("SELECT count(*) FROM worker_leases WHERE worker_id=$1 AND status='ACTIVE' AND expires_at>now()",[worker.id]);
     if(Number(active.rows[0].count)>=own.max_concurrency)return {claim:null,reason:"at_capacity"};
     const health=(await db.query<{clipper_health:Record<string,unknown>}>('SELECT clipper_health FROM workers WHERE id=$1',[worker.id])).rows[0].clipper_health;
-    const realClipperReady=health.transcriberAvailable===true&&health.ffmpegAvailable===true&&health.gpuAvailable===true&&typeof health.freeDiskBytes==='number'&&health.freeDiskBytes>=boundedSetting('WORKER_MIN_FREE_DISK_BYTES',5*1024**3,1,Number.MAX_SAFE_INTEGER);
+    const realClipperReady=health.transcriberAvailable===true&&health.ffmpegAvailable===true&&health.gpuAvailable===true&&health.analyzerConfigured!==false&&typeof health.freeDiskBytes==='number'&&health.freeDiskBytes>=boundedSetting('WORKER_MIN_FREE_DISK_BYTES',5*1024**3,1,Number.MAX_SAFE_INTEGER);
     const picked=await db.query<JobRow&{attempt_id:string}>(`SELECT j.*,a.id AS attempt_id FROM jobs j
       JOIN job_attempts a ON a.workspace_id=j.workspace_id AND a.job_id=j.id AND a.attempt_number=j.attempt_count+1 AND a.status='PENDING'
       JOIN workspaces w ON w.id=j.workspace_id AND w.status='ACTIVE'
       WHERE j.type IN ('SYSTEM_TEST','CLIPPER') AND j.status='WAITING_FOR_WORKER' AND j.available_at<=now() AND $1::jsonb ? j.required_capability
       AND (j.required_capability<>'CLIPPER_V1' OR ($3 AND (j.input_snapshot->'source'->>'byteSize')::bigint*3<$4))
       AND ($5 OR j.type<>'SYSTEM_TEST' AND j.required_capability<>'CLIPPER_TEST_V1')
+      AND (j.type<>'CLIPPER' OR (j.input_snapshot->>'analyzerProvider'='wavespeed' AND $6='wavespeed' AND $7 AND j.input_snapshot->>'analyzerModel'=$8) OR (j.input_snapshot->>'analyzerProvider'<>'wavespeed' AND ($6='' OR j.input_snapshot->>'analyzerProvider'=$6)))
       AND (j.type<>'CLIPPER' OR NOT EXISTS (SELECT 1 FROM worker_leases l JOIN jobs busy ON busy.id=l.job_id WHERE l.worker_id=$2 AND l.status='ACTIVE' AND busy.type='CLIPPER'))
-      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[JSON.stringify(own.capabilities),worker.id,realClipperReady,typeof health.freeDiskBytes==='number'?health.freeDiskBytes:0,nonProductionTestAllowed()]);
+      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[JSON.stringify(own.capabilities),worker.id,realClipperReady,typeof health.freeDiskBytes==='number'?health.freeDiskBytes:0,nonProductionTestAllowed(),String(health.analyzerProvider||''),health.analyzerConfigured===true,String(health.analyzerModel||'')]);
     const job=picked.rows[0];if(!job)return {claim:null,reason:"no_compatible_job"};
     if(!await snapshotMediaAvailable(job,db)){
       await db.query("UPDATE jobs SET status='FAILED',error_code='INPUT_UNAVAILABLE',error_message_safe='Required reference media is unavailable.',finished_at=now(),updated_at=now() WHERE id=$1",[job.id]);

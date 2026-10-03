@@ -9,6 +9,7 @@
 # Dependencies and generated output
 **/node_modules/
 **/.next/
+**/.next-tests/
 **/dist/
 **/build/
 **/out/

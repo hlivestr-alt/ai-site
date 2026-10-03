@@ -8,8 +8,8 @@ export type JobStatus="QUEUED"|"WAITING_FOR_WORKER"|"RUNNING"|"RECONCILING"|"SUC
 export type FrozenAsset={assetId:string;assetVersionId:string;purpose:string;type:string;storageKey:string;sha256:string;byteSize:number;mimeType:string;width?:number|null;height?:number|null};
 export type FrozenProduct={id:string;versionId:string;versionNumber:number;ruleVersionId:string;ruleVersionNumber:number;information:Record<string,unknown>;rules:Record<string,unknown>;assets:FrozenAsset[]};
 export type SystemTestInput={schemaVersion:1;kind?:"SYSTEM_TEST";fixture:{steps:number;delayMs:number};product?:FrozenProduct};
-export type AiVideoInput={schemaVersion:1;kind:"AI_VIDEO";product:FrozenProduct;customerPrompt:string;accuracyInstructions:string;tier:"QUALITY";durationSeconds:number;aspectRatio:"9:16"|"16:9"|"1:1";quantity:1;referenceAssetVersionIds:string[];providerPolicyVersion:string;executionProvider:"BYTEPLUS"|"FAKE";testScenario?:"SUCCESS"|"FAILURE"|"RATE_LIMIT"|"SUBMISSION_UNKNOWN"|"DOWNLOAD_FAIL_ONCE"|"OVERSIZED_OUTPUT"|"INVALID_MIME"|"INVALID_CHECKSUM"};
-export type ClipperInput={schemaVersion:1;kind:"CLIPPER";analyzerProvider:"openai"|"fake";source:{origin:"SOURCE_ASSET";sourceAssetId:string;byteSize:number;mimeType:string;storageIdentity:string;storageKey:string;filename:string;sha256?:string};product?:FrozenProduct;language:string;goal:string;targetClipCount:number;minClipSeconds:number;maxClipSeconds:number;aspectRatio:"9:16";captions:boolean;analyzerPolicyVersion:string;renderPolicyVersion:string};
+export type AiVideoInput={schemaVersion:1;kind:"AI_VIDEO";product:FrozenProduct;customerPrompt:string;accuracyInstructions:string;tier:"QUALITY";durationSeconds:number;aspectRatio:"9:16"|"16:9"|"1:1";quantity:1;referenceAssetVersionIds:string[];providerPolicyVersion:string;executionProvider:"BYTEPLUS"|"WAVESPEED"|"FAKE";testScenario?:"SUCCESS"|"FAILURE"|"RATE_LIMIT"|"SUBMISSION_UNKNOWN"|"DOWNLOAD_FAIL_ONCE"|"OVERSIZED_OUTPUT"|"INVALID_MIME"|"INVALID_CHECKSUM"};
+export type ClipperInput={schemaVersion:1;kind:"CLIPPER";analyzerProvider:"openai"|"wavespeed"|"fake";analyzerModel?:string;source:{origin:"SOURCE_ASSET";sourceAssetId:string;byteSize:number;mimeType:string;storageIdentity:string;storageKey:string;filename:string;sha256?:string};product?:FrozenProduct;language:string;goal:string;targetClipCount:number;minClipSeconds:number;maxClipSeconds:number;aspectRatio:"9:16";captions:boolean;analyzerPolicyVersion:string;renderPolicyVersion:string};
 export type JobInput=SystemTestInput|AiVideoInput|ClipperInput;
 export type JobRow={id:string;workspace_id:string;type:string;required_capability:string;status:JobStatus;input_snapshot:JobInput;input_hash:string;progress_percent:number;progress_stage:string;progress_message:string;progress_sequence:number;attempt_count:number;max_attempts:number;available_at:Date;cancel_requested_at:Date|null;result:Record<string,unknown>|null};
 
@@ -113,10 +113,10 @@ export async function snapshotMediaAvailable(job:JobRow,db:DbClient={query}){
   }
   return true;
 }
-export async function dispatchOne(){
+export async function dispatchOne(jobId?:string){
   return transaction(async db=>{
     const outbox=await db.query<{id:string;workspace_id:string;job_id:string;attempt_number:number}>(`SELECT id,workspace_id,job_id,attempt_number FROM job_outbox
-      WHERE status='PENDING' AND available_at<=now() ORDER BY available_at,created_at,id LIMIT 1 FOR UPDATE SKIP LOCKED`);
+      WHERE status='PENDING' AND available_at<=now() AND ($1::uuid IS NULL OR job_id=$1) ORDER BY available_at,created_at,id LIMIT 1 FOR UPDATE SKIP LOCKED`,[jobId||null]);
     const item=outbox.rows[0];if(!item)return false;
     const job=await scopedJob(db,item.workspace_id,item.job_id,true);
     if(job.status!=="QUEUED"||job.attempt_count>=job.max_attempts){

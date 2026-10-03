@@ -3,7 +3,7 @@ import pg from "pg";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const base="http://127.0.0.1:3200";
+const base=(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200");
 const password="ValidPassword123!";
 type Mail={to:string;subject:string;url:string};
 async function mail(to:string,subject:string):Promise<Mail> {

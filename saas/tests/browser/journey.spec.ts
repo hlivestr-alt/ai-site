@@ -79,7 +79,7 @@ test("customer registration to shared workspace, role controls and sign-out",asy
     await expect(bPage.locator("body")).toContainText("Workspace not found");
     await bPage.goto(`/api/workspaces/${aWs}/members`);
     await expect(bPage.locator("body")).toContainText("Workspace not found");
-    const crossPatch=await bPage.request.patch(`/api/workspaces/${aWs}/members/${aMember}`,{headers:{Origin:"http://127.0.0.1:3200"},data:{role:"VIEWER"}});
+    const crossPatch=await bPage.request.patch(`/api/workspaces/${aWs}/members/${aMember}`,{headers:{Origin:(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200")},data:{role:"VIEWER"}});
     expect([403,404]).toContain(crossPatch.status());
     await bPage.goto("/settings");
     await bPage.getByLabel("Email address").fill(owner);

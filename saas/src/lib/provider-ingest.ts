@@ -13,7 +13,7 @@ const execFileAsync=promisify(execFile);
 export function maxGeneratedVideoBytes(){const value=Number(process.env.MAX_GENERATED_VIDEO_BYTES||268435456);return Number.isSafeInteger(value)?Math.max(1048576,Math.min(536870912,value)):268435456;}
 async function probe(path:string){
   try{
-    const {stdout}=await execFileAsync("ffprobe",["-v","error","-select_streams","v:0","-show_entries","stream=width,height:format=duration","-of","json",path],{timeout:10000,maxBuffer:16384});
+    const {stdout}=await execFileAsync(process.env.FFPROBE_PATH||"ffprobe",["-v","error","-select_streams","v:0","-show_entries","stream=width,height:format=duration","-of","json",path],{timeout:10000,maxBuffer:16384});
     const parsed=JSON.parse(stdout) as {streams?:{width?:number;height?:number}[];format?:{duration?:string}};
     const duration=Number(parsed.format?.duration),width=parsed.streams?.[0]?.width,height=parsed.streams?.[0]?.height;
     return {durationSeconds:Number.isFinite(duration)&&duration>0?Math.round(duration*100)/100:null,width:typeof width==="number"&&width>0?width:null,height:typeof height==="number"&&height>0?height:null};
@@ -38,6 +38,7 @@ export async function ingestProviderOutput(args:{provider:VideoProvider;poll:Pro
     if(retrieved.contentLength&&size!==retrieved.contentLength)throw new ProviderSafeError("OUTPUT_INVALID","The provider output size did not match.");
     if(retrieved.expectedSha256&&checksum!==retrieved.expectedSha256)throw new ProviderSafeError("OUTPUT_INVALID","The provider output checksum did not match.");
     const media=await probe(path);
+    if(args.provider.name==="WAVESPEED"&&(!media.durationSeconds||!media.width||!media.height))throw new ProviderSafeError("OUTPUT_INVALID","The provider output is not a playable MP4 video.");
     const artifact=await transaction(async db=>{
       const prior=await db.query("SELECT id FROM job_artifacts WHERE workspace_id=$1 AND attempt_id=$2 AND slot_name='video'",[args.workspaceId,args.attemptId]);
       await checkStorageQuota(db,args.workspaceId,prior.rowCount?0:await additionalArtifactBytes(db,args.jobId,size));

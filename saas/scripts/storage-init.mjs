@@ -3,7 +3,9 @@ import { allowedStorageOrigins, storageBrowserMethods, storageBrowserHeaders, st
 
 if (process.env.APP_ENV !== "local") throw new Error("storage:init is local-only");
 const endpoint=process.env.OBJECT_STORAGE_ENDPOINT;
-if (!endpoint || !/^http:\/\/(127\.0\.0\.1|localhost):9000$/.test(endpoint)) throw new Error("storage:init requires local S3 gateway endpoint");
+const port=process.env.SAAS_TEST_STORAGE_PORT||"9000";
+if(!/^\d+$/.test(port)||Number(port)<1024||Number(port)>65535||process.env.SAAS_TEST_STORAGE_PORT&&process.env.OBJECT_STORAGE_BUCKET!==process.env.TEST_OBJECT_STORAGE_BUCKET)throw new Error("Isolated test storage target required");
+if (!endpoint || ![`http://127.0.0.1:${port}`,`http://localhost:${port}`].includes(endpoint)) throw new Error("storage:init requires local S3 gateway endpoint");
 const client=new S3Client({endpoint,region:process.env.OBJECT_STORAGE_REGION||"us-east-1",credentials:{accessKeyId:process.env.OBJECT_STORAGE_ACCESS_KEY,secretAccessKey:process.env.OBJECT_STORAGE_SECRET_KEY},forcePathStyle:true});
 const origins=allowedStorageOrigins();
 for(const bucket of [process.env.OBJECT_STORAGE_BUCKET,process.env.TEST_OBJECT_STORAGE_BUCKET]) {

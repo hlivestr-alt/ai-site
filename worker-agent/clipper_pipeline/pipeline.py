@@ -62,7 +62,7 @@ class ClipperPipeline:
             self.restore(checkpoints["clip-plan"], plan_path, callbacks)
         plan = self.read_json(plan_path)
         if not plan or plan.get("inputHash") != expected_hash or plan.get("sourceSha256") != checksum or plan.get("transcriptFingerprint") != expected_fingerprint:
-            analyzer = configured_analyzer(analyzer_options["provider"])
+            analyzer = configured_analyzer(analyzer_options["provider"], analyzer_options.get("model"))
             candidates, models = [], set()
             usage = {"inputTokens": 0, "outputTokens": 0, "requestCount": 0}
             windows = chunks(transcript)
@@ -72,7 +72,7 @@ class ClipperPipeline:
                 callbacks.check()
                 chunk_path = root / "analysis" / f"chunk-{window['index']:04d}.json"
                 # Per-chunk checkpoint avoids replaying successful analyzer requests after partial failure.
-                chunk_key = fingerprint(expected_hash, {"transcript": expected_fingerprint, "chunk": window, "policy": analyzer_options["policyVersion"], "provider": analyzer_options["provider"], "model": os.getenv("OPENAI_CLIP_MODEL", "fake-transcript-v1")})
+                chunk_key = fingerprint(expected_hash, {"transcript": expected_fingerprint, "chunk": window, "policy": analyzer_options["policyVersion"], "provider": analyzer_options["provider"], "model": analyzer.model})
                 cached = self.read_json(chunk_path)
                 response = cached.get("response") if cached and cached.get("key") == chunk_key else None
                 if response is None:

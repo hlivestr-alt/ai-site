@@ -2,11 +2,11 @@ import { transaction, type DbClient } from "./db";
 import { AppError } from "./core";
 import { jobEvent, scopedJob, type AiVideoInput, type JobRow } from "./job-core";
 import { providerForExecution } from "./video-providers";
-import { ProviderSafeError, SubmissionUnknownError, type ProviderPoll } from "./video-providers/types";
+import { ProviderSafeError, SubmissionUnknownError, type ProviderPoll, type ProviderName } from "./video-providers/types";
 import { ingestProviderOutput } from "./provider-ingest";
 import {boundedSetting} from './operational-config';
 
-type Execution={id:string;workspace_id:string;job_id:string;attempt_id:string;attempt_number:number;provider:"BYTEPLUS"|"FAKE";model:string;provider_policy_version:string;request_hash:string;submission_token:string;state:string;external_task_id:string|null;submit_count:number;poll_count:number;ingest_count:number;submission_started_at:Date|null;submitted_at:Date|null;input_snapshot:AiVideoInput;cancel_requested_at:Date|null};
+type Execution={id:string;workspace_id:string;job_id:string;attempt_id:string;attempt_number:number;provider:ProviderName;model:string;provider_policy_version:string;request_hash:string;submission_token:string;state:string;external_task_id:string|null;submit_count:number;poll_count:number;ingest_count:number;submission_started_at:Date|null;submitted_at:Date|null;input_snapshot:AiVideoInput;cancel_requested_at:Date|null};
 function dueMs(ms:number){return Math.max(1000,Math.min(300000,ms));}
 async function markFailure(db:DbClient,e:Execution,code:string,message:string){
   const job=await scopedJob(db,e.workspace_id,e.job_id,true);
@@ -27,7 +27,7 @@ async function safeRetry(db:DbClient,e:Execution,code:string,message:string){
   await db.query("UPDATE jobs SET status='QUEUED',available_at=now()+($1::integer * interval '1 millisecond'),progress_percent=0,progress_stage='retry_scheduled',progress_message='Provider is busy. Retrying shortly.',error_code=$2,error_message_safe=$3,updated_at=now() WHERE id=$4",[delay,code,message,e.job_id]);
   await jobEvent(db,e.workspace_id,e.job_id,"JOB_RETRY_SCHEDULED",e.attempt_id,null,{attempt:next,delayMs:delay});
 }
-export async function reserveProviderOne(){
+export async function reserveProviderOne(jobId?:string){
   return transaction(async db=>{
     await db.query('SELECT pg_advisory_xact_lock(731052139)');
     const global=boundedSetting('PROVIDER_MAX_CONCURRENCY',10,1,100),workspace=boundedSetting('PROVIDER_WORKSPACE_CONCURRENCY',3,1,100);
@@ -36,8 +36,9 @@ export async function reserveProviderOne(){
     const picked=await db.query<JobRow&{attempt_id:string;input_hash:string}>(`SELECT j.*,a.id AS attempt_id FROM jobs j JOIN job_attempts a ON a.workspace_id=j.workspace_id AND a.job_id=j.id AND a.attempt_number=j.attempt_count+1 AND a.status='PENDING'
       JOIN workspaces w ON w.id=j.workspace_id AND w.status='ACTIVE'
       WHERE j.type='AI_VIDEO' AND j.status='WAITING_FOR_WORKER' AND j.available_at<=now()
+      AND ($2::uuid IS NULL OR j.id=$2)
       AND (SELECT count(*) FROM provider_executions e WHERE e.workspace_id=j.workspace_id AND e.state NOT IN('SUCCEEDED','FAILED','CANCELLED'))<$1
-      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[workspace]);
+      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[workspace,jobId||null]);
     const job=picked.rows[0];if(!job)return false;
     if(job.input_snapshot.kind!=="AI_VIDEO"){
       await db.query("UPDATE jobs SET status='FAILED',error_code='INVALID_INPUT',error_message_safe='Video input is invalid.',finished_at=now() WHERE id=$1",[job.id]);return true;
@@ -55,11 +56,12 @@ export async function reserveProviderOne(){
   });
 }
 type Action={kind:"submit"|"reconcile"|"poll"|"ingest";execution:Execution};
-async function claimDue():Promise<Action|null>{
+async function claimDue(jobId?:string):Promise<Action|null>{
   return transaction(async db=>{
     const picked=await db.query<Execution>(`SELECT e.*,j.input_snapshot,j.cancel_requested_at FROM provider_executions e JOIN jobs j ON j.workspace_id=e.workspace_id AND j.id=e.job_id
       WHERE e.state IN ('RESERVED','SUBMITTING','SUBMISSION_UNKNOWN','SUBMITTED','RUNNING','OUTPUT_PENDING') AND e.next_action_at<=now()
-      ORDER BY e.next_action_at,e.created_at,e.id LIMIT 1 FOR UPDATE OF e SKIP LOCKED`);
+      AND ($1::uuid IS NULL OR e.job_id=$1)
+      ORDER BY e.next_action_at,e.created_at,e.id LIMIT 1 FOR UPDATE OF e SKIP LOCKED`,[jobId||null]);
     const e=picked.rows[0];if(!e)return null;
     if(e.input_snapshot.kind!=="AI_VIDEO")throw new AppError(500,"Invalid provider input.");
     if(e.state==="SUBMITTING"){
@@ -187,8 +189,8 @@ async function ingest(e:Execution){
     });
   }
 }
-export async function processProviderOne(){
-  const action=await claimDue();if(!action)return false;
+export async function processProviderOne(jobId?:string){
+  const action=await claimDue(jobId);if(!action)return false;
   if(action.kind==="submit")await submit(action.execution);
   else if(action.kind==="reconcile")await reconcile(action.execution);
   else if(action.kind==="poll")await poll(action.execution);

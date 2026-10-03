@@ -1,6 +1,6 @@
 import type { AiVideoInput } from "../job-core";
 
-export type ProviderName="BYTEPLUS"|"FAKE";
+export type ProviderName="BYTEPLUS"|"WAVESPEED"|"FAKE";
 export type ProviderStatus="queued"|"running"|"succeeded"|"failed"|"cancelled";
 export type ProviderCapabilities={minDurationSeconds:number;maxDurationSeconds:number;aspectRatios:string[];maxReferenceImages:number;maxQuantity:number};
 export type SubmissionContext={submissionToken:string;attemptNumber:number};

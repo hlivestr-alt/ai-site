@@ -16,3 +16,7 @@ Run `npm run db:status`, `npm test`, `npm run lint`, `npm run typecheck`, and `n
 For multi-PC testing through the existing Cloudflare Tunnel, follow [remote-test private storage](docs/remote-test-storage.md) to configure a separate browser signing endpoint, exact-origin CORS and the storage route's canonical Host.
 
 See [Phase 2 documentation](docs/phase2/README.md) for Products, assets, storage, isolation, lifecycle, and Phase 3 contracts. See [Phase 1 documentation](docs/phase1/README.md) for identity and workspaces.
+
+## WaveSpeed providers
+
+WaveSpeed Seedance 2.5 video and a WaveSpeed OpenAI-compatible transcript analyzer are supported alongside BytePlus/direct OpenAI. See [configuration, private references, preflight and one-generation acceptance](docs/wavespeed-providers.md). Apply migration 0010 before enabling the provider. No customer Token prices are changed.

@@ -4,7 +4,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import pg from "pg";
 
-const base="http://127.0.0.1:3200";
+const base=(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200");
 async function mail(to:string){for(let i=0;i<50;i++){const folder=join(process.cwd(),"data","mailbox"),files=(await readdir(folder).catch(()=>[])).filter(x=>x.endsWith(".json")).sort().reverse();for(const file of files){const item=JSON.parse(await readFile(join(folder,file),"utf8"));if(item.to===to&&item.subject.includes("Verify"))return item.url as string;}await new Promise(r=>setTimeout(r,100));}throw new Error("Verification mail missing");}
 function provision(name:string,capability:string){const output=execFileSync(process.execPath,["--env-file=.env.local","scripts/worker-admin.mjs","create",name,capability,"2","--test"],{cwd:process.cwd(),encoding:"utf8"});return JSON.parse(output) as {workerId:string;credential:string};}
 function dispatcher():ChildProcess{return spawn(process.execPath,["--env-file=.env.local","--import","tsx","scripts/dispatcher.ts"],{cwd:process.cwd(),env:{...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,OBJECT_STORAGE_BUCKET:process.env.TEST_OBJECT_STORAGE_BUCKET,DISPATCHER_POLL_MS:"200",JOB_RETRY_BASE_MS:"1000"},stdio:["ignore","pipe","pipe"],windowsHide:true});}

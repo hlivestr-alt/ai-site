@@ -44,6 +44,8 @@
     "backup:restore": "node --env-file=.env.local --import tsx scripts/backup.ts restore",
     "billing:catalog": "node --env-file=.env.local --import tsx scripts/billing-catalog.ts",
     "external:preflight": "node --env-file=.env.local --import tsx scripts/operations.ts external-preflight",
+    "wavespeed:preflight": "node --env-file=.env.local --import tsx scripts/wavespeed-preflight.ts",
+    "wavespeed:video-smoke": "node --env-file=.env.local --import tsx scripts/wavespeed-video-smoke.ts",
     "production:preflight": "node --env-file=.env.local --import tsx scripts/operations.ts production-preflight",
     "test:performance-smoke": "node tests/phase9-query-review.mjs"
   },

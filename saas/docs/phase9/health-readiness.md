@@ -11,3 +11,5 @@ Service freshness defaults to 180 seconds, configurable with SERVICE_STALE_SECON
 Customer `/api/workspaces/:id/status` returns only contextual service availability, that workspace's limits and usage after membership/active-workspace checks. It exposes no worker identities, credentials, hostnames or internal topology. The Home page displays a recoverable processing-delay notice.
 
 Tests inject inaccessible storage/DB addresses only into isolated processes. Shared PostgreSQL/storage containers are never stopped to simulate an outage.
+
+WaveSpeed configuration validates exact official API bases and the configured model. Workers report only analyzerConfigured, analyzerProvider and analyzerModel, alongside the existing media health; WaveSpeed jobs can only be claimed by a matching configured worker. Four-field legacy worker health remains compatible with direct OpenAI. Provider readiness/credential checks are distinct from authenticated live preflight and production acceptance. See [WaveSpeed operations](../wavespeed-providers.md).

@@ -123,6 +123,7 @@ class Agent:
     def heartbeat(self) -> dict:
         import importlib.util
         import shutil
+        from clipper_pipeline.analyzer import analyzer_health
         result = self.client.post("/api/worker/heartbeat", {
             "agentVersion": self.config.agent_version, "pipelineVersion": "clipper-v1",
             "availableSlots": max(0, self.config.max_concurrency - len(self.active)),
@@ -130,7 +131,7 @@ class Agent:
             "clipperHealth": {"transcriberAvailable": importlib.util.find_spec("faster_whisper") is not None,
                 "ffmpegAvailable": bool(shutil.which(os.getenv("FFMPEG_PATH", "ffmpeg")) and shutil.which(os.getenv("FFPROBE_PATH", "ffprobe"))),
                 "gpuAvailable": self.gpu_available,
-                "freeDiskBytes": shutil.disk_usage(self.config.work_dir).free}})
+                "freeDiskBytes": shutil.disk_usage(self.config.work_dir).free, **analyzer_health()}})
         self.last_heartbeat = time.monotonic()
         return result
 

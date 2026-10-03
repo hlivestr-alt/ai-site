@@ -46,3 +46,5 @@ After actual evidence passes, set XENDIT_SANDBOX_ACCEPTANCE_VERIFIED=1. This is 
 Real SMTP requires controlled delivery, TLS/sender configuration, correct-domain verification/reset/invite links and retry recovery before PRODUCTION_MAIL_VERIFIED=1. Production storage requires private/CORS/signed PUT/GET/multipart/range/retention/backup checks before PRODUCTION_STORAGE_VERIFIED=1; >5 GiB handling remains provider-specific acceptance pending. Supervision, TLS/callbacks, stable worker/disk, operator access, deliberate production prices, clean reconciliation and a recent coordinated restore must also pass.
 
 Run production preflight again after recording these checks. Its acceptance flags are explicit operator attestations; it never triggers paid AI, SMTP sends or a payment automatically. Keep the external paid-beta verdict BLOCKED until every required gate has real evidence.
+
+WaveSpeed acceptance uses the selected provider credentials and separate WAVESPEED_VIDEO_ACCEPTANCE_VERIFIED / WAVESPEED_CLIP_ACCEPTANCE_VERIFIED attestations. Neither is set by a cheap smoke. See [cheap checks and the one-generation cap](../wavespeed-providers.md).

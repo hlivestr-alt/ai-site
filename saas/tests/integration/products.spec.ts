@@ -6,7 +6,7 @@ import sharp from "sharp";
 import pg from "pg";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-const base="http://127.0.0.1:3200",password="ValidPassword123!";
+const base=(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200"),password="ValidPassword123!";
 async function client(){return request.newContext({baseURL:base,extraHTTPHeaders:{Origin:base}});}
 async function post(c:APIRequestContext,path:string,data:Record<string,unknown>={}){return c.post(path,{data});}
 async function mail(to:string,subject:string){

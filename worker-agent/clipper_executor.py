@@ -124,7 +124,9 @@ class ClipperExecutor:
             provider = inputs["analyzerProvider"]
             if provider == "fake" and claim.get("requiredCapability") != "CLIPPER_TEST_V1":
                 raise PipelineError("FIXTURE_CAPABILITY_REQUIRED")
-            analyzer = {"provider": provider, "goal": inputs["goal"], "targetClipCount": inputs["targetClipCount"], "minClipSeconds": inputs["minClipSeconds"], "maxClipSeconds": inputs["maxClipSeconds"], "product": inputs.get("product"), "policyVersion": inputs["analyzerPolicyVersion"]}
+            from clipper_pipeline.analyzer import configured_analyzer
+            configured_analyzer(provider, inputs.get("analyzerModel"))
+            analyzer = {"provider": provider, "model": inputs.get("analyzerModel"), "goal": inputs["goal"], "targetClipCount": inputs["targetClipCount"], "minClipSeconds": inputs["minClipSeconds"], "maxClipSeconds": inputs["maxClipSeconds"], "product": inputs.get("product"), "policyVersion": inputs["analyzerPolicyVersion"]}
             manifest = ClipperPipeline().run(inputs["source"], {"language": inputs["language"]}, analyzer, {"captions": inputs["captions"], "aspectRatio": inputs["aspectRatio"], "policyVersion": inputs["renderPolicyVersion"]}, callbacks)
             callbacks.post("complete", manifest)
             atomic_json(work / "receipt.json", {"status": "SUCCEEDED", "jobId": claim["jobId"], "metrics": callbacks.metrics})

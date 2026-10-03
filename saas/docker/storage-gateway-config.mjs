@@ -20,11 +20,13 @@ export function allowedStorageOrigins(env = process.env) {
 export function storageGatewayConfig(env = process.env) {
   if (!["local", "test"].includes(env.APP_ENV || "local")) throw new Error("Local S3 gateway is local/test-only");
   if (!env.OBJECT_STORAGE_ACCESS_KEY || !env.OBJECT_STORAGE_SECRET_KEY) throw new Error("Gateway signing credentials are required");
+  const port = env.SAAS_TEST_STORAGE_PORT || "9000";
+  if (env.SAAS_TEST_STORAGE_PORT && (env.APP_ENV !== "test" || !/^\d+$/.test(port) || Number(port) < 1024 || Number(port) > 65535)) throw new Error("Alternate gateway ports require explicit test mode");
   const internal = new URL(env.OBJECT_STORAGE_ENDPOINT || "http://127.0.0.1:9000");
-  if (internal.protocol !== "http:" || !["localhost", "127.0.0.1"].includes(internal.hostname) || internal.port !== "9000" || internal.username || internal.password || internal.pathname !== "/" || internal.search || internal.hash) {
-    throw new Error("Local S3 gateway requires a loopback OBJECT_STORAGE_ENDPOINT on port 9000");
+  if (internal.protocol !== "http:" || !["localhost", "127.0.0.1"].includes(internal.hostname) || internal.port !== port || internal.username || internal.password || internal.pathname !== "/" || internal.search || internal.hash) {
+    throw new Error("Local S3 gateway requires its configured loopback endpoint");
   }
-  const internalHosts = new Set(["127.0.0.1:9000", "localhost:9000"]);
+  const internalHosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
   const allowedHosts = new Set(internalHosts);
   if (env.OBJECT_STORAGE_PUBLIC_ENDPOINT) {
     const external = new URL(env.OBJECT_STORAGE_PUBLIC_ENDPOINT);

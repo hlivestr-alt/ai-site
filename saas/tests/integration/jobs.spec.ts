@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import pg from "pg";
 import sharp from "sharp";
 
-const base="http://127.0.0.1:3200",password="ValidPassword123!";
+const base=(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200"),password="ValidPassword123!";
 async function mail(to:string,subject:string){for(let attempt=0;attempt<50;attempt++){const folder=join(process.cwd(),"data","mailbox"),files=(await readdir(folder).catch(()=>[])).filter(x=>x.endsWith(".json")).sort().reverse();for(const file of files){const item=JSON.parse(await readFile(join(folder,file),"utf8"));if(item.to===to&&item.subject.includes(subject))return item.url as string;}await new Promise(resolve=>setTimeout(resolve,100));}throw new Error("Local development mail missing");}
 async function owner(email:string){const c=await request.newContext({baseURL:base,extraHTTPHeaders:{Origin:base,"x-diagnostic-token":process.env.DEV_DIAGNOSTIC_TOKEN||""}});expect((await c.post("/api/auth/register",{data:{email,displayName:"Jobs Owner",password}})).status()).toBe(201);const token=new URL(await mail(email,"Verify")).searchParams.get("token");expect((await c.post("/api/auth/verify",{data:{token}})).status()).toBe(200);const w=await c.post("/api/workspaces",{data:{name:`Jobs ${Date.now()}`}});expect(w.status()).toBe(201);return {c,workspaceId:(await w.json()).workspace.id as string};}
 function provision(name:string,max=1,capability="SYSTEM_TEST"){const result=execFileSync(process.execPath,["--env-file=.env.local","scripts/worker-admin.mjs","create",name,capability,String(max),"--test"],{cwd:process.cwd(),encoding:"utf8"});return JSON.parse(result) as {workerId:string;credential:string};}
