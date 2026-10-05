@@ -8,6 +8,21 @@ This Python 3.11+ process calls the SaaS API outbound and opens no listening por
 
 The agent heartbeats every 20 seconds and claims only its provisioned capabilities. SYSTEM_TEST renews before progress, reports monotonic progress, and sends a deterministic SHA-256 result; CLIPPER renews independently throughout long processing. The server verifies the current lease and fencing token on every callback. Stop with Ctrl+C to drain; no Windows startup task is installed. The agent creates `data/jobs/<job-id>/<attempt-id>/receipt.json` for each attempt. Small fixture receipts remain for diagnostics. Clipper removes large stage files after verified success; its retention sweep checks authoritative terminal state before removing older attempt directories.
 
+## Normal startup
+
+Open a fresh PowerShell window after a reboot and run:
+
+```powershell
+cd C:\Data\ai-site\worker-agent
+python worker_agent.py
+```
+
+The worker loads the ignored `.env` beside `worker_agent.py`, including UTF-8 BOM files. Missing, empty or whitespace-only process variables use `.env`; a nonempty process variable intentionally overrides it and is still validated. No manual token loading is required. Configuration failures identify the key without printing its value. Stop with Ctrl+C to drain current work.
+
+Optional startup validation: `python worker_agent.py --check-startup` checks installed Faster-Whisper, FFmpeg/FFprobe, GPU and analyzer configuration, sends one authenticated heartbeat with zero available slots, then exits. It never claims a job, downloads models or calls an analyzer API. Health checks report configuration/installed tools rather than testing a paid request.
+
+Source downloads bypass process proxies only for signed media transfers. Short reads are retriable `SOURCE_DOWNLOAD_FAILED`; oversized responses and exact-size checksum mismatches are permanent errors. Verified downloads atomically replace `.partial` files; failed partials are removed. Worker-console diagnostics include only bounded metadata, never exception text, stack source lines, credentials, signed URLs or customer content. Unknown local errors retain their retry behavior.
+
 For production, use HTTPS and a separate secret manager/service installation plan. The local http://127.0.0.1:3200 exception works only when agent and SaaS share the same machine.
 
 Clipper provisioning: npm run worker:admin -- create <name> CLIPPER_V1 1. Configure the installed Whisper model, CLIP_ANALYZER_PROVIDER=openai, OPENAI_API_KEY and OPENAI_CLIP_MODEL in the private worker environment. A separate background renewal loop protects long jobs; server caps Clipper concurrency at one per worker. Large local files are cleaned after verified cloud completion. Old interrupted attempts require an authorized terminal-state check before cleanup. Fake analysis requires explicit local mode and separately provisioned CLIPPER_TEST_V1.

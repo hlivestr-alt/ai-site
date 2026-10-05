@@ -136,15 +136,22 @@ class ClipperExecutor:
                     raise ValueError("Cleanup escaped attempt")
                 shutil.rmtree(target)
         except Exception as error:
-            code = error.code if isinstance(error, PipelineError) else "CLIPPER_OPERATION_FAILED"
-            retriable = error.retriable if isinstance(error, PipelineError) else getattr(error, "status", 0) in {0, 429, 500, 502, 503, 504}
+            from worker_agent import log, log_exception, safe_error_code
+            code = safe_error_code(error)
+            # Unknown local operational errors retain the original status=0 retry.
+            status = getattr(error, "status", 0)
+            retriable = (
+                error.retriable
+                if isinstance(error, PipelineError)
+                else status in {0, 429, 500, 502, 503, 504}
+            )
+            log_exception("clipper_exception_detail", error, job_id=claim["jobId"], code=code)
             if code != "LEASE_FENCED" and not guard.fenced.is_set() and time.time() < guard.deadline:
                 try:
                     result = agent.client.post(f"/api/worker/jobs/{claim['jobId']}/fail", {**identity, "errorCode": code, "retriable": retriable, "message": code.replace("_", " ")})
                     atomic_json(work / "receipt.json", {"status": result["status"], "jobId": claim["jobId"], "metrics": callbacks.metrics})
                 except Exception:
                     pass
-            from worker_agent import log
             log("clipper_error", jobId=claim["jobId"], code=code)
         finally:
             guard.close()
