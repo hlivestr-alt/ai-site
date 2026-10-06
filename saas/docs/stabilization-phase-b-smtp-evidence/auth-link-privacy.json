@@ -1,0 +1,103 @@
+{
+  "status": "PASS",
+  "tests": 8,
+  "rows": [
+    {
+      "channel": "chrome",
+      "version": "154.0.8037.98",
+      "page": "/verify",
+      "forwardedHttps": false,
+      "htmlAndHeadersSecretFree": true,
+      "rscSecretFree": true,
+      "recipientTokenSubmitted": true,
+      "missingLinkDisabled": true,
+      "strictCsp": true,
+      "serverLogsSecretFree": true
+    },
+    {
+      "channel": "chrome",
+      "version": "154.0.8037.98",
+      "page": "/reset-password",
+      "forwardedHttps": false,
+      "htmlAndHeadersSecretFree": true,
+      "rscSecretFree": true,
+      "recipientTokenSubmitted": true,
+      "missingLinkDisabled": true,
+      "strictCsp": true,
+      "serverLogsSecretFree": true
+    },
+    {
+      "channel": "msedge",
+      "version": "154.0.4258.53",
+      "page": "/verify",
+      "forwardedHttps": false,
+      "htmlAndHeadersSecretFree": true,
+      "rscSecretFree": true,
+      "recipientTokenSubmitted": true,
+      "missingLinkDisabled": true,
+      "strictCsp": true,
+      "serverLogsSecretFree": true
+    },
+    {
+      "channel": "msedge",
+      "version": "154.0.4258.53",
+      "page": "/reset-password",
+      "forwardedHttps": false,
+      "htmlAndHeadersSecretFree": true,
+      "rscSecretFree": true,
+      "recipientTokenSubmitted": true,
+      "missingLinkDisabled": true,
+      "strictCsp": true,
+      "serverLogsSecretFree": true
+    },
+    {
+      "channel": "chrome",
+      "version": "154.0.8037.98",
+      "page": "/verify",
+      "forwardedHttps": true,
+      "htmlAndHeadersSecretFree": true,
+      "rscSecretFree": true,
+      "recipientTokenSubmitted": true,
+      "missingLinkDisabled": true,
+      "strictCsp": true,
+      "serverLogsSecretFree": true
+    },
+    {
+      "channel": "chrome",
+      "version": "154.0.8037.98",
+      "page": "/reset-password",
+      "forwardedHttps": true,
+      "htmlAndHeadersSecretFree": true,
+      "rscSecretFree": true,
+      "recipientTokenSubmitted": true,
+      "missingLinkDisabled": true,
+      "strictCsp": true,
+      "serverLogsSecretFree": true
+    },
+    {
+      "channel": "msedge",
+      "version": "154.0.4258.53",
+      "page": "/verify",
+      "forwardedHttps": true,
+      "htmlAndHeadersSecretFree": true,
+      "rscSecretFree": true,
+      "recipientTokenSubmitted": true,
+      "missingLinkDisabled": true,
+      "strictCsp": true,
+      "serverLogsSecretFree": true
+    },
+    {
+      "channel": "msedge",
+      "version": "154.0.4258.53",
+      "page": "/reset-password",
+      "forwardedHttps": true,
+      "htmlAndHeadersSecretFree": true,
+      "rscSecretFree": true,
+      "recipientTokenSubmitted": true,
+      "missingLinkDisabled": true,
+      "strictCsp": true,
+      "serverLogsSecretFree": true
+    }
+  ],
+  "temporaryServerStopped": true
+}

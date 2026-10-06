@@ -2,25 +2,25 @@
 
 Date: 2026-10-06. Repository baseline: `db0bd7b`. Phase A implementation `ef98f0b95218f8e1975c8cf9b64ecfc850b250d2` and report commit `3d5e7de` remain present.
 
-**Application implementation: PASS. Overall acceptance: BLOCKED only on external SMTP configuration for AUTH-001.** Real remote signup/verification is not certified, and no actual verification email was delivered. All other Phase B items pass application and applicable browser acceptance.
+**Application implementation: PASS. Overall acceptance: PASS.** AUTH-001 is certified with real remote SMTP delivery, operator-confirmed mailbox receipt, verification/resend, password recovery, one-use links, and session revocation. All Phase B items now pass application and applicable browser acceptance. Final SMTP certification: 2026-10-06.
 
 ## Item Status
 
-### AUTH-001 — BLOCKED for real remote email; APPLICATION FIX: PASS
+### AUTH-001 — PASS
 
-Root cause: registration committed the pending user and token before encrypting/enqueuing verification mail. Public deployment had no mail encryption key or SMTP credentials. Retrying an existing pending email produced a uniqueness error.
+Initial root cause: registration committed the pending user and token before encrypting/enqueuing verification mail. The initial public deployment lacked a mail encryption key and SMTP credentials. Retrying an existing pending email produced a uniqueness error.
 
 Implementation: account creation, hashed single-use token, encrypted delivery task, and audit now commit atomically. A preparation failure rolls back the entire transaction. Concurrent normalized-email retries create one user, retain its original password/profile, supersede old tokens, and enqueue a fresh link. Active-email submissions return the same generic response. Verification, resend, and password recovery serialize on the user; delivery runs after the response, with the existing durable dispatcher/retry queue as recovery. Delivery tasks reference their expiring auth token, so superseded/expired links are skipped. No plaintext auth token is stored in Postgres.
 
-Files: `src/lib/auth.ts`, `mail-core.ts`, `auth-mail.ts`, auth register/resend/forgot routes, `migrations/0011_customer_onboarding.sql`.
+Files: `src/lib/auth.ts`, `mail-core.ts`, `auth-mail.ts`, auth register/resend/forgot routes, `migrations/0011_customer_onboarding.sql`. Final SMTP certification also fixes token serialization in `src/components/auth-form.tsx`, `src/app/verify/page.tsx`, `src/app/reset-password/page.tsx`, and `src/proxy.ts`, with five focused unit cases in `tests/unit/auth-link-privacy.test.ts`.
 
-Evidence: [auth-application.json](stabilization-phase-b-evidence/auth-application.json), Phase B atomic rollback/provider-failure probe, concurrent signup/active-email/single-use tests, and foundation recovery/session-revocation regression. Remote evidence: public pages pass; remote registration POST was deliberately not attempted without SMTP. Limitation: external sender/SMTP configuration is required below.
+Original application evidence remains preserved: [auth-application.json](stabilization-phase-b-evidence/auth-application.json), Phase B atomic rollback/provider-failure probe, concurrent signup/active-email/single-use tests, and foundation recovery/session-revocation regression. The original remote run withheld registration because SMTP was absent. Final real SMTP evidence: [auth-remote-smtp.json](stabilization-phase-b-smtp-evidence/auth-remote-smtp.json), [remote-auth-privacy.json](stabilization-phase-b-smtp-evidence/remote-auth-privacy.json), and [secret-audit.json](stabilization-phase-b-smtp-evidence/secret-audit.json). Two new controlled accounts registered remotely; all four messages arrived; verification, resend, reset, replay rejection, old-password rejection, and session revocation passed. The external SMTP blocker is resolved.
 
 ### AUTH-002 — PASS
 
 Root cause: register/forgot copy unconditionally described a local mailbox, and page props checked only `APP_ENV=local` despite a public HTTPS base URL.
 
-Implementation: normal verification/recovery language, a customer resend page/link, and mailbox controls only for actual loopback local/test deployment. Files: `src/components/auth-form.tsx`, `src/lib/mail.ts`, login/register/verify/forgot/reset/resend pages. Evidence: local/public guard assertions in the auth probe; remote Chrome and Edge checked register, forgot, reset, and resend pages without local wording or mailbox links. Limitations: actual remote mail delivery is the AUTH-001 external dependency.
+Implementation: normal verification/recovery language, a customer resend page/link, and mailbox controls only for actual loopback local/test deployment. Files: `src/components/auth-form.tsx`, `src/lib/mail.ts`, login/register/verify/forgot/reset/resend pages. Evidence: local/public guard assertions in the auth probe; remote Chrome and Edge checked register, forgot, reset, and resend pages without local wording or mailbox links. Final AUTH-001 certification also confirms real remote mail delivery and clean public auth copy.
 
 ### WORKSPACE-001 — PASS
 
@@ -64,13 +64,31 @@ Gap: affordability feedback was small; the shared disabled-button style used a w
 
 ## Signup / Email Status
 
-**APPLICATION FLOW: PASS. REAL REMOTE SMTP DELIVERY: EXTERNAL CONFIG REQUIRED.** No real verification email was delivered; end-to-end remote signup is not claimed as PASS.
+**APPLICATION FLOW: PASS. REAL REMOTE SMTP DELIVERY: PASS.** Certification ran against `https://ai-test.proyaofficial.com` using two unique aliases of the operator-controlled QA mailbox. The operator manually confirmed receipt of two initial verification emails, one resend verification email, and one password recovery email. All four matching SMTP delivery tasks are `SENT`. No inbox, webmail, IMAP, or mailbox credentials were accessed.
 
-Private inspection found no SMTP host/user/password or sender configuration. An absent private `MAIL_ENCRYPTION_KEY` was generated once for encrypted queuing and kept in ignored `.env.local`. Existing storage/provider credentials were preserved. The public HTTPS base URL prevents development-file/fake mail; no fake delivery was enabled on the public site.
+The operator configured SMTP before this certification. SMTP credentials, sender configuration, and the existing mail encryption key were left unchanged. The original Phase B evidence of missing SMTP remains historical evidence; the external dependency is now resolved. The public deployment used real SMTP, with development-file/fake delivery disabled.
 
-Minimum operator action: privately configure `MAIL_PROVIDER=smtp`, `SMTP_HOST`, `SMTP_PORT` (587 with STARTTLS or 465 with TLS), `SMTP_USER`, `SMTP_PASSWORD`, and `MAIL_FROM` using a valid sender. Preserve the configured `MAIL_ENCRYPTION_KEY`. Restart the SaaS with that private environment. Use **Resend verification email** for existing pending accounts, then verify delivery and the one-use link with a controlled real mailbox. Existing dispatcher mail batches recover queued attempts; expired or exhausted deliveries should use resend to create a fresh token/delivery. Credentials and complete links should stay outside reports/chat.
+| Final acceptance check | Result and evidence |
+|---|---|
+| New remote account registration | PASS; two new accounts returned 201 and entered pending verification |
+| Initial verification email delivery | PASS; two operator-confirmed receipts and two `SENT` tasks |
+| Verification activates account | PASS; operator activation independently confirmed by ACTIVE status, matching consumed token, and `EMAIL_VERIFIED` audit event |
+| Login after verification | PASS; login and authenticated session returned 200 |
+| Initial verification link is one-use | PASS; replay returned 400 |
+| Resend delivers a fresh valid email | PASS; fresh SMTP task, operator-confirmed receipt, and Edge activation returned 200 |
+| Superseded verification link is invalid | PASS; old link returned 400 while the account was still pending |
+| Forgot-password email delivery | PASS; operator-confirmed receipt and `SENT` task |
+| Password reset succeeds once | PASS; Chrome reset returned 200, replay returned 400 |
+| Old password no longer works | PASS; old password returned 401; new password login returned 200 |
+| Existing sessions are revoked | PASS; both captured old sessions returned 401 and no unrevoked account session remained before the new login |
+| Customer-facing mailbox wording | PASS; checked register, verify, resend, forgot, and reset pages contain no local mailbox wording or links |
+| Credentials/tokens/complete auth links stay private | PASS; 56 captured responses, browser console/errors, available runtime/test logs, working files, staged evidence, and reachable Git history have zero audit findings |
 
-Remote browser tests used explicit preverified owned QA fixtures. Those tests certify customer Product/workspace UI only, not signup or email transport.
+The fresh resend link also returned 400 on reuse. Received links were handled privately; no passwords, tokens, full verification/reset links, or SMTP credentials are in committed evidence. The two QA accounts were disabled, sessions revoked, and remaining auth links retired; encrypted delivery and audit history were retained.
+
+Certification discovered an application privacy defect: verification/reset query tokens appeared in server-rendered HTML and React payloads. The recipient browser now reads the token without server props. The proxy renders a clean request without the token; HTTP loopback rendering handles Cloudflare's forwarded HTTPS and avoids Next's retention of the original query during an internal rewrite. Existing emailed query links still work. Strict CSP remains enabled. Both browsers pass all eight isolated cases across verification/reset and plain/forwarded HTTPS; four public HTML/React payload checks also pass. See [auth-fix-validation.json](stabilization-phase-b-smtp-evidence/auth-fix-validation.json) and [auth-link-privacy.json](stabilization-phase-b-smtp-evidence/auth-link-privacy.json).
+
+Earlier remote customer Product/workspace checks used preverified fixtures and remain separate preserved evidence. This final run certifies actual remote registration and email transport.
 
 ## Product Reference UX
 
@@ -109,7 +127,10 @@ Final result counts and command details are recorded in [validation-summary.json
 
 | Validation | Final evidence |
 |---|---|
-| `npm run test:unit` | 77/77 PASS |
+| Original Phase B `npm run test:unit` | 77/77 PASS; preserved original evidence |
+| Final SMTP certification `npm run test:unit` | 82/82 PASS, including five new auth privacy cases |
+| Final SMTP Chrome/Edge privacy checks | 8/8 PASS; plain and forwarded HTTPS |
+| Final public auth HTML/React payload checks | 4/4 PASS |
 | Integration coverage | 35/35 PASS in the subsequent full browser collection |
 | `npm run test:browser` collection | 41 cases: integration 35 + customer browser 6 |
 | Corrected customer journeys, `npm run test:browser -- tests/browser` | 6/6 PASS |
@@ -150,9 +171,11 @@ Test jobs, test wallet funding/adjustments, and simulated payments run only in u
 
 Two additive forward migrations were applied to the remote-test database: nullable mail-token linkage, cover pointer, current reference selections/backfill, and pending-slot uniqueness. Old applied migrations were not edited. Existing frozen job/media/Product/rule hashes remain unchanged.
 
-Private runtime change: initialize the absent mail encryption key; rebuild/restart the SaaS on loopback 3200. No existing storage, WaveSpeed, or payment credentials were rotated or changed. No SMTP credentials were invented.
+Original Phase B private runtime change: initialize the absent mail encryption key; rebuild/restart the SaaS on loopback 3200. No existing storage, WaveSpeed, or payment credentials were rotated or changed. No SMTP credentials were invented. Final SMTP certification reused operator-configured SMTP without credential/configuration changes, rebuilt the scoped auth privacy fix, and restarted the SaaS with output in an ignored runtime log.
 
 Two successful remote QA runs created two owned preverified QA users, eight workspaces, and four Products with synthetic private references. All fixture sessions were revoked, users disabled, and workspaces/Products archived. Their immutable media remains retained. No old customer fixture/evidence was deleted. Isolated test runners remove only their own database/bucket/gateway and owned local mail files; per-run cleanup is recorded.
+
+The final SMTP run additionally created two controlled QA accounts and four real auth email deliveries. It created no workspaces, Products, jobs, wallet mutations, or payment activity. Both accounts are disabled, all their sessions revoked, and auth links retired, following the existing fixture policy without deleting delivery/audit history. [Final live-history preservation](stabilization-phase-b-smtp-evidence/live-history-preservation.json) confirms unchanged hashes for the pre-certification 20 jobs, 39 READY media versions, 12 Product information versions, and 12 rule versions. [Final evidence preservation](stabilization-phase-b-smtp-evidence/preserved-original-evidence.json) confirms all 105 original Phase A/Master and Phase B evidence files remain identical; this authorized Phase B report update is excluded from that manifest.
 
 ## Remaining Deferred Work
 
@@ -160,8 +183,7 @@ Two successful remote QA runs created two owned preverified QA users, eight work
 - **CLIPPER EDITING & VARIATIONS:** separate phase.
 - **OUTREACH SAAS:** separate phase.
 - **PHASE 10:** not started.
-- Real remote SMTP sender configuration and controlled signup/email verification remain external work for AUTH-001.
 
 ## Git
 
-Implementation: `308f5fc952da5d3a0804f6b1d44f81263749794c` — **Stabilize customer onboarding workspace and product UX**. Documentation and sanitized evidence are committed separately as **Document Stabilization Phase B**; its commit identity is reported with the final response. No push is performed.
+Original implementation: `308f5fc952da5d3a0804f6b1d44f81263749794c` — **Stabilize customer onboarding workspace and product UX**. Original documentation/evidence: `26421581d6ff478779152cd6a9b3093bb4d8684d` — **Document Stabilization Phase B**. Final SMTP certification, sanitized evidence, and the necessary auth privacy fix are committed as **Certify remote SMTP and complete Phase B**; its commit identity is reported with the final response. No push is performed. Phase C is not started.

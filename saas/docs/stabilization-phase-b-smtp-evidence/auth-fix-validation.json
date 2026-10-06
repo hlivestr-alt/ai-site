@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-10-06T09:37:48.906Z",
+  "authPrivacyDefect": {
+    "verificationHtmlEchoedSyntheticTokenBefore": true,
+    "resetHtmlEchoedSyntheticTokenBefore": true,
+    "fix": "Recipient browser reads the email link token without server props; proxy renders a clean token-free HTTP loopback request because internal Next rewrites retain the original query. Existing query links remain compatible with forwarded HTTPS."
+  },
+  "unit": {
+    "passed": 82,
+    "tests": 82,
+    "newAuthPrivacyTests": 5
+  },
+  "lint": "PASS",
+  "typecheck": "PASS",
+  "productionBuild": "PASS",
+  "isolatedChromeEdgeAuthCases": {
+    "passed": 8,
+    "tests": 8,
+    "forwardedHttpsCases": 4,
+    "htmlHeadersAndRscSecretFree": true
+  },
+  "applicationFilesChanged": [
+    "src/components/auth-form.tsx",
+    "src/app/verify/page.tsx",
+    "src/app/reset-password/page.tsx",
+    "src/proxy.ts"
+  ],
+  "smtpCredentialsChanged": false,
+  "phaseCStarted": false,
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  }
+}

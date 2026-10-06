@@ -5,7 +5,18 @@ export function proxy(request:NextRequest){
   const origins=new Set<string>();for(const raw of [process.env.OBJECT_STORAGE_ENDPOINT,process.env.OBJECT_STORAGE_PUBLIC_ENDPOINT,process.env.OBJECT_STORAGE_PUBLIC_ORIGIN]){try{if(raw)origins.add(new URL(raw).origin);}catch{}}
   const trusted=[...origins].join(' '),production=process.env.APP_ENV==='production';
   const csp=`default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${production?'':" 'unsafe-eval'"}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: ${trusted}; media-src 'self' blob: ${trusted}; connect-src 'self' ${trusted}${production?'':" ws: wss:"}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'${production?'; upgrade-insecure-requests':''}`;
-  headers.set('Content-Security-Policy',csp);const response=NextResponse.next({request:{headers}});response.headers.set('x-request-id',requestId);response.headers.set('Content-Security-Policy',csp);
+  headers.set('Content-Security-Policy',csp);
+  // Keep mailed query links compatible while removing secrets before Next serializes its route tree.
+  const authLink=['/verify','/reset-password'].includes(request.nextUrl.pathname)&&request.nextUrl.searchParams.has('token');
+  const renderingUrl=request.nextUrl.clone();
+  if(authLink){
+    renderingUrl.searchParams.delete('token');
+    // Render a clean request: internal rewrites retain the original query in Next's payload.
+    // The loopback origin serves HTTP even when Cloudflare forwards an HTTPS protocol.
+    if(renderingUrl.hostname==='localhost')renderingUrl.protocol='http:';
+  }
+  const response=authLink?NextResponse.rewrite(renderingUrl,{request:{headers}}):NextResponse.next({request:{headers}});
+  response.headers.set('x-request-id',requestId);response.headers.set('Content-Security-Policy',csp);
   response.headers.set('X-Frame-Options','DENY');response.headers.set('Permissions-Policy','camera=(), microphone=(), geolocation=()');
   if(production&&process.env.APP_BASE_URL?.startsWith('https:'))response.headers.set('Strict-Transport-Security','max-age=31536000');
   return response;

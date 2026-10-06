@@ -1,0 +1,53 @@
+{
+  "capturedAt": "2026-10-06T09:44:36.504Z",
+  "remote": "https://ai-test.proyaofficial.com",
+  "status": "PASS",
+  "rows": [
+    {
+      "page": "/verify",
+      "representation": "html",
+      "status": 200,
+      "redirects": 0,
+      "expectedContentType": true,
+      "tokenAndCredentialsAbsent": true,
+      "strictCsp": true,
+      "noEmailObfuscation": true,
+      "noLocalMailboxWording": true
+    },
+    {
+      "page": "/verify",
+      "representation": "rsc",
+      "status": 200,
+      "redirects": 1,
+      "expectedContentType": true,
+      "tokenAndCredentialsAbsent": true,
+      "strictCsp": true,
+      "noEmailObfuscation": true,
+      "noLocalMailboxWording": true
+    },
+    {
+      "page": "/reset-password",
+      "representation": "html",
+      "status": 200,
+      "redirects": 0,
+      "expectedContentType": true,
+      "tokenAndCredentialsAbsent": true,
+      "strictCsp": true,
+      "noEmailObfuscation": true,
+      "noLocalMailboxWording": true
+    },
+    {
+      "page": "/reset-password",
+      "representation": "rsc",
+      "status": 200,
+      "redirects": 1,
+      "expectedContentType": true,
+      "tokenAndCredentialsAbsent": true,
+      "strictCsp": true,
+      "noEmailObfuscation": true,
+      "noLocalMailboxWording": true
+    }
+  ],
+  "priorDraftFailure": "The first deployed privacy fix used HTTPS to the HTTP loopback origin and returned 500; corrected and checked with forwarded HTTPS before final certification.",
+  "runtimeLogAvailable": true
+}

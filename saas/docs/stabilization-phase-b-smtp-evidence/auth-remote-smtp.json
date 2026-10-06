@@ -1,0 +1,98 @@
+{
+  "status": "PASS",
+  "runId": "1791277207655-f75305",
+  "remote": "https://ai-test.proyaofficial.com",
+  "mailTransport": "real SMTP",
+  "receiptEvidence": "manual operator confirmation; no inbox/webmail/IMAP access",
+  "startedAt": "2026-10-06T09:00:07.655Z",
+  "checks": {
+    "newRemoteRegistration": true,
+    "initialVerificationSmtpAccepted": true,
+    "initialVerificationEmailsDelivered": true,
+    "verificationActivatesAccount": true,
+    "loginAfterVerification": true,
+    "verificationLinkOneUse": true,
+    "resendFreshSmtpAccepted": true,
+    "resendEmailDelivered": true,
+    "supersededVerificationLinkInvalid": true,
+    "resentVerificationLinkValid": true,
+    "resentVerificationLinkOneUse": true,
+    "resetSmtpAccepted": true,
+    "passwordRecoveryEmailDelivered": true,
+    "passwordResetWorks": true,
+    "resetLinkOneUse": true,
+    "oldPasswordRejected": true,
+    "existingSessionsRevoked": true,
+    "newPasswordLoginWorks": true,
+    "noLocalMailboxWording": true,
+    "browserResponsesSecretFree": true,
+    "finalSecretAudit": true
+  },
+  "browserRuns": [
+    {
+      "channel": "msedge",
+      "version": "154.0.4258.53",
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "secretLeaks": []
+    },
+    {
+      "channel": "chrome",
+      "version": "154.0.8037.98",
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "secretLeaks": []
+    }
+  ],
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  },
+  "initialMailCount": 2,
+  "initialReceiptConfirmedAt": "2026-10-06T09:16:51.823Z",
+  "qaFlowAssignment": "Operator-activated initial account used for login/reset; other new pending account used for resend.",
+  "initialVerificationSource": "Operator opened the initial link; ACTIVE account, consumed matching token, and EMAIL_VERIFIED audit event independently confirmed.",
+  "resendReceiptConfirmedAt": "2026-10-06T09:40:06.949Z",
+  "resendVerificationSource": "Edge opened the received fresh link and activated the account.",
+  "resetReceiptConfirmedAt": "2026-10-06T09:44:42.635Z",
+  "browserResponseAudit": {
+    "scannedResponses": 56,
+    "findings": []
+  },
+  "cleanup": {
+    "ownedQaAccountsDisabled": 2,
+    "sessionsRevoked": true,
+    "authLinksRetired": true,
+    "mailAuditHistoryRetained": true
+  },
+  "secretAudit": {
+    "status": "PASS",
+    "findings": [],
+    "trackedFiles": 761,
+    "gitHistoryBlobs": 1033,
+    "logs": 17,
+    "evidenceFiles": 7,
+    "ignoredPrivateConfiguration": true,
+    "ignoredEncryptedCertificationState": true
+  },
+  "smtpDeliveries": [
+    {
+      "status": "SENT",
+      "subject": "Verify your account",
+      "count": 3
+    },
+    {
+      "status": "SENT",
+      "subject": "Reset your password",
+      "count": 1
+    }
+  ],
+  "manualOperatorReceiptsConfirmed": {
+    "initialVerification": 2,
+    "resendVerification": 1,
+    "passwordRecovery": 1
+  },
+  "completedAt": "2026-10-06T09:48:28.276Z"
+}

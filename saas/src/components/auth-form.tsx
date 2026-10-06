@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import Link from "next/link";
 import { api } from "./api";
 
 type Mode = "login" | "register" | "forgot" | "reset" | "verify" | "resend";
-export function AuthForm({mode,token,next,showMailbox}:{mode:Mode;token?:string;next?:string;showMailbox:boolean}) {
+function subscribeToAuthLink(changed:()=>void) {
+  window.addEventListener("popstate",changed);window.addEventListener("hashchange",changed);
+  return ()=>{window.removeEventListener("popstate",changed);window.removeEventListener("hashchange",changed);};
+}
+function browserAuthToken(){return new URLSearchParams(window.location.search).get("token")||"";}
+function serverAuthToken(){return "";}
+export function AuthForm({mode,next,showMailbox}:{mode:Mode;next?:string;showMailbox:boolean}) {
+  // Auth link secrets are read only by the recipient's browser, never serialized in HTML/RSC.
+  const token=useSyncExternalStore(subscribeToAuthLink,browserAuthToken,serverAuthToken);
   const [email,setEmail]=useState("");
   const [name,setName]=useState("");
   const [password,setPassword]=useState("");
