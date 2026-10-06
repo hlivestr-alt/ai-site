@@ -12,7 +12,8 @@ import {observe} from '../stabilization/browser-checks';
 
 const base=process.env.SAAS_TEST_BASE_URL!,password='ValidPassword123!';
 async function db(){const c=new pg.Client({connectionString:process.env.TEST_DATABASE_URL});await c.connect();return c;}
-async function evidence(name:string,value:unknown){await mkdir('docs/stabilization-phase-b-evidence',{recursive:true});await writeFile(`docs/stabilization-phase-b-evidence/${name}.json`,JSON.stringify(value,null,2));}
+const evidenceDir=process.env.STABILIZATION_EVIDENCE_DIR||'docs/stabilization-phase-b-evidence';
+async function evidence(name:string,value:unknown){await mkdir(evidenceDir,{recursive:true});await writeFile(`${evidenceDir}/${name}.json`,JSON.stringify(value,null,2));}
 async function mailbox(email:string){for(let i=0;i<60;i++){const names=(await readdir('data/mailbox')).filter(n=>n.endsWith('.json')).sort().reverse();for(const name of names){const m=JSON.parse(await readFile(`data/mailbox/${name}`,'utf8'));if(m.to===email&&m.subject==='Verify your account')return new URL(m.url).searchParams.get('token');}await new Promise(r=>setTimeout(r,100));}throw new Error('Controlled mail did not arrive');}
 async function loginPage(page:Page,c:APIRequestContext){await page.context().addCookies((await c.storageState()).cookies);}
 async function current(c:APIRequestContext){return (await (await c.get('/api/auth/session')).json()).currentWorkspace.id as string;}
@@ -37,7 +38,7 @@ test('atomic signup, encrypted queue, pending retries, active response and singl
     const active=await c.post('/api/auth/register',{data:{email,displayName:'Changed Name',password:'AnotherPassword123!'}});expect(active.status()).toBe(201);expect(await active.json()).toEqual(await responses[0].json());
     expect((await c.post('/api/auth/login',{data:{email,password}})).status()).toBe(200);
     expect((await c.post('/api/auth/login',{data:{email,password:'AnotherPassword123!'}})).status()).toBe(401);
-    await evidence('auth-application',{...result,concurrentSignup:true,activeGenericResponse:true,singleUse:true,realRemoteSMTP:'EXTERNAL CONFIG REQUIRED'});
+    await evidence('auth-application',{...result,concurrentSignup:true,activeGenericResponse:true,singleUse:true,...(evidenceDir.includes('phase-c')?{mailTransport:'LOCAL_QA',remoteSMTP:'Prior Phase B certification preserved; no real mail sent in this regression'}:{realRemoteSMTP:'EXTERNAL CONFIG REQUIRED'})});
   }finally{await c.dispose();await database.end();}
 });
 
@@ -52,7 +53,7 @@ for(const channel of ['chrome','msedge'] as const)test(`${channel}: customer cre
     await expect(page.getByLabel('Switch workspace')).toBeEnabled();await expect(page.getByLabel('Switch workspace')).toHaveValue(/^[0-9a-f-]{36}$/);
     const b=await current(page.request);expect(b).not.toBe(a.workspaceId);
     const membership=(await database.query('SELECT role,status FROM workspace_members WHERE workspace_id=$1',[b])).rows[0];expect(membership).toEqual({role:'OWNER',status:'ACTIVE'});
-    const wallet=(await database.query('SELECT available_tokens,reserved_tokens FROM workspace_wallets WHERE workspace_id=$1',[b])).rows[0];expect(wallet).toEqual({available_tokens:'0',reserved_tokens:'0'});
+    const wallet=(await database.query('SELECT available_tokens,reserved_tokens FROM billing_account_wallets WHERE billing_account_id=(SELECT billing_account_id FROM workspaces WHERE id=$1)',[b])).rows[0];expect(wallet).toEqual({available_tokens:'0',reserved_tokens:'0'});
     for(const id of [a.workspaceId,b,a.workspaceId,b]){
       await page.getByLabel('Switch workspace').selectOption(id);await expect(page.getByLabel('Switch workspace')).toBeEnabled();await expect(page.getByLabel('Switch workspace')).toHaveValue(id);expect(await current(page.request)).toBe(id);
       const products=await page.request.get(`/api/workspaces/${id}/products?status=ACTIVE`);expect((await products.json()).total).toBe(id===a.workspaceId?1:0);
@@ -67,7 +68,7 @@ for(const channel of ['chrome','msedge'] as const)test(`${channel}: customer cre
       await expect(page.locator('[data-slot="FRONT"]').getByText('COVER',{exact:true})).toBeVisible();
       await expect.poll(()=>page.locator('[data-slot="FRONT"] img').evaluate(el=>(el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-      await page.screenshot({path:`docs/stabilization-phase-b-evidence/${channel}-${viewport.width}.png`,fullPage:true});responsive.push({...viewport,overflow:false,slots:8});
+      await page.screenshot({path:`${evidenceDir}/${channel}-${viewport.width}.png`,fullPage:true});responsive.push({...viewport,overflow:false,slots:8});
     }
     await evidence(`workspace-${channel}`,{ownerMembership:membership,zeroWallet:wallet,repeatedSwitches:4,directIdIsolation:true,responsive});
   }finally{await context.close();await browser.close();await a.c.dispose();await database.end();}
@@ -160,10 +161,10 @@ test('insufficient AI and Clipper Tokens disable actions, refresh enables, stale
     fundFixture(a.workspaceId);await page.getByRole('button',{name:'Refresh balance',exact:true}).click();await expect(clips).toBeEnabled();
     await page.goto('/ai-videos');await page.getByLabel('Video prompt').fill('Show the product with clear packaging on a bright studio table.');await expect(generate).toBeEnabled();
     const input={operation:'AI_VIDEO',productId:p.id,prompt:'Show the product with clear packaging on a bright studio table.',tier:'QUALITY',durationSeconds:5,aspectRatio:'9:16',quantity:1};const quote=(await (await a.c.post(`/api/workspaces/${a.workspaceId}/billing/quotes`,{data:input})).json()).quote;
-    const operator=(await database.query('SELECT created_by FROM workspaces WHERE id=$1',[a.workspaceId])).rows[0].created_by;
-    execFileSync(process.execPath,['--import','tsx','scripts/billing-support.ts','adjust',a.workspaceId,operator,`phase-b-spend-${Date.now()}`,'-100000','Controlled stale-quote regression'],{env:{...process.env,ENABLE_BILLING_SUPPORT_CLI:'1'},stdio:'pipe',windowsHide:true});
+    const attribution=(await database.query('SELECT created_by,billing_account_id FROM workspaces WHERE id=$1',[a.workspaceId])).rows[0];
+    execFileSync(process.execPath,['--import','tsx','scripts/billing-support.ts','adjust',attribution.billing_account_id,a.workspaceId,attribution.created_by,`phase-b-spend-${Date.now()}`,'-100000','Controlled stale-quote regression'],{env:{...process.env,ENABLE_BILLING_SUPPORT_CLI:'1'},stdio:'pipe',windowsHide:true});
     const rejected=await a.c.post(`/api/workspaces/${a.workspaceId}/ai-videos`,{data:{...input,idempotencyKey:`stale-${Date.now()}`,quoteId:quote.id,quoteHash:quote.quoteHash}});expect(rejected.status()).toBe(402);
     expect((await database.query('SELECT count(*)::integer AS count FROM jobs WHERE workspace_id=$1',[a.workspaceId])).rows[0].count).toBe(0);
-    await evidence('token-ux',{bothActionsDisabled:true,disabledCursor:'not-allowed',requiredAvailableVisible:true,refreshEnables:true,serverStaleQuoteStatus:402,noAdmittedJob:true,sharedWallet:false});
+    await evidence('token-ux',{bothActionsDisabled:true,disabledCursor:'not-allowed',requiredAvailableVisible:true,refreshEnables:true,serverStaleQuoteStatus:402,noAdmittedJob:true,balanceScope:'ACCOUNT'});
   }finally{await a.c.dispose();await database.end();}
 });

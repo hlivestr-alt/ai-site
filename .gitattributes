@@ -1,0 +1,2 @@
+# The migration runner fingerprints bytes; keep this new migration stable on checkout.
+saas/migrations/0013_shared_billing_accounts.sql text eol=crlf

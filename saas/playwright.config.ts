@@ -29,6 +29,7 @@ if(process.env.SAAS_TEST_STORAGE_PORT){
 
 export default defineConfig({
   testDir: "./tests",
+  outputDir:process.env.SAAS_TEST_OUTPUT_DIR||'test-results',
   testMatch: ["**/integration/*.spec.ts", "**/browser/*.spec.ts"],
   testIgnore:['**/phase9.spec.ts','**/remote-storage.spec.ts'],
   workers: 1,
@@ -41,6 +42,6 @@ export default defineConfig({
     url: `${testBase}/login`,
     reuseExistingServer: false,
     timeout: 90_000,
-    env: { SAAS_NEXT_DIST_DIR:".next-tests", OBJECT_STORAGE_ENDPOINT:process.env.OBJECT_STORAGE_ENDPOINT!, OBJECT_STORAGE_PUBLIC_ENDPOINT:"", ENABLE_TEST_BILLING:"1",PAYMENT_PROVIDER:"fake",ENABLE_FAKE_PAYMENT_PROVIDER:"1",FAKE_PAYMENT_WEBHOOK_SECRET:process.env.FAKE_PAYMENT_WEBHOOK_SECRET!, DATABASE_URL: process.env.TEST_DATABASE_URL, OBJECT_STORAGE_BUCKET: process.env.TEST_OBJECT_STORAGE_BUCKET, APP_BASE_URL: testBase, APP_ENV: "local", MAIL_MODE: "development_file", VIDEO_PROVIDER: "fake", ENABLE_FAKE_VIDEO_PROVIDER: "1", ENABLE_FAKE_CLIP_ANALYZER: "1", CLIP_ANALYZER_PROVIDER:"fake" },
+    env: { SAAS_NEXT_DIST_DIR:process.env.SAAS_TEST_DIST_DIR||".next-tests", OBJECT_STORAGE_ENDPOINT:process.env.OBJECT_STORAGE_ENDPOINT!, OBJECT_STORAGE_PUBLIC_ENDPOINT:"", ENABLE_TEST_BILLING:"1",PAYMENT_PROVIDER:"fake",ENABLE_FAKE_PAYMENT_PROVIDER:"1",FAKE_PAYMENT_WEBHOOK_SECRET:process.env.FAKE_PAYMENT_WEBHOOK_SECRET!, DATABASE_URL: process.env.TEST_DATABASE_URL, OBJECT_STORAGE_BUCKET: process.env.TEST_OBJECT_STORAGE_BUCKET, APP_BASE_URL: testBase, APP_ENV: "local", MAIL_MODE: "development_file", VIDEO_PROVIDER: "fake", ENABLE_FAKE_VIDEO_PROVIDER: "1", ENABLE_FAKE_CLIP_ANALYZER: "1", CLIP_ANALYZER_PROVIDER:"fake" },
   },
 });

@@ -58,9 +58,9 @@ export function safeNext(value: unknown): string {
   return typeof value === "string" && /^\/invite\?token=[A-Za-z0-9_-]{30,100}$/.test(value) ? value : "/";
 }
 
-export async function audit(db: DbClient, event: { workspaceId?: string | null; actorUserId?: string | null; type: string; targetType: string; targetId?: string | null; metadata?: Record<string, string | number | boolean | null> }) {
-  await db.query("INSERT INTO audit_events(workspace_id,actor_user_id,event_type,target_type,target_id,safe_metadata) VALUES($1,$2,$3,$4,$5,$6::jsonb)",
-    [event.workspaceId ?? null, event.actorUserId ?? null, event.type, event.targetType, event.targetId ?? null, JSON.stringify({...correlationMetadata(),...event.metadata})]);
+export async function audit(db: DbClient, event: { billingAccountId?:string|null; workspaceId?: string | null; actorUserId?: string | null; type: string; targetType: string; targetId?: string | null; metadata?: Record<string, string | number | boolean | null> }) {
+  await db.query("INSERT INTO audit_events(workspace_id,actor_user_id,event_type,target_type,target_id,safe_metadata,billing_account_id) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7)",
+    [event.workspaceId ?? null, event.actorUserId ?? null, event.type, event.targetType, event.targetId ?? null, JSON.stringify({...correlationMetadata(),...event.metadata}),event.billingAccountId??null]);
 }
 
 export async function rateLimit(db: DbClient, action: string, identity: string, maxAttempts = 8,windowSeconds=900): Promise<void> {

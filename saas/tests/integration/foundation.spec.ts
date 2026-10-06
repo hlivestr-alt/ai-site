@@ -2,6 +2,7 @@ import { test, expect, request, type APIRequestContext } from "@playwright/test"
 import pg from "pg";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import {randomUUID} from 'node:crypto';
 
 const base=(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200");
 const password="ValidPassword123!";
@@ -82,7 +83,7 @@ test("identity, workspaces, roles, invitations, isolation, recovery and audit",a
       await post(a,`/api/workspaces/${bWs}/invitations`,{email:"intruder@example.test",role:"ADMIN"}),
       await a.patch(`/api/workspaces/${aWs}/members/${bMemberId}`,{data:{role:"VIEWER"}}),
       await a.delete(`/api/workspaces/${aWs}/members/${bMemberId}`),
-      await a.get(`/api/workspaces/${aWs}/invitations/${inviteId.replace(/.$/,"0")}`),
+      await a.get(`/api/workspaces/${aWs}/invitations/${randomUUID()}`),
       await a.get(`/api/workspaces/${bWs}/invitations/${inviteId}`),
       await a.delete(`/api/workspaces/${bWs}/invitations/${inviteId}`),
     ]) expect([403,404]).toContain(response.status());

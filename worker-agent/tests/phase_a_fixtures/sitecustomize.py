@@ -7,9 +7,19 @@ import os
 import sys
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 if os.getenv('PHASE_A_PROCESS_TEST') == '1':
-    if os.getenv('SAAS_BASE_URL') != 'http://127.0.0.1:3227' or os.getenv('CLIP_ANALYZER_PROVIDER') != 'fake' or os.getenv('ENABLE_FAKE_CLIP_ANALYZER') != '1':
+    qa_origin = urlparse(os.getenv('SAAS_BASE_URL', ''))
+    qa_owned_phase_c = (
+        bool(os.getenv('STABILIZATION_RUN_ID'))
+        and os.getenv('DATABASE_URL') == os.getenv('TEST_DATABASE_URL')
+        and urlparse(os.getenv('DATABASE_URL', '')).path.startswith('/phase_c_')
+        and os.getenv('SAAS_BASE_URL') == os.getenv('SAAS_TEST_BASE_URL')
+        and qa_origin.scheme == 'http' and qa_origin.hostname == '127.0.0.1'
+        and qa_origin.port not in (None, 3200)
+    )
+    if (os.getenv('SAAS_BASE_URL') != 'http://127.0.0.1:3227' and not qa_owned_phase_c) or os.getenv('CLIP_ANALYZER_PROVIDER') != 'fake' or os.getenv('ENABLE_FAKE_CLIP_ANALYZER') != '1':
         raise RuntimeError('Isolated fake-provider configuration required')
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from clipper_executor import Callbacks

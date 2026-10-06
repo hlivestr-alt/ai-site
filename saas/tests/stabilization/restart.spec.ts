@@ -23,7 +23,8 @@ function killOwned(child?: ChildProcess) {
 for (const stage of ['DOWNLOADING_SOURCE', 'TRANSCRIBING', 'ANALYZING_TRANSCRIPT', 'RENDERING', 'UPLOADING_RESULTS', 'FINALIZING']) test(`worker process loss at ${stage} creates a new attempt and completes once`, async () => {
   test.setTimeout(180000);
   const f = await fixtures(), c = await login(f.email), db = await database();
-  const s = await source(c, f.workspaceId), result = await submit(c, f.workspaceId, s.id, crypto.randomUUID()); expect(result.status()).toBe(201);
+  const before=(await db.query('SELECT a.available_tokens FROM billing_account_wallets a JOIN workspaces w ON w.billing_account_id=a.billing_account_id WHERE w.id=$1',[f.workspaceId])).rows[0].available_tokens;
+  const s = await source(c, f.workspaceId), result = await submit(c, f.workspaceId, s.id, crypto.randomUUID(),f.sharedWorkspaceId?{captions:false}:{}); expect(result.status()).toBe(201);
   const jobId = (await result.json()).job.id as string, p = provision(`phase-a-restart-${stage}-${Date.now()}`), w = await worker(p.credential);
   const work = resolve(workerRoot, 'data', `phase-a-${process.env.STABILIZATION_RUN_ID}`, stage); await mkdir(work, { recursive: true });
   let first: ReturnType<typeof launch> | undefined, next: ReturnType<typeof launch> | undefined;
@@ -54,14 +55,15 @@ for (const stage of ['DOWNLOADING_SOURCE', 'TRANSCRIBING', 'ANALYZING_TRANSCRIPT
     const publications = publishJob(f.workspaceId, jobId, 3); expect(publications.every((ids: string[]) => ids.length === 2 && JSON.stringify(ids) === JSON.stringify(publications[0]))).toBe(true); dispatch();
     const ledger = (await db.query('SELECT entry_type,count(*)::int AS count FROM token_ledger_entries WHERE job_id=$1 GROUP BY entry_type ORDER BY entry_type', [jobId])).rows;
     expect(ledger).toEqual([{ entry_type: 'CAPTURE', count: 1 }, { entry_type: 'RESERVE', count: 1 }]);
+    if(f.sharedWorkspaceId){const balances=(await db.query('SELECT a.available_tokens,a.reserved_tokens FROM billing_account_wallets a JOIN workspaces w ON w.billing_account_id=a.billing_account_id WHERE w.id=ANY($1::uuid[])',[[f.workspaceId,f.sharedWorkspaceId]])).rows;expect(balances).toHaveLength(2);for(const balance of balances)expect(balance).toEqual({available_tokens:(BigInt(before)-BigInt(600)).toString(),reserved_tokens:'0'});}
     expect(Number((await db.query('SELECT count(*) FROM content_publications WHERE job_id=$1', [jobId])).rows[0].count)).toBe(1);
     expect(Number((await db.query('SELECT count(*) FROM content_versions WHERE job_id=$1', [jobId])).rows[0].count)).toBe(2);
     const fencing = (await db.query('SELECT fencing_token::text FROM worker_leases WHERE job_id=$1 ORDER BY created_at', [jobId])).rows;
     expect(BigInt(fencing[1].fencing_token)).toBeGreaterThan(BigInt(fencing[0].fencing_token));
-    await evidence(`restart-${stage.toLowerCase()}`, { status: 'PASS', command: 'python worker_agent.py', interruptedStage: stage, realWorkerProcesses: true, realStorageTransfers: true, realFfmpegRendering: true, fakeTranscriptionAndAnalyzer: true, oldLeaseLateProgress: 409, oldLeaseLateComplete: 409, attemptStatuses: attempts.map(a => a.status), fencingAdvanced: true, checkpointsBefore: checkpointsBefore.map(c => c.slot_name), restartMetrics: metrics, finalClips: 2, publishedContentVersions: 2, ledger, paidInference: 0 });
+    await evidence(`restart-${stage.toLowerCase()}`, { status: 'PASS', command: 'python worker_agent.py', interruptedStage: stage, realWorkerProcesses: true, realStorageTransfers: true, realFfmpegRendering: true, fakeTranscriptionAndAnalyzer: true, oldLeaseLateProgress: 409, oldLeaseLateComplete: 409, attemptStatuses: attempts.map(a => a.status), sharedWallet:!!f.sharedWorkspaceId,sharedTokens:f.sharedWorkspaceId?600:undefined,sharedBalancesMatch:f.sharedWorkspaceId?true:undefined,fencingAdvanced: true, checkpointsBefore: checkpointsBefore.map(c => c.slot_name), restartMetrics: metrics, finalClips: 2, publishedContentVersions: 2, ledger, paidInference: 0 });
   } finally {
     killOwned(first?.child); killOwned(next?.child);
-    await writeFile(`test-data/stabilization-phase-a/restart/${stage}.log`, `${first?.output() || ''}\n${next?.output() || ''}`);
+    await writeFile(`${process.env.STABILIZATION_LOG_DIR||'test-data/stabilization-phase-a/restart'}/${stage}.log`, `${first?.output() || ''}\n${next?.output() || ''}`);
     await db.query("UPDATE workers SET status='DISABLED' WHERE id=$1", [p.workerId]); await w.dispose(); await c.dispose(); await db.end();
   }
 });

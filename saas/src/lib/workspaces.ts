@@ -3,6 +3,7 @@ import { query, transaction, type DbClient } from "./db";
 import { AppError, audit, hashToken, isUuid, normalizeEmail, randomToken, role, workspaceName } from "./core";
 import type { Session } from "./auth";
 import { can, type Role, type Permission } from "./permissions";
+import {requireBillingManager} from './billing-accounts';
 
 export type { Role, Permission } from "./permissions";
 
@@ -19,6 +20,7 @@ export async function requireMembership(userId: string, workspaceId: string, db:
 export async function requireRole(userId: string, workspaceId: string, permission: Permission, db: DbClient = { query }) {
   const membership = await requireMembership(userId, workspaceId, db);
   if (!can(membership.role, permission)) throw new AppError(403, "You do not have permission for this action.");
+  if(permission==='billing:manage')await requireBillingManager(userId,workspaceId,db,true);
   if(permission==="future:spend"||permission==="billing:manage"){
     const locked=await db.query<{role:Role}>("SELECT m.role FROM workspace_members m JOIN workspaces w ON w.id=m.workspace_id WHERE m.user_id=$1 AND m.workspace_id=$2 AND m.status='ACTIVE' AND w.status='ACTIVE' FOR SHARE OF m,w",[userId,workspaceId]);
     if(!locked.rows[0])throw new AppError(404,"Workspace not found.");
@@ -33,8 +35,8 @@ export async function requireWorkspaceObjectAccess(userId: string, workspaceId: 
 }
 
 export async function listWorkspaces(userId: string, db:DbClient={query}) {
-  const result = await db.query<{ id: string; name: string; slug: string; role: Role }>(`
-    SELECT w.id,w.name,w.slug,m.role FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id
+  const result = await db.query<{ id: string; name: string; slug: string; role: Role; billing_account_id:string; can_manage_billing:boolean }>(`
+    SELECT w.id,w.name,w.slug,m.role,w.billing_account_id,EXISTS(SELECT 1 FROM billing_account_members b WHERE b.billing_account_id=w.billing_account_id AND b.user_id=$1 AND b.status='ACTIVE') AS can_manage_billing FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id
     WHERE m.user_id=$1 AND m.status='ACTIVE' AND w.status='ACTIVE' ORDER BY m.created_at,w.name`, [userId]);
   return result.rows;
 }
@@ -44,14 +46,30 @@ export async function currentWorkspace(session: Session,db:DbClient={query}) {
   return memberships.find(w => w.id === session.activeWorkspaceId) ?? memberships[0] ?? null;
 }
 
-export async function createWorkspace(userId: string, nameInput: unknown) {
+export async function createWorkspace(userId: string, nameInput: unknown, currentWorkspaceId?:string) {
   const name = workspaceName(nameInput);
   const slugBase = name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,45) || "workspace";
   return transaction(async db => {
-    const workspace = await db.query<{ id: string; name: string; slug: string }>("INSERT INTO workspaces(name,slug,created_by) VALUES($1,$2,$3) RETURNING id,name,slug", [name, `${slugBase}-${randomToken().slice(0,8).toLowerCase()}`, userId]);
+    const actor=await db.query("SELECT id FROM users WHERE id=$1 AND status='ACTIVE' FOR UPDATE",[userId]);
+    if(!actor.rowCount)throw new AppError(401,'Sign in to create a workspace.');
+    let accountId:string;
+    if(currentWorkspaceId){
+      await requireMembership(userId,currentWorkspaceId,db);
+      accountId=(await requireBillingManager(userId,currentWorkspaceId,db,true)).billing_account_id;
+    }else{
+      const owned=(await db.query<{id:string}>("SELECT a.id FROM billing_accounts a JOIN billing_account_members m ON m.billing_account_id=a.id WHERE a.created_by=$1 AND m.user_id=$1 AND m.role='OWNER' AND m.status='ACTIVE'",[userId])).rows;
+      if(owned.length>1)throw new AppError(409,'Choose a workspace before creating another workspace.');
+      if(owned[0])accountId=owned[0].id;
+      else{
+        accountId=(await db.query<{id:string}>('INSERT INTO billing_accounts(name,created_by) VALUES($1,$2) RETURNING id',[`${name} account`.slice(0,100),userId])).rows[0].id;
+        await db.query("INSERT INTO billing_account_members(billing_account_id,user_id,role) VALUES($1,$2,'OWNER')",[accountId,userId]);
+        await audit(db,{billingAccountId:accountId,actorUserId:userId,type:'ACCOUNT_CREATED',targetType:'billing_account',targetId:accountId});
+      }
+    }
+    const workspace = await db.query<{ id: string; name: string; slug: string; billing_account_id:string }>("INSERT INTO workspaces(name,slug,created_by,billing_account_id) VALUES($1,$2,$3,$4) RETURNING id,name,slug,billing_account_id", [name, `${slugBase}-${randomToken().slice(0,8).toLowerCase()}`, userId,accountId]);
     await db.query("INSERT INTO workspace_members(workspace_id,user_id,role,status) VALUES($1,$2,'OWNER','ACTIVE')", [workspace.rows[0].id,userId]);
     await audit(db, { workspaceId: workspace.rows[0].id, actorUserId: userId, type: "WORKSPACE_CREATED", targetType: "workspace", targetId: workspace.rows[0].id });
-    await audit(db,{workspaceId:workspace.rows[0].id,actorUserId:userId,type:"WALLET_CREATED",targetType:"workspace",targetId:workspace.rows[0].id});
+    await audit(db,{workspaceId:workspace.rows[0].id,actorUserId:userId,type:"WORKSPACE_ATTACHED_TO_ACCOUNT",targetType:"billing_account",targetId:accountId});
     return workspace.rows[0];
   });
 }

@@ -56,7 +56,7 @@ async function command(label, args, options = {}) {
 }
 async function historySnapshot(client) {
   const out = {};
-  for (const table of ['jobs', 'job_artifacts', 'source_assets', 'products', 'asset_versions', 'content_items', 'content_versions', 'workspace_wallets', 'token_ledger_entries']) {
+  for (const table of ['jobs', 'job_artifacts', 'source_assets', 'products', 'asset_versions', 'content_items', 'content_versions', 'billing_account_wallets', 'token_ledger_entries']) {
     out[table] = (await client.query(`SELECT count(*)::text AS count, md5(coalesce(string_agg(row_to_json(t)::text, '' ORDER BY row_to_json(t)::text), '')) AS fingerprint FROM ${table} t WHERE coalesce(to_jsonb(t)->>'workspace_id','') <> $1`, [owned.remoteFixture?.workspaceId || ''])).rows[0];
   }
   return out;
@@ -136,7 +136,7 @@ try {
   if (owned.createdDatabase) {
     try {
       const isolated = new pg.Client({ connectionString: isolatedUrl.toString() }); await isolated.connect(); owned.isolatedFixtureCounts = {};
-      for (const table of ['users', 'workspaces', 'products', 'assets', 'asset_versions', 'jobs', 'job_artifacts', 'source_assets', 'workers', 'content_items', 'content_versions', 'workspace_wallets', 'token_ledger_entries', 'workflow_definitions', 'payments']) owned.isolatedFixtureCounts[table] = Number((await isolated.query(`SELECT count(*)::text count FROM ${table}`)).rows[0].count);
+      for (const table of ['users', 'workspaces', 'products', 'assets', 'asset_versions', 'jobs', 'job_artifacts', 'source_assets', 'workers', 'content_items', 'content_versions', 'billing_account_wallets', 'token_ledger_entries', 'workflow_definitions', 'payments']) owned.isolatedFixtureCounts[table] = Number((await isolated.query(`SELECT count(*)::text count FROM ${table}`)).rows[0].count);
       await isolated.end();
     } catch {}
     try { await db.query(`DROP DATABASE "${databaseName}" WITH (FORCE)`); owned.cleanup.database = 'deleted'; } catch { owned.cleanup.database = 'failed'; }

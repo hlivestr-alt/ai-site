@@ -17,7 +17,7 @@ test('20 invalid upload matrix, unchanged wallet/jobs, valid controls, and clean
   const checks: Record<string, unknown>[] = [], failures: string[] = [];
   try {
     const before = (await db.query("SELECT (SELECT count(*) FROM jobs) jobs,(SELECT count(*) FROM provider_executions) providers,(SELECT count(*) FROM worker_leases) leases,(SELECT count(*) FROM token_ledger_entries) ledger")).rows[0];
-    const walletBefore = (await db.query('SELECT available_tokens::text,reserved_tokens::text FROM workspace_wallets WHERE workspace_id=$1', [f.workspaceId])).rows[0];
+    const walletBefore = (await db.query('SELECT available_tokens::text,reserved_tokens::text FROM billing_account_wallets WHERE billing_account_id=(SELECT billing_account_id FROM workspaces WHERE id=$1)', [f.workspaceId])).rows[0];
     const product = await c.post(`/api/workspaces/${f.workspaceId}/products`, { data: { brand: 'Boundary fixtures', name: 'Invalid upload boundary', category: 'QA', description: '', keySellingPoints: [], targetAudience: '' } });
     expect(product.status()).toBe(201); const productId = (await product.json()).product.id;
     const root = `/api/workspaces/${f.workspaceId}/products/${productId}/assets`;
@@ -112,7 +112,7 @@ test('20 invalid upload matrix, unchanged wallet/jobs, valid controls, and clean
     checks.push({ boundary: '24-hour-cleanup', failedVersions: failedVersions.length, failedStagingObjectsRetained: failedObjectsRetained });
     if (failedObjectsRetained) failures.push('Cleanup leaves validation-failed staging objects after retention');
     const after = (await db.query("SELECT (SELECT count(*) FROM jobs) jobs,(SELECT count(*) FROM provider_executions) providers,(SELECT count(*) FROM worker_leases) leases,(SELECT count(*) FROM token_ledger_entries) ledger")).rows[0];
-    const walletAfter = (await db.query('SELECT available_tokens::text,reserved_tokens::text FROM workspace_wallets WHERE workspace_id=$1', [f.workspaceId])).rows[0];
+    const walletAfter = (await db.query('SELECT available_tokens::text,reserved_tokens::text FROM billing_account_wallets WHERE billing_account_id=(SELECT billing_account_id FROM workspaces WHERE id=$1)', [f.workspaceId])).rows[0];
     checks.push({ boundary: 'side-effects', before, after, walletBefore, walletAfter, providerSubmissionsUnchanged: before.providers === after.providers, privateWorkerLeasesUnchanged: before.leases === after.leases });
     await evidence('test20', { status: failures.length ? 'FAIL' : 'PASS', checks, failures });
     expect(failures, 'File validation acceptance defects (see test20.json)').toEqual([]);

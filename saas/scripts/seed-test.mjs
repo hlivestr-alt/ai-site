@@ -2,7 +2,7 @@ import pg from "pg";
 import { randomBytes, scrypt as scryptCallback } from "node:crypto";
 import { promisify } from "node:util";
 
-if (process.env.APP_ENV !== "local" || !process.env.DATABASE_URL) throw new Error("Development seed requires APP_ENV=local and DATABASE_URL");
+if (process.env.APP_ENV !== "local" || !process.env.DATABASE_URL || process.env.DATABASE_URL!==process.env.TEST_DATABASE_URL) throw new Error("Development seed requires an isolated TEST_DATABASE_URL");
 const scrypt = promisify(scryptCallback);
 const password = process.env.SAAS_TEST_SEED_PASSWORD || randomBytes(18).toString("base64url");
 const salt = randomBytes(16);
@@ -17,7 +17,9 @@ try {
     users[key]=result.rows[0].id;
   }
   for (const [slug,name,owner] of [["seed-brand-a","Brand A","a"],["seed-brand-b","Brand B","b"]]) {
-    const workspace=await client.query("INSERT INTO workspaces(name,slug,created_by) VALUES($1,$2,$3) ON CONFLICT(slug) DO UPDATE SET name=EXCLUDED.name RETURNING id",[name,slug,users[owner]]);
+    let account=(await client.query('SELECT billing_account_id AS id FROM workspaces WHERE slug=$1',[slug])).rows[0];
+    if(!account){account=(await client.query('INSERT INTO billing_accounts(name,created_by) VALUES($1,$2) RETURNING id',[`${name} account`,users[owner]])).rows[0];await client.query("INSERT INTO billing_account_members(billing_account_id,user_id,role) VALUES($1,$2,'OWNER')",[account.id,users[owner]]);}
+    const workspace=await client.query("INSERT INTO workspaces(name,slug,created_by,billing_account_id) VALUES($1,$2,$3,$4) ON CONFLICT(slug) DO UPDATE SET name=EXCLUDED.name RETURNING id",[name,slug,users[owner],account.id]);
     const id=workspace.rows[0].id;
     await client.query("INSERT INTO workspace_members(workspace_id,user_id,role,status) VALUES($1,$2,'OWNER','ACTIVE') ON CONFLICT(workspace_id,user_id) DO UPDATE SET role='OWNER',status='ACTIVE'",[id,users[owner]]);
     if (slug==="seed-brand-a") await client.query("INSERT INTO workspace_members(workspace_id,user_id,role,status) VALUES($1,$2,'EDITOR','ACTIVE') ON CONFLICT(workspace_id,user_id) DO UPDATE SET role='EDITOR',status='ACTIVE'",[id,users.editor]);

@@ -1,4 +1,4 @@
-import { createWorkspace, listWorkspaces } from "@/lib/workspaces";
+import { createWorkspace, currentWorkspace, listWorkspaces } from "@/lib/workspaces";
 import { body, handle, ok, requestSession, requireSameOrigin } from "@/lib/http";
 
 export async function GET(request: Request) { return handle(async () => {
@@ -9,6 +9,7 @@ export async function GET(request: Request) { return handle(async () => {
 export async function POST(request: Request) { return handle(async () => {
   requireSameOrigin(request);
   const session = await requestSession(request), input = await body(request);
-  const workspace = await createWorkspace(session.userId,input.name);
+  const current=await currentWorkspace(session);
+  const workspace = await createWorkspace(session.userId,input.name,current?.id);
   return ok({workspace},201);
 }); }
