@@ -1,0 +1,14 @@
+{
+  "atomicRollback": true,
+  "retryPreservesPassword": true,
+  "encryptedQueue": true,
+  "transientDeliveryDurable": true,
+  "supersededDeliverySkipped": true,
+  "expiredTokenRenewed": true,
+  "publicMailboxDisabled": true,
+  "localMailboxAllowed": true,
+  "concurrentSignup": true,
+  "activeGenericResponse": true,
+  "singleUse": true,
+  "realRemoteSMTP": "EXTERNAL CONFIG REQUIRED"
+}

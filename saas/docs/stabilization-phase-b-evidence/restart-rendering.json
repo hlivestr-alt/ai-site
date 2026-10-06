@@ -1,0 +1,39 @@
+{
+  "runId": "1791267736707_e2243f",
+  "status": "PASS",
+  "command": "python worker_agent.py",
+  "interruptedStage": "RENDERING",
+  "realWorkerProcesses": true,
+  "realStorageTransfers": true,
+  "realFfmpegRendering": true,
+  "fakeTranscriptionAndAnalyzer": true,
+  "oldLeaseLateProgress": 409,
+  "oldLeaseLateComplete": 409,
+  "attemptStatuses": [
+    "LOST",
+    "SUCCEEDED"
+  ],
+  "fencingAdvanced": true,
+  "checkpointsBefore": [
+    "clip-plan",
+    "transcript"
+  ],
+  "restartMetrics": {
+    "analyzer": 0,
+    "render": 2,
+    "transcription": 0
+  },
+  "finalClips": 2,
+  "publishedContentVersions": 2,
+  "ledger": [
+    {
+      "entry_type": "CAPTURE",
+      "count": 1
+    },
+    {
+      "entry_type": "RESERVE",
+      "count": 1
+    }
+  ],
+  "paidInference": 0
+}

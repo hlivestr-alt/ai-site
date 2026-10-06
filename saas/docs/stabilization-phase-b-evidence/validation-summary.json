@@ -1,0 +1,48 @@
+{
+  "capturedAt": "2026-10-06T14:17:36.3204157+08:00",
+  "unit": {
+    "passed": 77,
+    "tests": 77
+  },
+  "worker": {
+    "passed": 74,
+    "tests": 74
+  },
+  "lint": "PASS",
+  "typecheck": "PASS",
+  "build": "PASS",
+  "phaseB": {
+    "passed": 8,
+    "tests": 8
+  },
+  "preservedOriginalEvidence": {
+    "files": 61,
+    "changed": 0
+  },
+  "phaseAFocused": {
+    "passed": 6,
+    "tests": 6
+  },
+  "integration": {
+    "source": "Full 41-case browser collection after recovery-mail fixture correction",
+    "tests": 35,
+    "passed": 35
+  },
+  "customerBrowser": {
+    "source": "browser-retry after Token label correction",
+    "tests": 6,
+    "passed": 6
+  },
+  "phaseARecovery": {
+    "tests": 7,
+    "passed": 7
+  },
+  "remote": {
+    "chrome": "PASS",
+    "edge": "PASS",
+    "realSMTP": "EXTERNAL CONFIG REQUIRED"
+  },
+  "finalCheckedAt": "2026-10-06T15:53:29.6946751+08:00",
+  "implementationCommit": "308f5fc952da5d3a0804f6b1d44f81263749794c",
+  "mainHealth": 200
+}

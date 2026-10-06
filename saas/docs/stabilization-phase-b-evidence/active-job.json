@@ -1,0 +1,10 @@
+{
+  "canonicalStates": 4,
+  "latestSelection": true,
+  "internalNavigation": true,
+  "refresh": true,
+  "freshTab": true,
+  "workspaceScoped": true,
+  "terminalJobsExcluded": true,
+  "realInferenceCalls": 0
+}

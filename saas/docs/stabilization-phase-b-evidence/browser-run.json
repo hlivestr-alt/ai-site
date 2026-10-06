@@ -1,0 +1,46 @@
+{
+  "runId": "1791267391226_22f906",
+  "suite": "browser",
+  "database": "phase_b_1791267391226_22f906",
+  "bucket": "phase-b-1791267391226-22f906",
+  "gateway": "phase-b-gateway-1791267391226-22f906",
+  "commands": [
+    {
+      "command": "migrations",
+      "exitCode": 0,
+      "seconds": 0
+    },
+    {
+      "command": "npm run test:browser",
+      "exitCode": 1,
+      "seconds": 514
+    }
+  ],
+  "cleanup": {
+    "mailFiles": 72,
+    "bucket": "deleted",
+    "objectsDeleted": 220,
+    "gateway": "deleted",
+    "database": "deleted",
+    "generatedTsconfigChanges": "restored"
+  },
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0
+  },
+  "fixtureCounts": {
+    "users": 61,
+    "workspaces": 54,
+    "products": 33,
+    "asset_versions": 39,
+    "source_assets": 8,
+    "jobs": 102,
+    "job_attempts": 110,
+    "job_artifacts": 69,
+    "clipper_checkpoints": 16,
+    "content_items": 54,
+    "token_ledger_entries": 229
+  },
+  "exitCode": 1
+}

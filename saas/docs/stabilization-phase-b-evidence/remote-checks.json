@@ -1,0 +1,94 @@
+{
+  "runId": "1791267857134-8e29b9",
+  "realRemoteSignup": "EXTERNAL CONFIG REQUIRED",
+  "verificationEmailDelivered": false,
+  "realVideo": 0,
+  "realLLM": 0,
+  "outreach": 0,
+  "payments": 0,
+  "ownedQaOnly": true,
+  "browserRuns": [
+    {
+      "channel": "chrome",
+      "version": "154.0.8037.98",
+      "publicAuthCopy": true,
+      "emailObfuscationAbsent": true,
+      "repeatedSwitches": 4,
+      "isolation": true,
+      "responsive": [
+        {
+          "width": 390,
+          "height": 844,
+          "overflow": false
+        },
+        {
+          "width": 768,
+          "height": 1024,
+          "overflow": false
+        },
+        {
+          "width": 1440,
+          "height": 1000,
+          "overflow": false
+        }
+      ],
+      "product": {
+        "slots": 8,
+        "frontDefaultCover": true,
+        "manualCover": true,
+        "coverReplacementV2": true,
+        "catalogImageLoaded": true,
+        "archiveRestore": true
+      },
+      "zeroWallet": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "secretLeaks": [],
+      "status": "PASS"
+    },
+    {
+      "channel": "msedge",
+      "version": "154.0.4258.53",
+      "publicAuthCopy": true,
+      "emailObfuscationAbsent": true,
+      "repeatedSwitches": 4,
+      "isolation": true,
+      "responsive": [
+        {
+          "width": 390,
+          "height": 844,
+          "overflow": false
+        },
+        {
+          "width": 768,
+          "height": 1024,
+          "overflow": false
+        },
+        {
+          "width": 1440,
+          "height": 1000,
+          "overflow": false
+        }
+      ],
+      "product": {
+        "slots": 8,
+        "frontDefaultCover": true,
+        "manualCover": true,
+        "coverReplacementV2": true,
+        "catalogImageLoaded": true,
+        "archiveRestore": true
+      },
+      "zeroWallet": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "secretLeaks": [],
+      "status": "PASS"
+    }
+  ],
+  "cleanup": {
+    "ownedAccountDisabled": true,
+    "ownedWorkspacesArchived": 4,
+    "ownedProductsArchived": 2,
+    "mediaHistoryRetained": true
+  }
+}

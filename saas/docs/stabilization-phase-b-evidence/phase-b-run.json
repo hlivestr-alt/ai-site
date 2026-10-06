@@ -1,0 +1,46 @@
+{
+  "runId": "1791268459422_010761",
+  "suite": "phase-b",
+  "database": "phase_b_1791268459422_010761",
+  "bucket": "phase-b-1791268459422-010761",
+  "gateway": "phase-b-gateway-1791268459422-010761",
+  "commands": [
+    {
+      "command": "migrations",
+      "exitCode": 0,
+      "seconds": 0
+    },
+    {
+      "command": "focused tests (phase-b)",
+      "exitCode": 0,
+      "seconds": 78
+    }
+  ],
+  "cleanup": {
+    "mailFiles": 12,
+    "bucket": "deleted",
+    "objectsDeleted": 39,
+    "gateway": "deleted",
+    "database": "deleted",
+    "generatedTsconfigChanges": "restored"
+  },
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0
+  },
+  "fixtureCounts": {
+    "users": 9,
+    "workspaces": 10,
+    "products": 7,
+    "asset_versions": 23,
+    "source_assets": 1,
+    "jobs": 4,
+    "job_attempts": 4,
+    "job_artifacts": 0,
+    "clipper_checkpoints": 0,
+    "content_items": 0,
+    "token_ledger_entries": 8
+  },
+  "exitCode": 0
+}
