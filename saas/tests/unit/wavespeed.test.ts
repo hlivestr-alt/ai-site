@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { WaveSpeedVideoProvider, waveSpeedReferenceSettings } from "../../src/lib/video-providers/wavespeed";
+import { WaveSpeedVideoProvider, waveSpeedReferenceSettings, waveSpeedOutputUrl } from "../../src/lib/video-providers/wavespeed";
 import { ProviderSafeError, SubmissionUnknownError } from "../../src/lib/video-providers/types";
 import { videoConfigured, providerForNewJob, providerForExecution, activeVideoPolicy } from "../../src/lib/video-providers";
 import { clipAnalyzerProvider, clipperConfigured, configurationChecks, externalConfiguration } from "../../src/lib/operational-config";
@@ -81,11 +81,21 @@ test("WaveSpeed poll maps known states and rejects unknown states, identities an
 test("output policy rejects arbitrary hosts, redirects, oversize downloads and unsupported MIME before private ingest", async () => {
   let calls = 0;
   const provider = new WaveSpeedVideoProvider({ fetch: fetcher(async () => { calls++; return new Response(bytes, { headers: { "Content-Type": "video/mp4", "Content-Length": String(bytes.length) } }); }) });
-  for (const outputUrl of ["http://cdn.wavespeed.ai/a.mp4", "https://cdn.wavespeed.ai.evil.example/a.mp4", "https://arbitrary.cloudfront.net/a.mp4", "https://127.0.0.1/a.mp4", "file:///video.mp4", "https://secret@cdn.wavespeed.ai/a.mp4", "https://cdn.wavespeed.ai:8443/a.mp4"]) await assert.rejects(provider.retrieve({ status: "succeeded", outputUrl }), errorCode("OUTPUT_INVALID"));
+  for (const outputUrl of ["http://cdn.wavespeed.ai/a.mp4", "https://cdn.wavespeed.ai.evil.example/a.mp4", "https://random123.cloudfront.net/video.mp4", "https://127.0.0.1/a.mp4", "file:///video.mp4", "https://secret@cdn.wavespeed.ai/a.mp4", "https://cdn.wavespeed.ai:8443/a.mp4", "https://cdn.wavespeed.ai:443/a.mp4", "https://cdn.wavespeed.ai/a.mp4#fragment", "https://cdn.wavespeed.ai/a.mp4#", "https://d2h7xmz5gqybh9.cloudfront.net.evil.example/a.mp4"]) await assert.rejects(provider.retrieve({ status: "succeeded", outputUrl }), errorCode("OUTPUT_INVALID"));
   assert.equal(calls, 0);
   const result = await provider.retrieve({ status: "succeeded", outputUrl: output }); const chunks: Uint8Array[] = []; for await (const chunk of result.stream) chunks.push(chunk); assert.deepEqual(Buffer.concat(chunks), bytes);
   for (const response of [new Response(bytes, { headers: { "Content-Type": "text/html" } }), new Response(bytes, { headers: { "Content-Type": "video/mp4", "Content-Length": "9999999999" } })]) await assert.rejects(new WaveSpeedVideoProvider({ fetch: fetcher(async () => response) }).retrieve({ status: "succeeded", outputUrl: output }), errorCode("OUTPUT_INVALID"));
-  await assert.rejects(new WaveSpeedVideoProvider({ fetch: fetcher(async () => new Response("", { status: 302, headers: { Location: "http://127.0.0.1/secret" } })) }).retrieve({ status: "succeeded", outputUrl: output }), errorCode("OUTPUT_UNAVAILABLE"));
+  await assert.rejects(new WaveSpeedVideoProvider({ fetch: fetcher(async (_url, init) => { assert.equal(init?.redirect, "manual"); return new Response("", { status: 302, headers: { Location: "https://d2h7xmz5gqybh9.cloudfront.net/redirect.mp4" } }); }) }).retrieve({ status: "succeeded", outputUrl: output }), errorCode("OUTPUT_UNAVAILABLE"));
+});
+
+test("the new authenticated Seedance CDN and both existing exact hosts remain accepted", async () => {
+  for (const host of ["cdn.wavespeed.ai", "d2p7pge43lyniu.cloudfront.net", "d2h7xmz5gqybh9.cloudfront.net"]) {
+    const outputUrl = `https://${host}/output/fixture.mp4?Expires=fixture`;
+    assert.equal(waveSpeedOutputUrl(outputUrl).hostname, host);
+    const provider = new WaveSpeedVideoProvider({ fetch: fetcher(async (url, init) => { assert.equal(url, outputUrl); assert.equal(init?.redirect, "manual"); assert.equal(init?.headers, undefined); return new Response(bytes, { headers: { "Content-Type": "video/mp4" } }); }) });
+    const result = await provider.retrieve({ status: "succeeded", outputUrl });
+    for await (const chunk of result.stream) assert.deepEqual(Buffer.from(chunk), bytes);
+  }
 });
 
 test("private references require verified public HTTPS, adequate TTL, public DNS and matching signed bytes; never drop references", async () => {

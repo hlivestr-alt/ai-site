@@ -1,0 +1,10 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "PASS",
+  "freshBrowserContext": true,
+  "formLogin": true,
+  "reloaded": true,
+  "accountMembershipAndEmptyWorkspaceDataPreserved": true,
+  "artifactHistoryCoverage": "Covered by isolated complete fixtures; no remote paid content created.",
+  "outreach": "NOT IMPLEMENTED / separate future phase"
+}

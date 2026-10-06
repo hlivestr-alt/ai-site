@@ -1,3 +1,5 @@
+import contextlib
+import io
 import json
 import socket
 import unittest
@@ -13,8 +15,9 @@ CANDIDATE = {"start": 10, "end": 22, "score": 90, "hook": "A useful idea", "reas
 
 
 class Response:
-    def __init__(self, data):
+    def __init__(self, data, status=200):
         self.raw = data if isinstance(data, bytes) else json.dumps(data).encode()
+        self.status = status
     def __enter__(self): return self
     def __exit__(self, *args): pass
     def read(self, maximum): return self.raw[:maximum]
@@ -85,10 +88,76 @@ class WaveSpeedTests(unittest.TestCase):
             self.assertEqual(WaveSpeedTranscriptAnalyzer().model, "openai/gpt-4.1-mini")
 
     def test_model_availability_uses_exact_authenticated_catalog_id(self):
-        for models, expected in [([{"id": ENV["WAVESPEED_CLIP_MODEL"]}], True), ([{"id": "openai/gpt-5.6-sol"}], False)]:
+        for models, expected in [([{"id": ENV["WAVESPEED_CLIP_MODEL"]}], True), ([{"id": "openai/gpt-5.6-sol"}], False), ([], False)]:
             with patch.dict("os.environ", ENV, clear=True), patch("clipper_pipeline.wavespeed_analyzer.urlopen", return_value=Response({"data": models})) as call:
                 self.assertEqual(WaveSpeedTranscriptAnalyzer().model_available(), expected)
-                self.assertTrue(call.call_args.args[0].full_url.endswith("/models")); self.assertEqual(call.call_args.args[0].method, "GET")
+                self.assert_model_gets(call, ["/models"])
+
+    def assert_model_gets(self, call, paths):
+        self.assertEqual([item.args[0].full_url for item in call.call_args_list], ["https://llm.wavespeed.ai/v1" + path for path in paths])
+        for item in call.call_args_list:
+            request = item.args[0]
+            self.assertEqual(request.method, "GET"); self.assertIsNone(request.data)
+            self.assertEqual(request.get_header("Authorization"), "Bearer " + ENV["WAVESPEED_API_KEY"])
+            self.assertNotIn(ENV["WAVESPEED_API_KEY"], request.full_url)
+
+    def test_null_or_unusable_catalog_falls_back_to_authenticated_exact_model(self):
+        for catalog in [{"object": "list", "data": None}, {"data": {}}, {"data": [None]}, {}, None]:
+            for exact in [{"id": ENV["WAVESPEED_CLIP_MODEL"], "object": "model"}, {"id": ENV["WAVESPEED_CLIP_MODEL"]}]:
+                with self.subTest(catalog=catalog, exact=exact), patch.dict("os.environ", ENV, clear=True), patch("clipper_pipeline.wavespeed_analyzer.urlopen", side_effect=[Response(catalog), Response(exact)]) as call:
+                    self.assertTrue(WaveSpeedTranscriptAnalyzer().model_available())
+                    self.assert_model_gets(call, ["/models", "/models/" + ENV["WAVESPEED_CLIP_MODEL"]])
+
+    def test_exact_model_404_or_mismatched_id_is_unavailable(self):
+        not_found = urllib.error.HTTPError("https://llm.wavespeed.ai/v1/models/" + ENV["WAVESPEED_CLIP_MODEL"], 404, ENV["WAVESPEED_API_KEY"], {}, None)
+        for exact in [not_found, Response({"id": "openai/gpt-5.6-sol", "object": "model"})]:
+            with patch.dict("os.environ", ENV, clear=True), patch("clipper_pipeline.wavespeed_analyzer.urlopen", side_effect=[Response({"data": None}), exact]) as call:
+                self.assertFalse(WaveSpeedTranscriptAnalyzer().model_available())
+                self.assert_model_gets(call, ["/models", "/models/" + ENV["WAVESPEED_CLIP_MODEL"]])
+
+    def test_exact_model_auth_rate_limit_server_and_network_failures_are_safe(self):
+        errors = [(urllib.error.HTTPError("https://llm.wavespeed.ai", status, ENV["WAVESPEED_API_KEY"], {}, None), "ANALYZER_RATE_LIMIT" if status == 429 else "ANALYZER_UNAVAILABLE", status == 429 or status >= 500) for status in [401, 403, 429, 500, 503, 302]]
+        errors += [(socket.timeout(), "ANALYZER_TIMEOUT", True), (urllib.error.URLError(ENV["WAVESPEED_API_KEY"]), "ANALYZER_TIMEOUT", True)]
+        for error, code, retriable in errors:
+            with patch.dict("os.environ", ENV, clear=True), patch("clipper_pipeline.wavespeed_analyzer.urlopen", side_effect=[Response({"data": None}), error]) as call:
+                with self.assertRaises(PipelineError) as caught: WaveSpeedTranscriptAnalyzer().model_available()
+                self.assertEqual(caught.exception.code, code); self.assertEqual(caught.exception.retriable, retriable)
+                self.assertNotIn(ENV["WAVESPEED_API_KEY"], str(caught.exception))
+                self.assert_model_gets(call, ["/models", "/models/" + ENV["WAVESPEED_CLIP_MODEL"]])
+
+    def test_malformed_or_non_200_exact_model_is_rejected(self):
+        responses = [Response(body) for body in [None, [], "model", {}, {"id": None}, {"id": 1}, {"id": ENV["WAVESPEED_CLIP_MODEL"], "object": "list"}, {"id": ENV["WAVESPEED_CLIP_MODEL"], "object": None}, b"{"]]
+        responses.append(Response({"id": ENV["WAVESPEED_CLIP_MODEL"], "object": "model"}, status=201))
+        for exact in responses:
+            with patch.dict("os.environ", ENV, clear=True), patch("clipper_pipeline.wavespeed_analyzer.urlopen", side_effect=[Response({"data": None}), exact]) as call:
+                with self.assertRaises(PipelineError) as caught: WaveSpeedTranscriptAnalyzer().model_available()
+                self.assertEqual(caught.exception.code, "ANALYZER_INVALID_OUTPUT")
+                self.assert_model_gets(call, ["/models", "/models/" + ENV["WAVESPEED_CLIP_MODEL"]])
+
+    def test_catalog_failure_never_uses_a_fallback_or_inference(self):
+        for status in [401, 403, 429, 503, 302]:
+            error = urllib.error.HTTPError("https://llm.wavespeed.ai/v1/models", status, ENV["WAVESPEED_API_KEY"], {}, None)
+            with patch.dict("os.environ", ENV, clear=True), patch("clipper_pipeline.wavespeed_analyzer.urlopen", side_effect=error) as call:
+                with self.assertRaises(PipelineError): WaveSpeedTranscriptAnalyzer().model_available()
+                self.assert_model_gets(call, ["/models"])
+
+    def test_model_lookup_never_logs_credentials_and_rejects_secret_echoes(self):
+        for exact, valid in [(Response({"id": ENV["WAVESPEED_CLIP_MODEL"], "object": "model"}), True), (Response({"id": ENV["WAVESPEED_CLIP_MODEL"], "description": ENV["WAVESPEED_API_KEY"]}), False)]:
+            output, errors = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors), patch.dict("os.environ", ENV, clear=True), patch("clipper_pipeline.wavespeed_analyzer.urlopen", side_effect=[Response({"data": None}), exact]) as call:
+                if valid:
+                    self.assertIs(WaveSpeedTranscriptAnalyzer().model_available(), True)
+                else:
+                    with self.assertRaises(PipelineError) as caught: WaveSpeedTranscriptAnalyzer().model_available()
+                    self.assertEqual(caught.exception.code, "ANALYZER_INVALID_OUTPUT"); self.assertNotIn(ENV["WAVESPEED_API_KEY"], str(caught.exception))
+                self.assert_model_gets(call, ["/models", "/models/" + ENV["WAVESPEED_CLIP_MODEL"]])
+            self.assertEqual(output.getvalue() + errors.getvalue(), "")
+
+    def test_invalid_model_paths_fail_before_lookup(self):
+        for model in ["openai/../model", "openai/model?key=secret", "openai/model#fragment", "openai/model/extra", "openai/model%2Fextra"]:
+            with patch.dict("os.environ", {**ENV, "WAVESPEED_CLIP_MODEL": model}, clear=True), patch("clipper_pipeline.wavespeed_analyzer.urlopen") as call:
+                with self.assertRaises(PipelineError) as caught: WaveSpeedTranscriptAnalyzer().model_available()
+                self.assertEqual(caught.exception.code, "ANALYZER_NOT_CONFIGURED"); call.assert_not_called()
 
     def test_bad_usage_truncation_refusal_and_secret_echo_are_rejected(self):
         for usage in [{"prompt_tokens": -1}, {"completion_tokens": 1.5}, {"prompt_tokens": True}]: self.assert_code(completion(usage=usage), "ANALYZER_INVALID_OUTPUT")

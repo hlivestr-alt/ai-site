@@ -1,0 +1,16 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "PASS",
+  "revokedStatus": 401,
+  "privateStatus": 401,
+  "backAPI": 401,
+  "backPrivateVisible": false,
+  "reloadRequiresAuthentication": true,
+  "directRouteRequiresAuthentication": true,
+  "serverSideRevocation": true,
+  "expiredStatus": 401,
+  "httpOnly": true,
+  "secure": true,
+  "sameSite": "Lax",
+  "credentialExposedInHTMLOrStorage": false
+}

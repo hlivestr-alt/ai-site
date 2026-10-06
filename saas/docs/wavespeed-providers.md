@@ -71,7 +71,7 @@ The existing OBJECT_STORAGE_PUBLIC_ENDPOINT=https://storage-test.proyaofficial.c
 
 Completed output is retrieved on the server with no provider key, HTTPS only, no redirects, a 60-second timeout, and MAX_GENERATED_VIDEO_BYTES (default 256 MiB, existing bounded maximum 512 MiB). Both declared and streamed byte sizes are checked. MIME, MP4 ftyp, byte count/checksum, and a successful ffprobe video/duration check precede publication. FFPROBE_PATH is supported.
 
-The host policy allows exactly cdn.wavespeed.ai and d2p7pge43lyniu.cloudfront.net. These appear in the official WaveSpeedAI/wavespeed-comfyui README and checked-in example. Arbitrary *.cloudfront.net, arbitrary *.wavespeed.ai, HTTP, credentials, nonstandard ports, and redirects are rejected. A newly observed CDN requires verified provider evidence and a reviewed policy update; do not broaden the policy merely to make a download pass.
+The host policy allows exactly cdn.wavespeed.ai, d2p7pge43lyniu.cloudfront.net, and d2h7xmz5gqybh9.cloudfront.net. The first two appear in the official WaveSpeedAI/wavespeed-comfyui README and checked-in example. The third was verified in the authenticated completed Seedance prediction 3aa327ae4d2a46ff899c9ac5c42986e2 on 2026-10-03. Arbitrary *.cloudfront.net, arbitrary *.wavespeed.ai, HTTP, credentials, explicit ports (including :443), fragments, and redirects are rejected. A newly observed CDN requires verified provider evidence and a reviewed policy update; do not broaden the policy merely to make a download pass.
 
 The downloaded file uses the existing staged, checksummed READY artifact path and immutable Content publication. The provider CDN URL is neither stored as the permanent customer asset nor included in customer responses.
 
@@ -97,6 +97,8 @@ python wavespeed_smoke.py --env .env
 
 wavespeed:preflight uses authenticated GET /api/v3/balance, GET /api/v3/models, GET https://llm.wavespeed.ai/v1/models, and the non-inference POST /api/v3/model/price. It requires the exact configured model IDs and estimates the exact 4-second/720p/no-reference/no-audio input. It prints a sanitized status/price receipt, never credentials or raw responses. The worker smoke checks the exact authenticated model catalog and sends one small controlled transcript, validates candidates, and requires captured nonzero usage. No retry or model substitution occurs in either smoke.
 
+The LLM availability check uses the authenticated list when its data is a usable model array. WaveSpeed can return HTTP 200 with data:null even when the account has model access. In that case, both the SaaS and worker perform an authenticated GET /v1/models/{configured-model-id}; only HTTP 200 with the exact id and object="model" when that field is present verifies availability. Authentication failures, missing models, malformed responses, and redirects never verify access. No unauthenticated catalog or inference request is used. For a worker availability check without transcript inference, run `python wavespeed_smoke.py --env .env --check-model-only` from the worker-agent directory.
+
 For the paid connectivity test, first choose a CANCELLED fake-video template job from the **isolated TEST database**, after migration 0010. The template supplies valid immutable lineage, not a customer charge. Then:
 
 ```powershell
@@ -108,6 +110,16 @@ npm run wavespeed:video-smoke -- poll
 ```
 
 The script uses TEST_DATABASE_URL and TEST_OBJECT_STORAGE_BUCKET, rejects production/shared targets, and records a private receipt in ignored data/wavespeed. The prepare command makes no inference request. Submit rechecks account/model/price, requires a fresh receipt and explicit cost acknowledgement, creates one diagnostic job with maxAttempts=1, and retains an exclusive submission guard before any possible generation POST. It never automatically creates a second generation. Poll resumes only the existing prediction and artifact ingestion, honors persisted backoff, and never submits. Do not delete the guard or change idempotency keys to recover an ambiguous request. All customer Token pricing remains unchanged; actual provider billing must be checked separately in WaveSpeed's billing records.
+
+For an already completed diagnostic smoke that failed specifically with OUTPUT_INVALID / "The provider output host was invalid.", recover the existing output from the saas directory:
+
+```powershell
+npm run wavespeed:video-smoke -- recover-output --acknowledge-existing-prediction
+```
+
+Recovery requires the original private receipt and retained submission guard. It validates the fixed diagnostic input/idempotency identity, one original execution/attempt, submit_count=1, and the exact persisted prediction. An authenticated GET must confirm the matching prediction is completed with one approved output before a transaction reopens only those existing records for ingestion and appends an audit event. The command has an ingestion-only dispatch entry point and a GET-only network guard; it cannot submit a video, create replacement execution records, or call price/inference endpoints. The normal bounded MP4 download, signature checks, ffprobe, private storage verification, READY artifact sealing, and Content publication then run.
+
+Repeated recovery after success returns the existing artifact/Content. Transient failures retain the prediction and retry backoff; the same command or `npm run wavespeed:video-smoke -- poll` can resume. A retry after exhausted ingestion is allowed only when an audit event proves this exact execution was first recovered from the host defect. It preserves counters and the submission guard and rechecks the same completed prediction. Unrelated provider failures, normal customer jobs, changed model/payload, and a mismatched prediction remain ineligible.
 
 Published reference pricing on 2026-10-03 is $0.36/second at 720p without reference video: a four-second clip is approximately **US$1.44 before account discounts**. The authenticated input-specific estimate and final task charge take precedence.
 

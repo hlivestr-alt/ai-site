@@ -1,0 +1,70 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "PASS",
+  "checks": [
+    {
+      "path": "/",
+      "viewport": "390x844",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "path": "/products",
+      "viewport": "390x844",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "path": "/products/new",
+      "viewport": "390x844",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "path": "/ai-videos",
+      "viewport": "390x844",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "path": "/clipper",
+      "viewport": "390x844",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "path": "/content",
+      "viewport": "390x844",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "path": "/settings",
+      "viewport": "390x844",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "path": "/billing",
+      "viewport": "390x844",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    }
+  ]
+}

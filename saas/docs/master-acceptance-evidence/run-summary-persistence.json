@@ -1,0 +1,74 @@
+{
+  "runId": "1791197746502_4705d8",
+  "database": "master_qa_1791197746502_4705d8",
+  "bucket": "master-qa-1791197746502-4705d8",
+  "gateway": "master-qa-gateway-1791197746502-4705d8",
+  "createdDatabase": true,
+  "createdBucket": true,
+  "createdGateway": true,
+  "remoteFixture": null,
+  "customerHistoryUnchanged": null,
+  "cleanup": {
+    "gateway": "deleted",
+    "bucket": "deleted",
+    "objectsDeleted": 15,
+    "database": "deleted",
+    "fixtureMailFilesDeleted": 2,
+    "generatedTsconfigChanges": "restored"
+  },
+  "commands": [
+    {
+      "label": "migrations",
+      "command": "node scripts/migrate.mjs up",
+      "exitCode": 0,
+      "elapsedSeconds": 0
+    },
+    {
+      "label": "billing-seed",
+      "command": "node --import tsx scripts/billing-seed-test.ts",
+      "exitCode": 0,
+      "elapsedSeconds": 0
+    },
+    {
+      "label": "acceptance-discovery",
+      "command": "node node_modules/@playwright/test/cli.js test -c playwright.master-acceptance.config.ts --list",
+      "exitCode": 0,
+      "elapsedSeconds": 0
+    },
+    {
+      "label": "acceptance",
+      "command": "node node_modules/@playwright/test/cli.js test -c playwright.master-acceptance.config.ts --grep 28 persisted",
+      "exitCode": 0,
+      "elapsedSeconds": 31
+    },
+    {
+      "label": "secret-audit",
+      "command": "node tests/master-acceptance/secret-audit.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0
+    }
+  ],
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0
+  },
+  "isolatedFixtureCounts": {
+    "users": 2,
+    "workspaces": 2,
+    "products": 1,
+    "assets": 1,
+    "asset_versions": 1,
+    "jobs": 2,
+    "job_artifacts": 5,
+    "source_assets": 1,
+    "workers": 1,
+    "content_items": 3,
+    "content_versions": 3,
+    "workspace_wallets": 2,
+    "token_ledger_entries": 6,
+    "workflow_definitions": 1,
+    "payments": 1
+  },
+  "remoteScope": "Intentionally omitted; isolated persistence supplement only."
+}

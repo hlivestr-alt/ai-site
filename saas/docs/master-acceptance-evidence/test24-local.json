@@ -1,0 +1,281 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "PASS",
+  "checks": [
+    {
+      "viewport": "390x844",
+      "path": "/login",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 0
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/products",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/products/new",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/products/:id/edit",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/products/:id/edit?step=assets",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/products/:id/edit?step=rules",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/ai-videos",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/clipper",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/content",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/content/:id",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/settings",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "path": "/billing",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/products",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/products/new",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/products/:id/edit",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/products/:id/edit?step=assets",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/products/:id/edit?step=rules",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/ai-videos",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/clipper",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/content",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/content/:id",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/settings",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "path": "/billing",
+      "viewportWidth": 768,
+      "documentWidth": 768,
+      "clipped": [],
+      "navigationLinks": 10
+    }
+  ],
+  "failures": [],
+  "modals": "No modal/dialog used by these implemented paths; editor steps are routed pages.",
+  "paidSubmissions": 0
+}

@@ -1,0 +1,53 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "FAIL",
+  "checks": [
+    {
+      "path": "/api/auth/login",
+      "status": 401,
+      "safeError": true
+    },
+    {
+      "path": "/api/workspaces/7281405a-eefc-4b70-8011-6972f5de2d0f/products",
+      "status": 400,
+      "safeError": true
+    },
+    {
+      "path": "/api/workspaces/7281405a-eefc-4b70-8011-6972f5de2d0f/sources",
+      "status": 413,
+      "safeError": true
+    },
+    {
+      "boundary": "SQL-fault",
+      "status": 500,
+      "safeError": true
+    },
+    {
+      "boundary": "storage-connection-refused",
+      "status": 500,
+      "safeError": true
+    },
+    {
+      "boundary": "worker-punctuation-filter",
+      "status": 400,
+      "unsafePathPayloadRejected": true
+    },
+    {
+      "boundary": "worker-progress",
+      "path": "/api/workspaces/:workspaceId/clipper/:jobId",
+      "rawInternalsVisible": true
+    },
+    {
+      "boundary": "worker-failure",
+      "rawInternalsInHTTP": true,
+      "rawInternalsInUI": true,
+      "markerWasSynthetic": true,
+      "realCredentialExposed": false
+    }
+  ],
+  "failures": [
+    "Clipper progress endpoint passes private-worker internals to customer",
+    "Clipper failed-job endpoint passes private-worker internals to customer",
+    "Clipper failed-job page renders private-worker internals"
+  ]
+}

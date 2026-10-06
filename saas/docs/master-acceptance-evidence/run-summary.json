@@ -1,0 +1,152 @@
+{
+  "runId": "1791197084690_a73a90",
+  "database": "master_qa_1791197084690_a73a90",
+  "bucket": "master-qa-1791197084690-a73a90",
+  "gateway": "master-qa-gateway-1791197084690-a73a90",
+  "createdDatabase": true,
+  "createdBucket": true,
+  "createdGateway": true,
+  "remoteFixture": {
+    "userId": "e9ade294-c1c7-4ca8-af84-074f48f73ac1",
+    "email": "master-qa-1791197084690_a73a90@example.test",
+    "workspaceId": "da27adef-8838-40c4-9695-2d802e806074",
+    "status": "DISABLED; sessions revoked; empty fixture workspace retained"
+  },
+  "customerHistoryUnchanged": true,
+  "cleanup": {
+    "gateway": "deleted",
+    "bucket": "deleted",
+    "objectsDeleted": 26,
+    "database": "deleted",
+    "fixtureMailFilesDeleted": 2,
+    "generatedTsconfigChanges": "restored"
+  },
+  "commands": [
+    {
+      "label": "migrations",
+      "command": "node scripts/migrate.mjs up",
+      "exitCode": 0,
+      "elapsedSeconds": 0
+    },
+    {
+      "label": "billing-seed",
+      "command": "node --import tsx scripts/billing-seed-test.ts",
+      "exitCode": 0,
+      "elapsedSeconds": 0
+    },
+    {
+      "label": "acceptance-discovery",
+      "command": "node node_modules/@playwright/test/cli.js test -c playwright.master-acceptance.config.ts --list",
+      "exitCode": 0,
+      "elapsedSeconds": 1
+    },
+    {
+      "label": "acceptance",
+      "command": "node node_modules/@playwright/test/cli.js test -c playwright.master-acceptance.config.ts",
+      "exitCode": 1,
+      "elapsedSeconds": 136
+    },
+    {
+      "label": "secret-audit",
+      "command": "node tests/master-acceptance/secret-audit.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0
+    }
+  ],
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0
+  },
+  "historyBefore": {
+    "jobs": {
+      "count": "17",
+      "fingerprint": "696a597681dcb9abccce68d1934e68f2"
+    },
+    "job_artifacts": {
+      "count": "27",
+      "fingerprint": "01c55ad5ed02553cf2c0bfbb063d4514"
+    },
+    "source_assets": {
+      "count": "3",
+      "fingerprint": "d417eb2c3cbf791b4a402271506438b8"
+    },
+    "products": {
+      "count": "3",
+      "fingerprint": "680959ffea3544b4e9bd2d86812fafb4"
+    },
+    "asset_versions": {
+      "count": "20",
+      "fingerprint": "d334b4b2b9ac9a4d55ee248d16cc6edc"
+    },
+    "content_items": {
+      "count": "10",
+      "fingerprint": "fdfbef2b6b95fac958178b74ab4a9d70"
+    },
+    "content_versions": {
+      "count": "10",
+      "fingerprint": "19a312286d5df1b83f9280a24f8f1c9b"
+    },
+    "workspace_wallets": {
+      "count": "6",
+      "fingerprint": "221df3399008fb2d2018cc5c3ea72fac"
+    },
+    "token_ledger_entries": {
+      "count": "35",
+      "fingerprint": "5ef6fdb3fec6307ab98444cebd3973de"
+    }
+  },
+  "historyAfter": {
+    "jobs": {
+      "count": "17",
+      "fingerprint": "696a597681dcb9abccce68d1934e68f2"
+    },
+    "job_artifacts": {
+      "count": "27",
+      "fingerprint": "01c55ad5ed02553cf2c0bfbb063d4514"
+    },
+    "source_assets": {
+      "count": "3",
+      "fingerprint": "d417eb2c3cbf791b4a402271506438b8"
+    },
+    "products": {
+      "count": "3",
+      "fingerprint": "680959ffea3544b4e9bd2d86812fafb4"
+    },
+    "asset_versions": {
+      "count": "20",
+      "fingerprint": "d334b4b2b9ac9a4d55ee248d16cc6edc"
+    },
+    "content_items": {
+      "count": "10",
+      "fingerprint": "fdfbef2b6b95fac958178b74ab4a9d70"
+    },
+    "content_versions": {
+      "count": "10",
+      "fingerprint": "19a312286d5df1b83f9280a24f8f1c9b"
+    },
+    "workspace_wallets": {
+      "count": "6",
+      "fingerprint": "221df3399008fb2d2018cc5c3ea72fac"
+    },
+    "token_ledger_entries": {
+      "count": "35",
+      "fingerprint": "5ef6fdb3fec6307ab98444cebd3973de"
+    }
+  },
+  "isolatedFixtureCounts": {
+    "users": 2,
+    "workspaces": 2,
+    "products": 2,
+    "assets": 7,
+    "asset_versions": 7,
+    "jobs": 4,
+    "job_artifacts": 5,
+    "source_assets": 5,
+    "workers": 2,
+    "content_items": 3,
+    "content_versions": 3,
+    "workspace_wallets": 2,
+    "token_ledger_entries": 8
+  }
+}

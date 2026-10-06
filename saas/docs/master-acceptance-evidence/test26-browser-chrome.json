@@ -1,0 +1,24 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "PASS",
+  "scannedResponses": {
+    "text/html; charset=utf-8": 7,
+    "text/css; charset=UTF-8": 1,
+    "application/javascript; charset=UTF-8": 33,
+    "application/json": 40,
+    "text/x-component": 6
+  },
+  "metadataChecks": [
+    {
+      "kind": "Download transcript",
+      "status": 200,
+      "credentialValueDetected": false
+    },
+    {
+      "kind": "Download clip plan",
+      "status": 200,
+      "credentialValueDetected": false
+    }
+  ],
+  "findings": []
+}

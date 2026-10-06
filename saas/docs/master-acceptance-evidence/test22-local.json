@@ -1,0 +1,14 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "PASS",
+  "httpOnly": true,
+  "sameSite": "Lax",
+  "localSecureCookie": false,
+  "revokedAPI": 401,
+  "expiredAPI": 401,
+  "afterBackAPI": 401,
+  "reloadRequiresAuthentication": true,
+  "directProtectedRouteRedirects": true,
+  "serverSideRevocation": true,
+  "credentialInHTMLOrClientStorage": false
+}

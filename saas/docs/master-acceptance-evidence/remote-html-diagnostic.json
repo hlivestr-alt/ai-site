@@ -1,0 +1,62 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "COMPLETE",
+  "comparisons": [
+    {
+      "path": "/",
+      "origin": {
+        "status": 200,
+        "cloudflareEmailWrapper": false,
+        "cloudflareEmailScript": false,
+        "protectedEmailWrapperCount": 0,
+        "edgeTransformGuardHeaderPresent": false
+      },
+      "edge": {
+        "status": 200,
+        "cloudflareEmailWrapper": true,
+        "cloudflareEmailScript": true,
+        "protectedEmailWrapperCount": 1,
+        "edgeTransformGuardHeaderPresent": false
+      }
+    },
+    {
+      "path": "/products",
+      "origin": {
+        "status": 200,
+        "cloudflareEmailWrapper": false,
+        "cloudflareEmailScript": false,
+        "protectedEmailWrapperCount": 0,
+        "edgeTransformGuardHeaderPresent": false
+      },
+      "edge": {
+        "status": 200,
+        "cloudflareEmailWrapper": true,
+        "cloudflareEmailScript": true,
+        "protectedEmailWrapperCount": 1,
+        "edgeTransformGuardHeaderPresent": false
+      }
+    },
+    {
+      "path": "/settings",
+      "origin": {
+        "status": 200,
+        "cloudflareEmailWrapper": false,
+        "cloudflareEmailScript": false,
+        "protectedEmailWrapperCount": 0,
+        "edgeTransformGuardHeaderPresent": false
+      },
+      "edge": {
+        "status": 200,
+        "cloudflareEmailWrapper": true,
+        "cloudflareEmailScript": true,
+        "protectedEmailWrapperCount": 5,
+        "edgeTransformGuardHeaderPresent": false
+      }
+    }
+  ],
+  "credentialsPrinted": false,
+  "customerRowsModified": false,
+  "fixturePasswordChanged": false,
+  "diagnosticSessionRetired": true,
+  "fixtureOriginalStatusRestored": true
+}

@@ -1,0 +1,55 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "FAIL",
+  "consoleErrors": [
+    "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+    "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+    "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+    "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+    "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+    "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+    "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  ],
+  "uncaughtExceptions": [],
+  "failedRequests": [
+    {
+      "path": "https://fonts.googleapis.com/css2",
+      "category": "csp"
+    },
+    {
+      "path": "https://fonts.googleapis.com/css2",
+      "category": "csp"
+    },
+    {
+      "path": "https://fonts.googleapis.com/css2",
+      "category": "csp"
+    },
+    {
+      "path": "https://fonts.googleapis.com/css2",
+      "category": "csp"
+    },
+    {
+      "path": "https://fonts.googleapis.com/css2",
+      "category": "csp"
+    },
+    {
+      "path": "https://fonts.googleapis.com/css2",
+      "category": "csp"
+    },
+    {
+      "path": "https://fonts.googleapis.com/css2",
+      "category": "csp"
+    }
+  ],
+  "failedSameOriginResponses": [],
+  "webSocketErrors": [],
+  "requestCounts": {
+    "/api/workspaces/:id/status": 2,
+    "/api/workspaces/:id/content/:id/versions/:id/media": 18,
+    "/api/workspaces/:id/products/:id/assets/:id/download": 4,
+    "/api/workspaces/:id/jobs/:id/content": 4,
+    "/api/workspaces/:id/ai-videos/:id/artifacts/:id/download": 2,
+    "/api/workspaces/:id/clipper/:id/artifacts/:id/download": 16
+  },
+  "runaway": []
+}

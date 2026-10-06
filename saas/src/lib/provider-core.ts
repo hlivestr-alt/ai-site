@@ -56,12 +56,13 @@ export async function reserveProviderOne(jobId?:string){
   });
 }
 type Action={kind:"submit"|"reconcile"|"poll"|"ingest";execution:Execution};
-async function claimDue(jobId?:string):Promise<Action|null>{
+async function claimDue(jobId?:string,outputOnly=false):Promise<Action|null>{
   return transaction(async db=>{
     const picked=await db.query<Execution>(`SELECT e.*,j.input_snapshot,j.cancel_requested_at FROM provider_executions e JOIN jobs j ON j.workspace_id=e.workspace_id AND j.id=e.job_id
       WHERE e.state IN ('RESERVED','SUBMITTING','SUBMISSION_UNKNOWN','SUBMITTED','RUNNING','OUTPUT_PENDING') AND e.next_action_at<=now()
       AND ($1::uuid IS NULL OR e.job_id=$1)
-      ORDER BY e.next_action_at,e.created_at,e.id LIMIT 1 FOR UPDATE OF e SKIP LOCKED`,[jobId||null]);
+      AND (NOT $2::boolean OR e.state='OUTPUT_PENDING')
+      ORDER BY e.next_action_at,e.created_at,e.id LIMIT 1 FOR UPDATE OF e SKIP LOCKED`,[jobId||null,outputOnly]);
     const e=picked.rows[0];if(!e)return null;
     if(e.input_snapshot.kind!=="AI_VIDEO")throw new AppError(500,"Invalid provider input.");
     if(e.state==="SUBMITTING"){
@@ -196,6 +197,11 @@ export async function processProviderOne(jobId?:string){
   else if(action.kind==="poll")await poll(action.execution);
   else await ingest(action.execution);
   return true;
+}
+// Recovery has no submit/reconcile/poll dispatch branch, even if state changes.
+export async function processProviderOutputOne(jobId:string){
+  const action=await claimDue(jobId,true);if(!action||action.kind!=="ingest")return false;
+  await ingest(action.execution);return true;
 }
 export async function providerBatch(limit=10){let count=0;for(;count<limit;count++)if(!await processProviderOne())break;return count;}
 export async function reserveProviderBatch(limit=10){let count=0;for(;count<limit;count++)if(!await reserveProviderOne())break;return count;}

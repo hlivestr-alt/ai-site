@@ -1,0 +1,156 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "FAIL",
+  "checks": [
+    {
+      "boundary": "product",
+      "case": "text-renamed-mp4",
+      "httpStatus": 422,
+      "state": "FAILED"
+    },
+    {
+      "boundary": "product",
+      "case": "unsupported-gif",
+      "httpStatus": 415,
+      "state": "NO_RECORD"
+    },
+    {
+      "boundary": "product",
+      "case": "zero-image",
+      "httpStatus": 413,
+      "state": "NO_RECORD"
+    },
+    {
+      "boundary": "product",
+      "case": "zero-video",
+      "httpStatus": 413,
+      "state": "NO_RECORD"
+    },
+    {
+      "boundary": "product",
+      "case": "mime-content-mismatch",
+      "httpStatus": 422,
+      "state": "FAILED"
+    },
+    {
+      "boundary": "product",
+      "case": "corrupt-png-header",
+      "httpStatus": 422,
+      "state": "FAILED"
+    },
+    {
+      "boundary": "product",
+      "case": "corrupt-mp4-ftyp-only",
+      "httpStatus": 200,
+      "state": "READY"
+    },
+    {
+      "boundary": "product",
+      "case": "synthetic-oversize-image",
+      "httpStatus": 413,
+      "state": "NO_RECORD"
+    },
+    {
+      "boundary": "product",
+      "case": "synthetic-oversize-video",
+      "httpStatus": 413,
+      "state": "NO_RECORD"
+    },
+    {
+      "boundary": "source",
+      "case": "text-renamed-mp4",
+      "httpStatus": 200,
+      "state": "FAILED"
+    },
+    {
+      "boundary": "source",
+      "case": "zero-video",
+      "httpStatus": 413,
+      "state": "NO_RECORD"
+    },
+    {
+      "case": "corrupt-mp4-ftyp-only",
+      "boundary": "source-job",
+      "httpStatus": 201,
+      "createdJob": true
+    },
+    {
+      "boundary": "corrupt-source-billing",
+      "jobCreated": true,
+      "billingStatusBeforeHarnessCancellation": "RESERVED",
+      "tokensReserved": "700"
+    },
+    {
+      "boundary": "source",
+      "case": "corrupt-mp4-ftyp-only",
+      "httpStatus": 200,
+      "state": "UPLOADED"
+    },
+    {
+      "boundary": "source",
+      "case": "synthetic-oversize-video",
+      "httpStatus": 413,
+      "state": "NO_RECORD"
+    },
+    {
+      "boundary": "json-request",
+      "case": "actual-17KB-body",
+      "httpStatus": 413
+    },
+    {
+      "boundary": "streamed-json-request",
+      "bytes": 20480,
+      "contentLengthDeclared": false,
+      "httpStatus": 413
+    },
+    {
+      "boundary": "actual-object-size",
+      "httpStatus": 422,
+      "uploadedBytes": 32769,
+      "testLimitBytes": 32768
+    },
+    {
+      "boundary": "valid-unusual-filename",
+      "finalized": true,
+      "exactBytesPreserved": true,
+      "responseHeaderSafe": true
+    },
+    {
+      "boundary": "24-hour-cleanup",
+      "failedVersions": 4,
+      "failedStagingObjectsRetained": 4
+    },
+    {
+      "boundary": "side-effects",
+      "before": {
+        "jobs": "2",
+        "providers": "1",
+        "leases": "1",
+        "ledger": "5"
+      },
+      "after": {
+        "jobs": "3",
+        "providers": "1",
+        "leases": "1",
+        "ledger": "7"
+      },
+      "walletBefore": {
+        "available_tokens": "98600",
+        "reserved_tokens": "0"
+      },
+      "walletAfter": {
+        "available_tokens": "98600",
+        "reserved_tokens": "0"
+      },
+      "providerSubmissionsUnchanged": true,
+      "privateWorkerLeasesUnchanged": true
+    }
+  ],
+  "failures": [
+    "corrupt-mp4-ftyp-only: corrupt Product asset became READY",
+    "corrupt-mp4-ftyp-only: invalid Product file accepted",
+    "corrupt-mp4-ftyp-only: corrupt Clipper source accepted as UPLOADED",
+    "corrupt-mp4-ftyp-only: Clipper job and token reservation created for corrupt source",
+    "Cleanup leaves validation-failed staging objects after retention"
+  ]
+}

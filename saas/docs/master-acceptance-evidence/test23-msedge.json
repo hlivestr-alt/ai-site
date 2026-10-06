@@ -1,0 +1,125 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "PASS",
+  "channel": "msedge",
+  "loginForm": "PASS",
+  "pages": [
+    {
+      "path": "/",
+      "route": "PASS"
+    },
+    {
+      "path": "/products",
+      "route": "PASS",
+      "visibleButtons": 2,
+      "controls": 3
+    },
+    {
+      "path": "/ai-videos",
+      "route": "PASS",
+      "visibleButtons": 2,
+      "controls": 6
+    },
+    {
+      "path": "/clipper",
+      "route": "PASS",
+      "visibleButtons": 2,
+      "controls": 10
+    },
+    {
+      "path": "/content",
+      "route": "PASS",
+      "visibleButtons": 2,
+      "controls": 5
+    },
+    {
+      "path": "/settings",
+      "route": "PASS",
+      "visibleButtons": 3,
+      "controls": 4
+    },
+    {
+      "path": "/billing",
+      "route": "PASS",
+      "visibleButtons": 4,
+      "controls": 1
+    },
+    {
+      "path": "/products/:productId",
+      "referenceImageLoaded": true
+    },
+    {
+      "path": "/products/:productId/edit",
+      "uploadControlVisible": true
+    },
+    {
+      "path": "/ai-videos/:id",
+      "kind": "video",
+      "media": [
+        {
+          "readyState": 4,
+          "error": null,
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "path": "/clipper/:id",
+      "kind": "clip",
+      "media": [
+        {
+          "readyState": 4,
+          "error": null,
+          "duration": 10
+        },
+        {
+          "readyState": 4,
+          "error": null,
+          "duration": 10
+        }
+      ]
+    },
+    {
+      "path": "/content/:id",
+      "kind": "content-video",
+      "media": [
+        {
+          "readyState": 4,
+          "error": null,
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "path": "/content/:id",
+      "kind": "content-clip",
+      "media": [
+        {
+          "readyState": 4,
+          "error": null,
+          "duration": 10
+        },
+        {
+          "readyState": 4,
+          "error": null,
+          "duration": 57.466667
+        }
+      ]
+    }
+  ],
+  "downloads": [
+    {
+      "kind": "video",
+      "authenticatedURLRequestedByPage": true,
+      "downloadStatus": 200,
+      "bytes": 12347
+    },
+    {
+      "kind": "clip",
+      "authenticatedURLRequestedByPage": true,
+      "downloadStatus": 200,
+      "bytes": 94215
+    }
+  ],
+  "browserVersion": "154.0.4258.53"
+}

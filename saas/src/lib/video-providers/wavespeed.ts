@@ -9,8 +9,9 @@ import { ProviderSafeError, SubmissionUnknownError, type ProviderCapabilities, t
 
 const capabilities: ProviderCapabilities = { minDurationSeconds: 4, maxDurationSeconds: 30, aspectRatios: ["9:16", "16:9", "1:1"], maxReferenceImages: 4, maxQuantity: 1 };
 // Exact provider CDN names: official WaveSpeedAI/wavespeed-comfyui README and
-// examples/case5-video-to-video/case5-v2v.json. Never allow arbitrary CloudFront tenants.
-const OUTPUT_HOSTS = new Set(["cdn.wavespeed.ai", "d2p7pge43lyniu.cloudfront.net"]);
+// examples/case5-video-to-video/case5-v2v.json, plus d2h7xmz5gqybh9 observed in
+// authenticated Seedance prediction 3aa327ae4d2a46ff899c9ac5c42986e2. No wildcards.
+const OUTPUT_HOSTS = new Set(["cdn.wavespeed.ai", "d2p7pge43lyniu.cloudfront.net", "d2h7xmz5gqybh9.cloudfront.net"]);
 const privateAddresses = new BlockList();
 for (const [address, prefix] of [["0.0.0.0", 8], ["10.0.0.0", 8], ["100.64.0.0", 10], ["127.0.0.0", 8], ["169.254.0.0", 16], ["172.16.0.0", 12], ["192.0.0.0", 24], ["192.0.2.0", 24], ["192.168.0.0", 16], ["198.18.0.0", 15], ["198.51.100.0", 24], ["203.0.113.0", 24], ["224.0.0.0", 3]] as const) privateAddresses.addSubnet(address, prefix, "ipv4");
 const publicV6 = new BlockList();
@@ -26,7 +27,9 @@ const referenceUnavailable = () => new ProviderSafeError("REFERENCE_UNAVAILABLE"
 export function waveSpeedOutputUrl(value: string) {
   let url: URL;
   try { url = new URL(value); } catch { throw new ProviderSafeError("OUTPUT_INVALID", "The provider output address was invalid."); }
-  if (url.protocol !== "https:" || !OUTPUT_HOSTS.has(url.hostname) || url.port || url.username || url.password || url.hash) {
+  // URL normalizes an explicit :443 and an empty fragment; reject them too.
+  const authority = /^[a-z][a-z0-9+.-]*:\/\/([^/?#]*)/i.exec(value.trim())?.[1];
+  if (url.protocol !== "https:" || !OUTPUT_HOSTS.has(url.hostname) || url.port || url.username || url.password || url.hash || authority?.includes(":") || authority?.includes("@") || value.includes("#")) {
     throw new ProviderSafeError("OUTPUT_INVALID", "The provider output host was invalid.");
   }
   return url;

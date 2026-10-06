@@ -1,0 +1,25 @@
+{
+  "runId": "1791197746502_4705d8",
+  "status": "PASS",
+  "compared": [
+    "session",
+    "products",
+    "product",
+    "wallet",
+    "sources",
+    "video",
+    "clips",
+    "content",
+    "memberships",
+    "workflows",
+    "workflow",
+    "payments",
+    "tokenLedger"
+  ],
+  "newBrowserContext": true,
+  "freshFormLogin": true,
+  "exactAPISnapshotsPreserved": true,
+  "signedArtifactAndSourceDownloads": 3,
+  "outreach": "NOT IMPLEMENTED / separate future phase",
+  "paidGenerations": 0
+}

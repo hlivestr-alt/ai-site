@@ -1,0 +1,28 @@
+{
+  "runId": "1791197084690_a73a90",
+  "status": "FAIL",
+  "checks": [
+    {
+      "signatureAndExpiryPresent": true,
+      "signingSecretExposed": true,
+      "publicAccessKeyEqualsSigningSecret": true,
+      "derivedCredentialAccessStatus": 200,
+      "remoteDerivedCredentialAccessStatus": 200,
+      "forgedAccessUsedOnlyControlledObjectInDifferentQAWorkspace": true,
+      "originalStatus": 200,
+      "tamperedStatus": 403,
+      "unsignedStatus": 403,
+      "objectSubstitutionStatus": 403,
+      "listingStatus": 403,
+      "foreignWorkspaceStatus": 404,
+      "testOnlyTTLSeconds": 1,
+      "expiredStatus": 403,
+      "contentRecordPreserved": true,
+      "freshAuthenticatedMediaStatus": 200,
+      "customerTTLChanged": false
+    }
+  ],
+  "failures": [
+    "Public credential identifier equals signing secret; signed URL supplies credentials for signing another object URL."
+  ]
+}

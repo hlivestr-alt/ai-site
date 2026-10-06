@@ -4,7 +4,7 @@ import os
 import re
 import urllib.error
 import urllib.request
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 from .analyzer import CANDIDATE_SCHEMA, POLICY
 from .common import PipelineError
 from .selection import validate_candidate
@@ -65,10 +65,12 @@ class WaveSpeedTranscriptAnalyzer:
             raise PipelineError("ANALYZER_MODEL_MISMATCH")
         self.base = BASE_URL
 
-    def request(self, path, payload=None):
+    def request(self, path, payload=None, *, expected_status=None):
         request = urllib.request.Request(self.base + path, data=json.dumps(payload, ensure_ascii=False, allow_nan=False).encode() if payload is not None else None, method="POST" if payload is not None else "GET", headers={"Authorization": "Bearer " + self.key, "Content-Type": "application/json"})
         try:
             with urlopen(request, timeout=60) as response:
+                if expected_status is not None and response.status != expected_status:
+                    raise PipelineError("ANALYZER_INVALID_OUTPUT")
                 raw = response.read(MAX_RESPONSE_BYTES + 1)
             if len(raw) > MAX_RESPONSE_BYTES or self.key.encode() in raw:
                 raise PipelineError("ANALYZER_INVALID_OUTPUT")
@@ -82,10 +84,21 @@ class WaveSpeedTranscriptAnalyzer:
             raise PipelineError("ANALYZER_INVALID_OUTPUT") from None
 
     def model_available(self):
-        data = self.request("/models")
-        if not isinstance(data, dict) or not isinstance(data.get("data"), list):
+        data = self.request("/models", expected_status=200)
+        models = data.get("data") if isinstance(data, dict) else None
+        if isinstance(models, list) and all(isinstance(model, dict) and isinstance(model.get("id"), str) and model["id"] for model in models):
+            return any(model["id"] == self.model for model in models)
+        # The authenticated list can return data:null for an accessible model.
+        # The constructor validates the ID; quote preserves only its vendor slash.
+        try:
+            exact = self.request("/models/" + quote(self.model, safe="/"), expected_status=200)
+        except PipelineError as error:
+            if error.code == "ANALYZER_MODEL_UNAVAILABLE":
+                return False
+            raise
+        if not isinstance(exact, dict) or not isinstance(exact.get("id"), str) or "object" in exact and exact["object"] != "model":
             raise PipelineError("ANALYZER_INVALID_OUTPUT")
-        return any(isinstance(model, dict) and model.get("id") == self.model for model in data["data"])
+        return exact["id"] == self.model
 
     def analyze(self, request: dict) -> dict:
         payload = {"model": self.model, "stream": False, "max_tokens": 4000, "response_format": {"type": "json_object"}, "messages": [
