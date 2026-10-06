@@ -1,0 +1,244 @@
+{
+  "runId": "1791260308375-cf0949",
+  "paidInference": 0,
+  "outreach": 0,
+  "credentialsPrinted": false,
+  "authenticatedBrowserRuns": [
+    {
+      "channel": "chrome",
+      "browserVersion": "154.0.8037.98",
+      "activeCheck": "browser-upload-finalization",
+      "routes": [
+        "/",
+        "/products",
+        "/ai-videos",
+        "/clipper",
+        "/content",
+        "/settings",
+        "/billing"
+      ],
+      "signerUsesRotatedIdentifier": true,
+      "publicIdentifierEqualsCurrentSecret": false,
+      "signedUploadStatus": 200,
+      "browserProductUpload": "PASS",
+      "productDownloads": [
+        {
+          "type": "VIDEO",
+          "status": 200
+        },
+        {
+          "type": "IMAGE",
+          "status": 200
+        }
+      ],
+      "faviconStatus": 200,
+      "uncaught": [
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "consoleErrors": [
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-NTVmNTJhNWUtOTgwMS00Zjc1LTg4YTEtZGRiMGQ1MzZkZTAx' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-YmUxMTUxODktNGRkZi00NjVlLWEwNjQtY2U1NjFjYzZhZGFk' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-ZmNlOGQwZjMtNjM1OC00NjhkLTkzYWQtNzJkMGQ0ZmNlYTMz' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-YTMxM2JiOTEtYTIzYS00Y2FmLWIyM2MtOWUwMDVkNDM5NmU1' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-MTU1ODQwZGItYWQyMy00M2ZkLTg4ZjctZTRhMmUwZjNhZWUx' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-NmY3ZDgwNTMtNmM2Yi00N2VlLThmMWUtMzU1ODRkODFjYTQ0' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-ZmViOWI3NjEtN2NhYy00YmIzLTg2NDYtMzRiZmI5N2ZjODJi' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-ZGIxMjM0NzMtYWJjYy00NGYyLWFiMTItM2ZjN2Q4ZWUzOWI5' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-MjVhYjFjNjItNWE2YS00NTdhLTg5NTctMzUwYWRjYTUzMjdl' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."
+      ],
+      "networkFailures": [],
+      "requestFailures": [
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        }
+      ],
+      "secretFindings": [],
+      "scannedResponses": {
+        "text/html; charset=utf-8": 10,
+        "application/javascript; charset=UTF-8": 80,
+        "text/css; charset=UTF-8": 10,
+        "text/plain": 2,
+        "text/x-component": 10,
+        "application/json": 8
+      },
+      "hydrationClean": false
+    },
+    {
+      "channel": "msedge",
+      "browserVersion": "154.0.4258.53",
+      "activeCheck": "browser-upload-finalization",
+      "routes": [
+        "/",
+        "/products",
+        "/ai-videos",
+        "/clipper",
+        "/content",
+        "/settings",
+        "/billing"
+      ],
+      "signerUsesRotatedIdentifier": true,
+      "publicIdentifierEqualsCurrentSecret": false,
+      "signedUploadStatus": 200,
+      "browserProductUpload": "PASS",
+      "productDownloads": [
+        {
+          "type": "VIDEO",
+          "status": 200
+        },
+        {
+          "type": "IMAGE",
+          "status": 200
+        },
+        {
+          "type": "VIDEO",
+          "status": 200
+        },
+        {
+          "type": "IMAGE",
+          "status": 200
+        }
+      ],
+      "faviconStatus": 200,
+      "uncaught": [
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "consoleErrors": [
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-M2M5ZTczZjItMGQwNi00ODE4LTk5ZmEtNGU5NDVlZmMyMGY2' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-NjQ3ZmQxOTgtMjA0Zi00MWUxLTk2ZWQtNzM2MTYzZWExNjBh' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-YjQwOWQ2ZDUtY2I5Mi00YjMxLTk4NzEtMDYwZTYwNmU5MWE2' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-YmMyMzQ5OTQtY2E4Ny00M2NiLTgxMmMtOTlkMDE4NmU3Y2I3' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-MzNjN2MyYTMtYzc5MC00OWJmLWFiNmQtZjEyMTgzNTgxODhj' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-Yjg3ZjQzNGEtNjZjZC00M2M0LTk1YmQtMDAwNWY3OTcxOWVl' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-OTY0OWQ1NDEtYWIxYy00ZTc2LTk3YzUtMDY4NDE0OGEyZjVi' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-NzNiODE0NTQtZDdiZC00YjY3LTlkYWYtZmY3ODNiYTYyNzcx' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-NmI1ZTBkYWUtZjRkNy00NzFkLWFmMzctMzI0ZGMzNGQ1ZTY0' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."
+      ],
+      "networkFailures": [],
+      "requestFailures": [
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        }
+      ],
+      "secretFindings": [],
+      "scannedResponses": {
+        "text/html; charset=utf-8": 10,
+        "text/css; charset=UTF-8": 10,
+        "application/javascript; charset=UTF-8": 80,
+        "text/plain": 2,
+        "text/x-component": 17,
+        "application/json": 10
+      },
+      "hydrationClean": false
+    }
+  ],
+  "fixture": {
+    "userId": "6f00b18a-2ce1-4880-a217-4089c841ece7",
+    "workspaceId": "2d32c1c6-f61e-4f65-a0fd-ccafe1fc5140",
+    "email": "phase-a-remote-1791260308375-cf0949@example.test",
+    "controlledAccount": true,
+    "verificationDeliveryBypassedOnlyForFixture": true
+  },
+  "waveSpeedReferences": {
+    "status": "PASS",
+    "referenceCount": 1,
+    "publicHttps": true,
+    "paidProviderRequests": 0
+  },
+  "contentLibraryBrowserDownload": {
+    "status": "PASS",
+    "paidInference": 0,
+    "staticDiagnosticFixture": true
+  },
+  "remoteDiagnosticJob": {
+    "jobId": "483feec6-1aa7-47cf-ac0a-bff8cabd9002",
+    "billingMode": "DIAGNOSTIC",
+    "tokenLedgerEntries": 0,
+    "providerExecutions": 0
+  },
+  "status": "FAIL",
+  "fixtureSessionsRevoked": true,
+  "fixtureUserDisabled": true,
+  "fixtureProductAndContentArchived": true
+}

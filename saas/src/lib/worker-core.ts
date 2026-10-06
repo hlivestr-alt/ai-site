@@ -6,6 +6,7 @@ import { jobEvent, safeWorkerInput, scheduleRetry, scopedJob, snapshotMediaAvail
 import { completeClipper, clipperArtifactLimit, clipperSlotAllowed,type CompletionPlan } from "./clipper-worker";
 import {checkStorageQuota,additionalArtifactBytes} from './operational-limits';
 import {boundedSetting,nonProductionTestAllowed} from './operational-config';
+import {customerWorkerStage,customerWorkerFailure} from './worker-messages';
 
 export type Worker={id:string;name:string;status:string;capabilities:string[];max_concurrency:number;available_slots:number;last_heartbeat_at:Date|null};
 export type Lease={id:string;workspace_id:string;job_id:string;attempt_id:string;worker_id:string;fencing_token:string;status:string;expires_at:Date;valid:boolean};
@@ -108,7 +109,8 @@ export async function workerRenew(worker:Worker,jobId:string,raw:Record<string,u
 export async function workerProgress(worker:Worker,jobId:string,raw:Record<string,unknown>){
   const id=identity(raw,jobId),sequence=raw.sequence,percent=raw.percent;
   if(typeof sequence!=="number"||!Number.isInteger(sequence)||sequence<1||sequence>1e9||typeof percent!=="number"||!Number.isInteger(percent)||percent<0||percent>99)throw new AppError(400,"Invalid progress.");
-  const stage=codeField(raw.stage,"stage").toLowerCase(),message=textField(raw.message||"",240,"progress message");
+  const safe=customerWorkerStage(codeField(raw.stage,"stage")),stage=safe.stage,message=safe.message;
+  textField(raw.message||"",240,"progress message"); // Validate envelope, never persist diagnostic text.
   return transaction(async db=>{
     const lease=await lockedLease(db,worker.id,id);activeLease(lease);
     const job=await runningJob(db,lease);
@@ -123,7 +125,8 @@ export async function workerProgress(worker:Worker,jobId:string,raw:Record<strin
   });
 }
 export async function workerFail(worker:Worker,jobId:string,raw:Record<string,unknown>){
-  const id=identity(raw,jobId),errorCode=codeField(raw.errorCode,"error code"),message=textField(raw.message||"",240,"failure message");
+  const id=identity(raw,jobId),safe=customerWorkerFailure(codeField(raw.errorCode,"error code")),errorCode=safe.code,message=safe.message;
+  textField(raw.message||"",240,"failure message");
   if(typeof raw.retriable!=="boolean")throw new AppError(400,"Invalid retry choice.");
   return transaction(async db=>{
     const lease=await lockedLease(db,worker.id,id);
@@ -140,7 +143,7 @@ export async function workerFail(worker:Worker,jobId:string,raw:Record<string,un
       return {status:"CANCELLED",duplicate:false};
     }
     await jobEvent(db,job.workspace_id,job.id,"JOB_ATTEMPT_FAILED",id.attemptId,worker.id,{code:errorCode});
-    if(raw.retriable)return {status:await scheduleRetry(db,job,errorCode,id.attemptId,worker.id),duplicate:false};
+    if(job.type==='CLIPPER'&&safe.known?safe.retry:raw.retriable)return {status:await scheduleRetry(db,job,errorCode,id.attemptId,worker.id),duplicate:false};
     await db.query("UPDATE jobs SET status='FAILED',error_code=$1,error_message_safe=$2,finished_at=now(),progress_stage='failed',updated_at=now() WHERE id=$3",[errorCode,message,job.id]);
     await jobEvent(db,job.workspace_id,job.id,"JOB_FAILED",id.attemptId,worker.id,{code:errorCode});
     return {status:"FAILED",duplicate:false};

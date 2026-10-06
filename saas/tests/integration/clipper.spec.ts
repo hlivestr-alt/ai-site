@@ -1,6 +1,7 @@
 import {test,expect} from "@playwright/test";
 import {readFile} from "node:fs/promises";
 import pg from "pg";
+import {paddedVideoFirstPart} from "../media-fixtures";
 import {owner,source,submit,worker,provision,dispatch,lease,publish,type Claim} from "../clipper-helpers";
 
 test("Clipper source, duplicate submit, private artifacts, multi-output completion and workspace isolation",async({browser})=>{
@@ -37,7 +38,7 @@ test("Clipper source, duplicate submit, private artifacts, multi-output completi
 test("multipart upload resumes individual parts and finalized source is immutable",async()=>{
   test.setTimeout(180000);const a=await owner(`p5-multipart-${Date.now()}@example.test`);try{
     const size=64*1024**2+5*1024**2,r=await a.c.post(`/api/workspaces/${a.workspaceId}/sources`,{data:{filename:"large-fixture.mp4",mimeType:"video/mp4",byteSize:size}});expect(r.status()).toBe(201);const intent=await r.json();expect(intent.mode).toBe("multipart");
-    const prefix=Buffer.alloc(intent.partSize);Buffer.from([0,0,0,24]).copy(prefix);prefix.write("ftypisom",4);const endpoint=`/api/workspaces/${a.workspaceId}/sources/${intent.source.id}`;
+    const prefix=await paddedVideoFirstPart(size,intent.partSize);const endpoint=`/api/workspaces/${a.workspaceId}/sources/${intent.source.id}`;
     const p1=await a.c.post(`${endpoint}/parts`,{data:{partNumber:1}});expect((await fetch((await p1.json()).url,{method:"PUT",body:prefix})).ok).toBe(true);
     expect((await a.c.post(`${endpoint}/finalize`)).status()).toBe(409);const resumed=await a.c.get(`${endpoint}/upload`);expect((await resumed.json()).parts.map((p:{partNumber:number})=>p.partNumber)).toEqual([1]);
     expect((await a.c.post(`${endpoint}/parts`,{data:{partNumber:3}})).status()).toBe(400);const p2=await a.c.post(`${endpoint}/parts`,{data:{partNumber:2}});expect((await fetch((await p2.json()).url,{method:"PUT",body:Buffer.alloc(5*1024**2)})).ok).toBe(true);

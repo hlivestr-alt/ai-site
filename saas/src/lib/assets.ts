@@ -1,12 +1,13 @@
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import sharp from "sharp";
-import { query, transaction, type DbClient } from "./db";
+import { query, transaction, withMediaFinalizeLock, type DbClient } from "./db";
 import { AppError, audit, isUuid } from "./core";
 import { requireActiveWorkspace } from "./products";
 import { requireRole } from "./workspaces";
 import { objectStorage, originalObjectKey, thumbnailObjectKey, uploadObjectKey } from "./storage";
 import { signatureMatches, uploadInput } from "./media-validation";
+import { probeVideo } from "./media-probe";
 import type { Session } from "./auth";
 import {checkAssetQuota,checkStorageQuota} from './operational-limits';
 
@@ -69,7 +70,7 @@ export async function createUploadIntent(session:Session,workspaceId:string,prod
 
 async function markFailed(workspaceId:string,productId:string,assetId:string,versionId:string,code:string) {
   await transaction(async db=>{
-    await db.query("UPDATE asset_versions SET status='FAILED',failure_code=$1 WHERE workspace_id=$2 AND product_id=$3 AND asset_id=$4 AND id=$5 AND status='PENDING_UPLOAD'",[code,workspaceId,productId,assetId,versionId]);
+    await db.query("UPDATE asset_versions SET status='FAILED',failure_code=$1,failed_at=now() WHERE workspace_id=$2 AND product_id=$3 AND asset_id=$4 AND id=$5 AND status='PENDING_UPLOAD'",[code,workspaceId,productId,assetId,versionId]);
     await db.query("UPDATE assets SET status='FAILED',updated_at=now() WHERE workspace_id=$1 AND product_id=$2 AND id=$3 AND current_version_id IS NULL AND status='PENDING_UPLOAD'",[workspaceId,productId,assetId]);
   });
 }
@@ -80,6 +81,7 @@ async function verifyObject(key:string,mimeType:string,maxBytes:number,expectedB
   if(!head)throw new AppError(409,"Upload has not arrived in storage.");
   if(head.byteSize!==expectedBytes||head.byteSize===0||head.byteSize>maxBytes)throw new AppError(422,"Uploaded size does not match the intent.");
   if(head.contentType&&head.contentType!==mimeType)throw new AppError(422,"Uploaded media type does not match the intent.");
+  const video = mimeType === "video/mp4" ? await probeVideo(storage, key, head) : null;
   const hash=createHash("sha256");const chunks:Buffer[]=[];let total=0;let first=Buffer.alloc(0);
   for await (const chunk of await storage.stream(key)) {
     const bytes=Buffer.from(chunk);total+=bytes.length;
@@ -92,7 +94,7 @@ async function verifyObject(key:string,mimeType:string,maxBytes:number,expectedB
   if(!signatureMatches(mimeType,first))throw new AppError(422,"File signature does not match its media type.");
   const sha256=hash.digest("hex");
   if(expectedSha&&expectedSha!==sha256)throw new AppError(422,"Uploaded checksum does not match the intent.");
-  let width:number|null=null,height:number|null=null,thumbnail:Buffer|null=null;
+  let width:number|null=video?.width||null,height:number|null=video?.height||null,thumbnail:Buffer|null=null;
   if(mimeType.startsWith("image/")) {
     const image=Buffer.concat(chunks);
     try {
@@ -107,6 +109,10 @@ async function verifyObject(key:string,mimeType:string,maxBytes:number,expectedB
 }
 
 export async function finalizeUpload(session:Session,workspaceId:string,productId:string,assetId:string,versionId:string) {
+  await requireActiveWorkspace(session,workspaceId,"future:edit");
+  return withMediaFinalizeLock(`asset:${workspaceId}:${versionId}`, () => finalizeUploadLocked(session,workspaceId,productId,assetId,versionId));
+}
+async function finalizeUploadLocked(session:Session,workspaceId:string,productId:string,assetId:string,versionId:string) {
   await requireActiveWorkspace(session,workspaceId,"future:edit");
   await scopedAsset({query},workspaceId,productId,assetId);
   const version=await scopedVersion({query},workspaceId,productId,assetId,versionId);

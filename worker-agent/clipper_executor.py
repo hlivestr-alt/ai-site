@@ -10,14 +10,17 @@ from clipper_pipeline.pipeline import ClipperPipeline
 from clipper_pipeline.transfer import upload
 
 class LeaseGuard:
-    def __init__(self, client, job_id: str, identity: dict, expires: str):
+    def __init__(self, client, job_id: str, identity: dict, expires: str, stopping=None):
         self.client, self.job_id, self.identity = client, job_id, identity
         self.deadline = datetime.fromisoformat(expires.replace("Z", "+00:00")).timestamp()
         self.closed, self.cancelled, self.fenced = threading.Event(), threading.Event(), threading.Event()
+        self.stopping = stopping
         self.thread = threading.Thread(target=self.renew, daemon=True)
 
     def renew(self):
         while not self.closed.wait(min(10, max(1, (self.deadline - time.time()) / 3))):
+            if self.stopping is not None and self.stopping.is_set():
+                return
             try:
                 result = self.client.post(f"/api/worker/jobs/{self.job_id}/renew", self.identity)
                 self.deadline = datetime.fromisoformat(result["leaseExpiresAt"].replace("Z", "+00:00")).timestamp()
@@ -33,6 +36,8 @@ class LeaseGuard:
             raise PipelineError("LEASE_FENCED")
         if self.cancelled.is_set():
             raise PipelineError("CANCELLED")
+        if self.stopping is not None and self.stopping.is_set():
+            raise PipelineError("WORKER_INTERRUPTED", True)
 
     def close(self):
         self.closed.set()
@@ -116,7 +121,7 @@ class Callbacks:
 class ClipperExecutor:
     def execute(self, agent, claim: dict, work: Path):
         identity = {k: claim[k] for k in ["attemptId", "leaseId", "fencingToken"]}
-        guard = LeaseGuard(agent.client, claim["jobId"], identity, claim["leaseExpiresAt"])
+        guard = LeaseGuard(agent.client, claim["jobId"], identity, claim["leaseExpiresAt"], getattr(agent, "stopping", None))
         guard.thread.start()
         callbacks = Callbacks(agent.client, claim, work, guard)
         try:

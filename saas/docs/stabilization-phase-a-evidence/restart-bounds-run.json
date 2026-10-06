@@ -1,0 +1,46 @@
+{
+  "runId": "1791260151356_35d264",
+  "suite": "restart-bounds",
+  "database": "phase_a_1791260151356_35d264",
+  "bucket": "phase-a-1791260151356-35d264",
+  "gateway": "phase-a-gateway-1791260151356-35d264",
+  "commands": [
+    {
+      "command": "migrations",
+      "exitCode": 0,
+      "seconds": 0
+    },
+    {
+      "command": "focused tests (restart-bounds)",
+      "exitCode": 0,
+      "seconds": 19
+    }
+  ],
+  "cleanup": {
+    "mailFiles": 2,
+    "bucket": "deleted",
+    "objectsDeleted": 3,
+    "gateway": "deleted",
+    "database": "deleted",
+    "generatedTsconfigChanges": "restored"
+  },
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0
+  },
+  "fixtureCounts": {
+    "users": 2,
+    "workspaces": 2,
+    "products": 1,
+    "asset_versions": 1,
+    "source_assets": 1,
+    "jobs": 2,
+    "job_attempts": 5,
+    "job_artifacts": 0,
+    "clipper_checkpoints": 0,
+    "content_items": 0,
+    "token_ledger_entries": 5
+  },
+  "exitCode": 0
+}

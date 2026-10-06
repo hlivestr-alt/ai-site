@@ -1,0 +1,4 @@
+import {defineConfig,devices} from '@playwright/test';
+if(!process.env.STABILIZATION_RUN_ID||!process.env.DATABASE_URL?.includes('/phase_a_')||!process.env.OBJECT_STORAGE_BUCKET?.startsWith('phase-a-'))throw new Error('Owned stabilization isolation is required');
+const base='http://127.0.0.1:3227';
+export default defineConfig({testDir:'./tests/stabilization',testMatch:'**/*.spec.ts',workers:1,retries:0,timeout:180000,reporter:[['line'],['json',{outputFile:`test-data/stabilization-phase-a/${process.env.STABILIZATION_SUITE}/playwright.json`}]],use:{...devices['Desktop Chrome'],baseURL:base,channel:'chrome',actionTimeout:15000,trace:'off',screenshot:'off'},globalSetup:'./tests/setup.ts',webServer:{command:'node node_modules/next/dist/bin/next dev -p 3227 -H 127.0.0.1',url:base+'/login',timeout:90000,reuseExistingServer:false,stdout:'ignore',stderr:'ignore',env:{...process.env,SAAS_NEXT_DIST_DIR:'.next-tests/stabilization'} as Record<string,string>}});

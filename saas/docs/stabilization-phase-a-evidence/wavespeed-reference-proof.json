@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "paidInference": 0,
+  "providerPosts": 0,
+  "secretPrinted": false,
+  "referenceCount": 1,
+  "publicHttps": true,
+  "referenceIntegrityVerified": true,
+  "publicIdentifierEqualsSecret": false,
+  "ttlSeconds": 3600,
+  "actualExternalReferenceGets": 1,
+  "unsignedListing": 403,
+  "controlledFixtureDeleted": true
+}

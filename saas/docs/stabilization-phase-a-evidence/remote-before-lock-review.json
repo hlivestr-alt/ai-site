@@ -1,0 +1,206 @@
+{
+  "runId": "1791260798722-78a07e",
+  "paidInference": 0,
+  "outreach": 0,
+  "credentialsPrinted": false,
+  "authenticatedBrowserRuns": [
+    {
+      "channel": "chrome",
+      "browserVersion": "154.0.8037.98",
+      "activeCheck": "browser-upload-finalization",
+      "normalAccountEmailVisible": true,
+      "routes": [
+        "/",
+        "/products",
+        "/ai-videos",
+        "/clipper",
+        "/content",
+        "/settings",
+        "/billing"
+      ],
+      "edgeChecks": [
+        {
+          "route": "/",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/products",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/ai-videos",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/clipper",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/content",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/settings",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/billing",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        }
+      ],
+      "signerUsesRotatedIdentifier": true,
+      "publicIdentifierEqualsCurrentSecret": false,
+      "signedUploadStatus": 200,
+      "browserProductUpload": "PASS",
+      "productDownloads": [
+        {
+          "type": "VIDEO",
+          "status": 200
+        },
+        {
+          "type": "IMAGE",
+          "status": 200
+        }
+      ],
+      "faviconStatus": 200,
+      "uncaught": [],
+      "consoleErrors": [],
+      "networkFailures": [],
+      "requestFailures": [],
+      "secretFindings": [],
+      "scannedResponses": {
+        "text/html; charset=utf-8": 10,
+        "application/javascript; charset=UTF-8": 80,
+        "text/css; charset=UTF-8": 10,
+        "text/plain": 2,
+        "text/x-component": 14,
+        "application/json": 8
+      },
+      "hydrationClean": true
+    },
+    {
+      "channel": "msedge",
+      "browserVersion": "154.0.4258.53",
+      "activeCheck": "browser-upload-finalization",
+      "normalAccountEmailVisible": true,
+      "routes": [
+        "/",
+        "/products",
+        "/ai-videos",
+        "/clipper",
+        "/content",
+        "/settings",
+        "/billing"
+      ],
+      "edgeChecks": [
+        {
+          "route": "/",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/products",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/ai-videos",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/clipper",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/content",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/settings",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        },
+        {
+          "route": "/billing",
+          "emailTransformationInjected": false,
+          "strictCsp": true
+        }
+      ],
+      "signerUsesRotatedIdentifier": true,
+      "publicIdentifierEqualsCurrentSecret": false,
+      "signedUploadStatus": 200,
+      "browserProductUpload": "PASS",
+      "productDownloads": [
+        {
+          "type": "VIDEO",
+          "status": 200
+        },
+        {
+          "type": "IMAGE",
+          "status": 200
+        },
+        {
+          "type": "VIDEO",
+          "status": 200
+        },
+        {
+          "type": "IMAGE",
+          "status": 200
+        }
+      ],
+      "faviconStatus": 200,
+      "uncaught": [],
+      "consoleErrors": [],
+      "networkFailures": [],
+      "requestFailures": [],
+      "secretFindings": [],
+      "scannedResponses": {
+        "text/html; charset=utf-8": 10,
+        "text/css; charset=UTF-8": 10,
+        "application/javascript; charset=UTF-8": 80,
+        "text/plain": 2,
+        "text/x-component": 15,
+        "application/json": 10
+      },
+      "hydrationClean": true
+    }
+  ],
+  "fixture": {
+    "userId": "7c298034-6de1-4351-a9e0-c9d3fcd89c30",
+    "workspaceId": "d8456a75-9094-49d7-8d51-3fa2cc129662",
+    "email": "phase-a-remote-1791260798722-78a07e@example.test",
+    "controlledAccount": true,
+    "verificationDeliveryBypassedOnlyForFixture": true
+  },
+  "waveSpeedReferences": {
+    "status": "PASS",
+    "referenceCount": 1,
+    "publicHttps": true,
+    "paidProviderRequests": 0
+  },
+  "contentLibraryBrowserDownload": {
+    "status": "PASS",
+    "paidInference": 0,
+    "staticDiagnosticFixture": true
+  },
+  "remoteDiagnosticJob": {
+    "jobId": "6ed63ca7-b385-4497-90c4-8066f9a36308",
+    "billingMode": "DIAGNOSTIC",
+    "tokenLedgerEntries": 0,
+    "providerExecutions": 0
+  },
+  "status": "PASS",
+  "fixtureSessionsRevoked": true,
+  "fixtureUserDisabled": true,
+  "fixtureProductAndContentArchived": true
+}

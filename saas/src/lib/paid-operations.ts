@@ -5,6 +5,7 @@ import {lockWallet,validateQuote,reserveJob} from "./billing-core";
 import {checkJobQuota,checkStorageQuota,operationStorageBudget} from './operational-limits';
 import {featureEnabled,clipperConfigured} from './operational-config';
 import {operationalLog} from './operational-logging';
+import {ensureSourceMediaValidation} from './source-validation';
 
 export type WorkflowLineage={runId:string;stepId:string};
 // Shared atomic admission contract. The caller owns the surrounding transaction.
@@ -16,6 +17,7 @@ export async function admitOperation(db:DbClient,args:{workspaceId:string;userId
     if(prior.client_request_hash!==requestHash||(prior.billing_mode==="DIAGNOSTIC")!==!!args.diagnostic||prior.workflow_run_id!==(workflow?.runId||null)||prior.workflow_step_id!==(workflow?.stepId||null)||workflow&&prior.input_hash!==inputHash(input))throw new AppError(409,"Idempotency key was already used for different input.");
     return {id:prior.id,existing:true};
   }
+  if(input.kind==='CLIPPER')await ensureSourceMediaValidation(db,workspaceId,input.source.sourceAssetId);
   const q=args.diagnostic?null:await validateQuote(db,workspaceId,input.kind,args.quote,input,requestHash);
   if(!featureEnabled(input.kind))throw new AppError(503,'This operation is temporarily unavailable.');
   if(input.kind==='CLIPPER'&&!clipperConfigured())throw new AppError(503,'Clipping is unavailable until the analyzer is configured.');

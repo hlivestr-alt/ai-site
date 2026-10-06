@@ -38,7 +38,9 @@ def run_child(args: list[str], cwd: Path, check, timeout: float = 3600) -> None:
                     raise PipelineError("PROCESS_TIMEOUT", True)
                 time.sleep(0.2)
             if process.returncode:
-                raise PipelineError("LOCAL_PROCESS_FAILED")
+                # Includes console/process termination of the transcriber or
+                # renderer. Server attempts remain bounded; checkpoints survive.
+                raise PipelineError("LOCAL_PROCESS_FAILED", True)
         finally:
             if process.poll() is None:
                 process.terminate()

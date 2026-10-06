@@ -1,0 +1,23 @@
+{
+  "runId": "1791260151356_35d264",
+  "status": "PASS",
+  "repeatedLostLeases": 3,
+  "terminal": {
+    "status": "FAILED",
+    "attempt_count": 3,
+    "max_attempts": 3
+  },
+  "ledger": [
+    {
+      "entry_type": "RELEASE",
+      "count": 1
+    },
+    {
+      "entry_type": "RESERVE",
+      "count": 1
+    }
+  ],
+  "noFourthAttempt": true,
+  "interruptedChildServerClassifiedRetryable": true,
+  "paidInference": 0
+}

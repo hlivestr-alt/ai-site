@@ -17,9 +17,17 @@ export function allowedStorageOrigins(env = process.env) {
 }
 
 /** @param {Record<string, string | undefined>} env */
+export function assertStorageCredentials(env = process.env) {
+  const access = env.OBJECT_STORAGE_ACCESS_KEY;
+  const secret = env.OBJECT_STORAGE_SECRET_KEY;
+  if (!access || !secret) throw new Error("Object storage signing credentials are required");
+  if (access === secret) throw new Error("Object storage access identifier and signing secret must be distinct");
+}
+
+/** @param {Record<string, string | undefined>} env */
 export function storageGatewayConfig(env = process.env) {
   if (!["local", "test"].includes(env.APP_ENV || "local")) throw new Error("Local S3 gateway is local/test-only");
-  if (!env.OBJECT_STORAGE_ACCESS_KEY || !env.OBJECT_STORAGE_SECRET_KEY) throw new Error("Gateway signing credentials are required");
+  assertStorageCredentials(env);
   const port = env.SAAS_TEST_STORAGE_PORT || "9000";
   if (env.SAAS_TEST_STORAGE_PORT && (env.APP_ENV !== "test" || !/^\d+$/.test(port) || Number(port) < 1024 || Number(port) > 65535)) throw new Error("Alternate gateway ports require explicit test mode");
   const internal = new URL(env.OBJECT_STORAGE_ENDPOINT || "http://127.0.0.1:9000");

@@ -2,6 +2,7 @@ import { HeadBucketCommand, AbortMultipartUploadCommand, CompleteMultipartUpload
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { AppError } from "./core";
 import { createReadStream } from "node:fs";
+import { assertStorageCredentials } from "../../docker/storage-gateway-config.mjs";
 
 export type ObjectHead = { byteSize: number; etag: string | undefined; contentType: string | undefined };
 export type UploadPart={partNumber:number;etag:string;byteSize:number};
@@ -16,6 +17,7 @@ export interface ObjectStorage {
   issueDownload(key: string, filename: string, expiresSeconds: number, attachment?: boolean): Promise<string>;
   head(key: string): Promise<ObjectHead | null>;
   stream(key: string): Promise<AsyncIterable<Uint8Array>>;
+  readRange(key: string, start: number, end: number, etag: string | undefined, signal?: AbortSignal): Promise<AsyncIterable<Uint8Array>>;
   copy(sourceKey: string, targetKey: string, sourceEtag: string | undefined, mimeType: string): Promise<void>;
   put(key: string, bytes: Uint8Array, mimeType: string): Promise<void>;
   putFile(key: string, path: string, byteSize: number, mimeType: string): Promise<void>;
@@ -35,6 +37,7 @@ function createStorageClient(endpoint: string | undefined): S3Client {
   const accessKeyId = process.env.OBJECT_STORAGE_ACCESS_KEY;
   const secretAccessKey = process.env.OBJECT_STORAGE_SECRET_KEY;
   if (!endpoint || !region || !accessKeyId || !secretAccessKey) throw new Error("Object storage is not configured");
+  assertStorageCredentials();
   return new S3Client({ endpoint, region, credentials: { accessKeyId, secretAccessKey }, forcePathStyle: true, maxAttempts: 2, requestHandler: { connectionTimeout: 5000, requestTimeout: 120000, socketTimeout: 30000 } });
 }
 
@@ -89,6 +92,12 @@ export class S3ObjectStorage implements ObjectStorage {
       if (!result.Body || !(Symbol.asyncIterator in result.Body)) throw new AppError(503, "Storage response is unavailable.");
       return result.Body as AsyncIterable<Uint8Array>;
     } catch (error) { if (notFound(error)) throw new AppError(404, "Media object is unavailable."); throw error; }
+  }
+
+  async readRange(key: string, start: number, end: number, etag: string | undefined, signal?: AbortSignal) {
+    const result = await this.s3.send(new GetObjectCommand({ Bucket: this.bucket, Key: key, Range: `bytes=${start}-${end}`, IfMatch: etag }), { abortSignal: signal });
+    if (!result.Body || !(Symbol.asyncIterator in result.Body)) throw new AppError(503, "Media verification is unavailable.");
+    return result.Body as AsyncIterable<Uint8Array>;
   }
 
   async copy(sourceKey: string, targetKey: string, sourceEtag: string | undefined, mimeType: string) {

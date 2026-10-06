@@ -1,0 +1,22 @@
+{
+  "rotated": true,
+  "secretPrinted": false,
+  "signingSecretEntropyBits": 384,
+  "credentialsDistinct": true,
+  "paidOperations": 0,
+  "oldUrlBeforeRotation": 200,
+  "oldLocalUrlAfterRotation": 403,
+  "oldRemoteUrlAfterRotation": 403,
+  "oldCredentialsNewlyMintedUrl": 403,
+  "newLocalUrl": 200,
+  "newRemoteUrl": 200,
+  "publicIdentifierEqualsSecret": false,
+  "unsignedRemoteListing": 403,
+  "objectToListingTransformation": 403,
+  "existingBucketsPreserved": true,
+  "existingObjectCounts": [
+    90,
+    489
+  ],
+  "controlledFixtureDeleted": true
+}

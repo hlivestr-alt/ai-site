@@ -1,0 +1,302 @@
+{
+  "runId": "1791259481114-2f5493",
+  "paidInference": 0,
+  "outreach": 0,
+  "credentialsPrinted": false,
+  "authenticatedBrowserRuns": [
+    {
+      "channel": "chrome",
+      "browserVersion": "154.0.8037.98",
+      "routes": [
+        "/",
+        "/products",
+        "/ai-videos",
+        "/clipper",
+        "/content",
+        "/settings",
+        "/billing"
+      ],
+      "signerUsesRotatedIdentifier": false,
+      "publicIdentifierEqualsCurrentSecret": false,
+      "signedUploadStatus": 403,
+      "browserProductUpload": "BLOCKED_STALE_SAAS_CONFIGURATION",
+      "faviconStatus": 404,
+      "uncaught": [
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "consoleErrors": [
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-YWE1MDViNmYtN2VhZS00ZTA2LWFjNzctZmZiYTliNjNhNTBm' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-NGM4ZmRiZjItZmY0Ny00OTM3LTgzNDYtNDRmYTY0ZDBkNmI1' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-Mjc0MDNiMTMtZmY5OC00NzUxLTk0ZjYtOGE3MWYxNjk2YzBk' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-MzlmODkwOTQtYzhjMS00OWYxLWI4NmQtMzIyZjlmZjM4NjA4' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-MTA2YmQ3OWEtZDcyNy00NGIzLWIxMDQtNDM0ZjdmM2UwYTZh' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-Yzk0MTk1ZDItYjRkMC00NTg2LWIyMGEtNDhmZWRjYTk3Yjky' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-NDQ5Y2YyZDAtYWM0Ni00YmMzLWEzMTItZmYwMGM4ZTRlZDc0' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-N2FjYTcyOGEtOWY2Yi00ODVhLWE5ODQtYTM0YmExMDFjNGQ3' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-Y2E5YWZlODEtOTVmNS00NjIzLTlhOTctY2E3OTJhMjBhZGE0' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."
+      ],
+      "networkFailures": [],
+      "requestFailures": [
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        }
+      ],
+      "secretFindings": [],
+      "scannedResponses": {
+        "text/html; charset=utf-8": 10,
+        "text/css; charset=UTF-8": 10,
+        "application/javascript; charset=UTF-8": 80,
+        "text/plain": 2,
+        "text/x-component": 16
+      },
+      "hydrationClean": false
+    },
+    {
+      "channel": "msedge",
+      "browserVersion": "154.0.4258.53",
+      "routes": [
+        "/",
+        "/products",
+        "/ai-videos",
+        "/clipper",
+        "/content",
+        "/settings",
+        "/billing"
+      ],
+      "signerUsesRotatedIdentifier": false,
+      "publicIdentifierEqualsCurrentSecret": false,
+      "signedUploadStatus": 403,
+      "browserProductUpload": "BLOCKED_STALE_SAAS_CONFIGURATION",
+      "faviconStatus": 404,
+      "uncaught": [
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "consoleErrors": [
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-MmJhMjU5NzUtNzk0Zi00Zjk3LWFiOGItYjdhMDU2Mjk3NzRi' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-MDFmYmJmMmItZjAzNS00OWI4LTkwMzEtM2Y5ODhmN2I5NzM0' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-YzRiNWU5MDctYzg4Ni00NzUzLThmMzUtY2E2NWMyMDFmMWZi' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-YzFjZGY5OTMtMWJkNy00YmU0LTgyYjAtYjczMjZlNDUwMTJi' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-N2U5ZTY4NDItZDQxYi00YjUxLWI1NjYtZDE1MTgyNTg0NWY3' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-ZGMwOTJjODEtZTY0NC00NjAwLWI4NjEtMWVhZTAzZTg5Mjcz' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-OGQ2NGU0MzUtM2MxNy00OGZiLWIwZGQtYWQ4ZjI3YjExYzA5' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-NmM5NWM4MGQtNzQwNi00YTIxLWE4YTYtZmYxZjliMDI5NjVh' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+        "Loading the stylesheet '[URL] violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked.",
+        "Loading the script '[URL] violates the following Content Security Policy directive: \"script-src 'self' 'nonce-NDI5OWZlYjAtM2Q5Yy00NDQwLWIyMWUtNzEyNGNhNTgyOWZl' 'strict-dynamic' 'unsafe-eval'\". Note that 'strict-dynamic' is present, so host-based allowlisting is disabled. Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."
+      ],
+      "networkFailures": [],
+      "requestFailures": [
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        },
+        {
+          "path": "https://fonts.googleapis.com/css2",
+          "category": "csp"
+        },
+        {
+          "path": "https://ai-test.proyaofficial.com/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js",
+          "category": "csp"
+        }
+      ],
+      "secretFindings": [],
+      "scannedResponses": {
+        "text/html; charset=utf-8": 10,
+        "application/javascript; charset=UTF-8": 80,
+        "text/css; charset=UTF-8": 10,
+        "text/plain": 2,
+        "text/x-component": 15
+      },
+      "hydrationClean": false
+    }
+  ],
+  "fixture": {
+    "userId": "460571ea-8561-4f05-a8f7-075e149b4323",
+    "workspaceId": "eb53634b-4cdd-4868-9ac3-8eeb584b7189",
+    "controlledAccount": true,
+    "verificationDeliveryBypassedOnlyForFixture": true
+  },
+  "waveSpeedReferences": {
+    "status": "BLOCKED_STALE_SAAS_CONFIGURATION"
+  },
+  "contentLibraryBrowserDownload": {
+    "status": "BLOCKED_STALE_SAAS_CONFIGURATION"
+  },
+  "status": "FAIL",
+  "fixtureSessionsRevoked": true,
+  "fixtureUserDisabled": true,
+  "fixtureProductAndContentArchived": true
+}

@@ -1,0 +1,103 @@
+{
+  "status": "PASS",
+  "unrelatedTrackedChanges": [
+    {
+      "file": "saas/docs/wavespeed-providers.md",
+      "unchanged": true
+    },
+    {
+      "file": "saas/scripts/wavespeed-video-smoke.ts",
+      "unchanged": true
+    },
+    {
+      "file": "saas/src/lib/provider-core.ts",
+      "unchanged": true
+    },
+    {
+      "file": "saas/src/lib/video-providers/wavespeed.ts",
+      "unchanged": true
+    },
+    {
+      "file": "saas/src/lib/wavespeed-preflight.ts",
+      "unchanged": true
+    },
+    {
+      "file": "saas/tests/unit/wavespeed-preflight.test.ts",
+      "unchanged": true
+    },
+    {
+      "file": "saas/tests/unit/wavespeed.test.ts",
+      "unchanged": true
+    },
+    {
+      "file": "worker-agent/clipper_pipeline/wavespeed_analyzer.py",
+      "unchanged": true
+    },
+    {
+      "file": "worker-agent/tests/test_wavespeed.py",
+      "unchanged": true
+    }
+  ],
+  "remoteControlledFixtures": [
+    {
+      "workspaceId": "1d10748a-4785-4eb3-b883-75abb5d00f8a",
+      "user_status": "DISABLED",
+      "active_sessions": 0,
+      "active_products": 0,
+      "active_content": 0,
+      "diagnostic_jobs": 0,
+      "non_diagnostic_jobs": 0,
+      "provider_executions": 0,
+      "ledger_entries": 0
+    },
+    {
+      "workspaceId": "eb53634b-4cdd-4868-9ac3-8eeb584b7189",
+      "user_status": "DISABLED",
+      "active_sessions": 0,
+      "active_products": 0,
+      "active_content": 0,
+      "diagnostic_jobs": 0,
+      "non_diagnostic_jobs": 0,
+      "provider_executions": 0,
+      "ledger_entries": 0
+    },
+    {
+      "workspaceId": "7b27d6be-9351-4835-9292-21de9208314d",
+      "user_status": "DISABLED",
+      "active_sessions": 0,
+      "active_products": 0,
+      "active_content": 0,
+      "diagnostic_jobs": 1,
+      "non_diagnostic_jobs": 0,
+      "provider_executions": 0,
+      "ledger_entries": 0
+    },
+    {
+      "workspaceId": "2d32c1c6-f61e-4f65-a0fd-ccafe1fc5140",
+      "user_status": "DISABLED",
+      "active_sessions": 0,
+      "active_products": 0,
+      "active_content": 0,
+      "diagnostic_jobs": 1,
+      "non_diagnostic_jobs": 0,
+      "provider_executions": 0,
+      "ledger_entries": 0
+    },
+    {
+      "workspaceId": "d8456a75-9094-49d7-8d51-3fa2cc129662",
+      "user_status": "DISABLED",
+      "active_sessions": 0,
+      "active_products": 0,
+      "active_content": 0,
+      "diagnostic_jobs": 1,
+      "non_diagnostic_jobs": 0,
+      "provider_executions": 0,
+      "ledger_entries": 0
+    }
+  ],
+  "originalMasterReportCurrentSha256": "7671820d973fcfb43f07df3ea496287f2ec38ae5726ef58aeb8cdbd99e03e5af",
+  "originalMasterReportModifiedByPhaseA": false,
+  "originalMasterEvidenceModifiedByPhaseA": false,
+  "realPaidInference": 0,
+  "customerRowsDeleted": 0
+}

@@ -1,0 +1,147 @@
+{
+  "date": "2026-10-06",
+  "status": "PASS",
+  "priorityResults": {
+    "QA-21-001": "FIXED",
+    "QA-20-001": "FIXED",
+    "CLIPPER-RECOVERY-001": "FIXED",
+    "QA-25-001": "FIXED",
+    "QA-23-001": "FIXED",
+    "QA-20-002": "FIXED",
+    "QA-27-001": "FIXED",
+    "QA-27-002": "FIXED"
+  },
+  "phaseABlockersRemaining": 0,
+  "phaseAHighIssuesRemaining": 0,
+  "tests": {
+    "saasUnit": {
+      "passed": 75,
+      "failed": 0
+    },
+    "saasIntegration": {
+      "passed": 35,
+      "failed": 0
+    },
+    "saasFullBrowser": {
+      "passed": 41,
+      "failed": 0
+    },
+    "workerUnit": {
+      "passed": 74,
+      "failed": 0
+    },
+    "focused": {
+      "passed": 6,
+      "failed": 0,
+      "masterTests": [
+        20,
+        21,
+        23,
+        25,
+        26,
+        27
+      ]
+    },
+    "processRestart": {
+      "passed": 6,
+      "failed": 0,
+      "stages": [
+        "downloading_source",
+        "transcribing",
+        "analyzing_transcript",
+        "rendering",
+        "uploading_results",
+        "finalizing"
+      ]
+    },
+    "restartBounds": {
+      "passed": 1,
+      "failed": 0
+    },
+    "lint": {
+      "exitCode": 0
+    },
+    "typecheck": {
+      "exitCode": 0
+    },
+    "build": {
+      "exitCode": 0
+    },
+    "remoteChrome": {
+      "status": "PASS"
+    },
+    "remoteRealEdge": {
+      "status": "PASS"
+    },
+    "rotation": {
+      "status": "PASS"
+    },
+    "externalReferenceGet": {
+      "status": "PASS"
+    },
+    "secretAudit": {
+      "evidence": "secret-audit.json"
+    }
+  },
+  "isolatedSuites": {
+    "integration": {
+      "runId": "1791261285505_afba97",
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 58,
+        "bucket": "deleted",
+        "objectsDeleted": 194,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      }
+    },
+    "browser": {
+      "runId": "1791260417918_8754c8",
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 72,
+        "bucket": "deleted",
+        "objectsDeleted": 222,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      }
+    },
+    "focused": {
+      "runId": "1791261185505_52a856",
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 2,
+        "bucket": "deleted",
+        "objectsDeleted": 18,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      }
+    },
+    "restart-bounds": {
+      "runId": "1791260151356_35d264",
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 2,
+        "bucket": "deleted",
+        "objectsDeleted": 3,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      }
+    }
+  },
+  "paid": {
+    "realVideoInference": 0,
+    "realLlmInference": 0,
+    "outreachMessages": 0,
+    "realPayments": 0
+  },
+  "notes": [
+    "The initial restart run retained six successful process cases and a failed bounds fixture. The corrected bounds case was rerun separately and passes.",
+    "The full 41-test browser run preceded the last lock refinement; final integration, focused local Chrome/Edge, production build and remote Chrome/Edge passed after it.",
+    "No original master acceptance files or unrelated WaveSpeed changes are included in Phase A commits."
+  ]
+}

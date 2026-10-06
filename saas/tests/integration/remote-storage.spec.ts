@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import http from "node:http";
+import { paddedVideoFirstPart } from "../media-fixtures";
 import { readFile } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
 import sharp from "sharp";
@@ -95,7 +96,7 @@ test("public multipart parts upload, resume and seal through internal multipart 
     const response = await a.c.post(root, { data: { filename: "multipart.mp4", mimeType: "video/mp4", byteSize: size } }); expect(response.status()).toBe(201);
     const source = await response.json(); expect(source.mode).toBe("multipart");
     const path = `${root}/${source.source.id}`;
-    const first = Buffer.alloc(source.partSize); first.writeUInt32BE(24, 0); first.write("ftypisom", 4);
+    const first = await paddedVideoFirstPart(size, source.partSize);
     for (const [partNumber, bytes] of [[1, first], [2, Buffer.alloc(5 * 1024 ** 2)]] as const) {
       const response = await a.c.post(path + "/parts", { data: { partNumber } }); expect(response.status()).toBe(200);
       const url = (await response.json()).url as string; expect(new URL(url).hostname).toBe("storage-test.proyaofficial.com");

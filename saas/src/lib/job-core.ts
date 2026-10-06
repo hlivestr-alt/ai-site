@@ -3,6 +3,7 @@ import { query, transaction, type DbClient } from "./db";
 import { AppError, isUuid } from "./core";
 import { objectStorage } from "./storage";
 import {correlationMetadata} from './operational-logging';
+import {clipperCustomerMessages,customerWorkerFailure,customerWorkerStage} from './worker-messages';
 
 export type JobStatus="QUEUED"|"WAITING_FOR_WORKER"|"RUNNING"|"RECONCILING"|"SUCCEEDED"|"FAILED"|"CANCELLED";
 export type FrozenAsset={assetId:string;assetVersionId:string;purpose:string;type:string;storageKey:string;sha256:string;byteSize:number;mimeType:string;width?:number|null;height?:number|null};
@@ -11,7 +12,7 @@ export type SystemTestInput={schemaVersion:1;kind?:"SYSTEM_TEST";fixture:{steps:
 export type AiVideoInput={schemaVersion:1;kind:"AI_VIDEO";product:FrozenProduct;customerPrompt:string;accuracyInstructions:string;tier:"QUALITY";durationSeconds:number;aspectRatio:"9:16"|"16:9"|"1:1";quantity:1;referenceAssetVersionIds:string[];providerPolicyVersion:string;executionProvider:"BYTEPLUS"|"WAVESPEED"|"FAKE";testScenario?:"SUCCESS"|"FAILURE"|"RATE_LIMIT"|"SUBMISSION_UNKNOWN"|"DOWNLOAD_FAIL_ONCE"|"OVERSIZED_OUTPUT"|"INVALID_MIME"|"INVALID_CHECKSUM"};
 export type ClipperInput={schemaVersion:1;kind:"CLIPPER";analyzerProvider:"openai"|"wavespeed"|"fake";analyzerModel?:string;source:{origin:"SOURCE_ASSET";sourceAssetId:string;byteSize:number;mimeType:string;storageIdentity:string;storageKey:string;filename:string;sha256?:string};product?:FrozenProduct;language:string;goal:string;targetClipCount:number;minClipSeconds:number;maxClipSeconds:number;aspectRatio:"9:16";captions:boolean;analyzerPolicyVersion:string;renderPolicyVersion:string};
 export type JobInput=SystemTestInput|AiVideoInput|ClipperInput;
-export type JobRow={id:string;workspace_id:string;type:string;required_capability:string;status:JobStatus;input_snapshot:JobInput;input_hash:string;progress_percent:number;progress_stage:string;progress_message:string;progress_sequence:number;attempt_count:number;max_attempts:number;available_at:Date;cancel_requested_at:Date|null;result:Record<string,unknown>|null};
+export type JobRow={id:string;workspace_id:string;type:string;required_capability:string;status:JobStatus;input_snapshot:JobInput;input_hash:string;progress_percent:number;progress_stage:string;progress_message:string;progress_sequence:number;attempt_count:number;max_attempts:number;available_at:Date;cancel_requested_at:Date|null;result:Record<string,unknown>|null;error_code?:string|null};
 
 export function inputHash(input:JobInput){return createHash("sha256").update(JSON.stringify(input)).digest("hex");}
 export function safeWorkerInput(input:JobInput){
@@ -65,7 +66,12 @@ export async function listWorkspaceJobs(workspaceId:string,options:{status?:stri
     query(`SELECT id,type,status,progress_percent,progress_stage,progress_message,attempt_count,max_attempts,created_at,started_at,finished_at,error_message_safe FROM jobs WHERE ${where} ORDER BY created_at DESC,id DESC LIMIT 30 OFFSET $3`,[workspaceId,status,(page-1)*30]),
     query<{count:string}>(`SELECT count(*) FROM jobs WHERE ${where}`,[workspaceId,status]),
   ]);
-  return {jobs:rows.rows,total:Number(count.rows[0].count),page,pageSize:30};
+  return {jobs:rows.rows.map(customerJobFields),total:Number(count.rows[0].count),page,pageSize:30};
+}
+function customerJobFields(row:Record<string,unknown>){
+  if(row.type!=='CLIPPER')return row;
+  const safe=clipperCustomerMessages({status:String(row.status),progress_stage:String(row.progress_stage),error_code:typeof row.error_code==='string'?row.error_code:null,attempt_count:Number(row.attempt_count),max_attempts:Number(row.max_attempts)});
+  return {...row,progress_stage:safe.stage,progress_message:safe.message,error_code:row.error_code?customerWorkerFailure(String(row.error_code)).code:null,error_message_safe:safe.errorMessage};
 }
 export async function workspaceJobCounts(workspaceId:string){
   const rows=await query<{active:string;completed:string;failed:string}>(`SELECT
@@ -81,7 +87,8 @@ export async function workspaceJobDetail(workspaceId:string,jobId:string){
     query("SELECT id,attempt_number,status,progress_percent,started_at,finished_at,error_code,error_message_safe FROM job_attempts WHERE workspace_id=$1 AND job_id=$2 ORDER BY attempt_number DESC LIMIT 20",[workspaceId,jobId]),
     query("SELECT event_type,safe_data,created_at FROM job_events WHERE workspace_id=$1 AND job_id=$2 ORDER BY created_at DESC,id DESC LIMIT 50",[workspaceId,jobId]),
   ]);
-  return {job:job.rows[0],attempts:attempts.rows,events:events.rows};
+  const clipper=job.rows[0]?.type==='CLIPPER';
+  return {job:customerJobFields(job.rows[0]),attempts:clipper?attempts.rows.map(a=>({...a,error_code:a.error_code?customerWorkerFailure(a.error_code).code:null,error_message_safe:a.status==='FAILED'?customerWorkerFailure(a.error_code||'').message:null})):attempts.rows,events:clipper?events.rows.map(e=>({...e,safe_data:{...e.safe_data,...(e.safe_data?.code?{code:customerWorkerFailure(String(e.safe_data.code)).code}:{}),...(e.safe_data?.stage?{stage:customerWorkerStage(String(e.safe_data.stage)).stage}:{})}})):events.rows};
 }
 export async function cancelWorkspaceJob(db:DbClient,workspaceId:string,jobId:string){
     const job=await scopedJob(db,workspaceId,jobId,true);

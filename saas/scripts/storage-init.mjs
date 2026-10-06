@@ -1,7 +1,8 @@
 import { S3Client, HeadBucketCommand, CreateBucketCommand, PutBucketCorsCommand, PutPublicAccessBlockCommand } from "@aws-sdk/client-s3";
-import { allowedStorageOrigins, storageBrowserMethods, storageBrowserHeaders, storageExposedHeaders } from "../docker/storage-gateway-config.mjs";
+import { assertStorageCredentials, allowedStorageOrigins, storageBrowserMethods, storageBrowserHeaders, storageExposedHeaders } from "../docker/storage-gateway-config.mjs";
 
 if (process.env.APP_ENV !== "local") throw new Error("storage:init is local-only");
+assertStorageCredentials();
 const endpoint=process.env.OBJECT_STORAGE_ENDPOINT;
 const port=process.env.SAAS_TEST_STORAGE_PORT||"9000";
 if(!/^\d+$/.test(port)||Number(port)<1024||Number(port)>65535||process.env.SAAS_TEST_STORAGE_PORT&&process.env.OBJECT_STORAGE_BUCKET!==process.env.TEST_OBJECT_STORAGE_BUCKET)throw new Error("Isolated test storage target required");

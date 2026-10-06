@@ -1,7 +1,7 @@
 import pg, { type PoolClient, type QueryResult, type QueryResultRow } from "pg";
 import {boundedSetting} from './operational-config';
 
-const globalForDb = globalThis as unknown as { saasPool?: pg.Pool };
+const globalForDb = globalThis as unknown as { saasPool?: pg.Pool; saasMediaFinalizing?: number };
 
 export function pool(): pg.Pool {
   if (!globalForDb.saasPool) {
@@ -29,3 +29,25 @@ export async function transaction<T>(run: (client: PoolClient) => Promise<T>): P
 }
 
 export type DbClient = { query<T extends QueryResultRow = QueryResultRow>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
+
+// Session advisory lock serializes media sealing across processes without a
+// long SQL transaction. An interrupted process releases it automatically.
+export async function withMediaFinalizeLock<T>(identity: string, run: () => Promise<T>): Promise<T> {
+  const { AppError } = await import("./core");
+  pool(); // Validate configuration before opening the independent lock session.
+  if ((globalForDb.saasMediaFinalizing || 0) >= 4) throw new AppError(503, "Media validation is busy. Retry shortly.");
+  globalForDb.saasMediaFinalizing = (globalForDb.saasMediaFinalizing || 0) + 1;
+  // The callback uses the normal pool for short transactions. A lock must not
+  // occupy its last connection; DB_POOL_MAX=1 is a supported configuration.
+  const client = new pg.Client({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000, statement_timeout: 5000 });
+  try {
+    await client.connect();
+    const result = await client.query<{ locked: boolean }>("SELECT pg_try_advisory_lock(hashtextextended($1, 0)) AS locked", [identity]);
+    if (!result.rows[0].locked) throw new AppError(409, "Media finalization is already in progress. Retry shortly.");
+    return await run();
+  } finally {
+    // Disconnect releases the advisory lock even when the callback failed.
+    await client.end().catch(() => undefined);
+    globalForDb.saasMediaFinalizing!--;
+  }
+}

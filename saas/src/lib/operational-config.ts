@@ -15,7 +15,8 @@ export function configurationChecks(env:Record<string,string|undefined>=process.
   add('APP_ENV',v=>production?v==='production':['local','test','staging','production'].includes(v));
   add('APP_BASE_URL',v=>{try{const u=new URL(v);return !u.username&&!u.password&&u.origin===v&&!u.search&&(strict?u.protocol==='https:':['http:','https:'].includes(u.protocol));}catch{return false;}});
   add('DATABASE_URL',v=>{try{return /^postgres(ql)?:$/.test(new URL(v).protocol);}catch{return false;}});
-  for(const name of ['OBJECT_STORAGE_BUCKET','OBJECT_STORAGE_REGION','OBJECT_STORAGE_ACCESS_KEY','OBJECT_STORAGE_SECRET_KEY'])add(name,v=>v.length>0);
+  for(const name of ['OBJECT_STORAGE_BUCKET','OBJECT_STORAGE_REGION','OBJECT_STORAGE_ACCESS_KEY'])add(name,v=>v.length>0);
+  add('OBJECT_STORAGE_SECRET_KEY',v=>v.length>0&&v!==env.OBJECT_STORAGE_ACCESS_KEY);
   add('OBJECT_STORAGE_ENDPOINT',v=>{try{const u=new URL(v);return !u.username&&!u.password&&(strict?u.protocol==='https:':['http:','https:'].includes(u.protocol));}catch{return false;}});
   if(env.OBJECT_STORAGE_PUBLIC_ENDPOINT)add('OBJECT_STORAGE_PUBLIC_ENDPOINT',v=>{try{const u=new URL(v);return !u.host.includes('*')&&!u.username&&!u.password&&u.pathname==='/'&&!u.search&&!u.hash&&(strict?u.protocol==='https:'&&!localHost(v):['http:','https:'].includes(u.protocol));}catch{return false;}});
   add('WORKFLOW_MAX_TOKENS',v=>/^\d+$/.test(v)&&BigInt(v)>0&&BigInt(v)<=9007199254740991n,strict);
@@ -62,7 +63,7 @@ export function externalConfiguration(env:Record<string,string|undefined>=proces
  clipAnalyzer:env.CLIP_ANALYZER_PROVIDER==='wavespeed'?waveSpeedAnalyzerConfigured(env,true):(!env.CLIP_ANALYZER_PROVIDER||env.CLIP_ANALYZER_PROVIDER==='openai')&&(!!env.OPENAI_API_KEY&&!!env.OPENAI_CLIP_MODEL||env.OPENAI_WORKER_CREDENTIAL_CONFIGURED==='1'||env.CLIP_ANALYZER_WORKER_CREDENTIAL_CONFIGURED==='1'),
  xenditSandbox:!!env.XENDIT_SECRET_KEY?.startsWith('xnd_development_')&&!!env.XENDIT_CALLBACK_TOKEN&&!!env.XENDIT_BUSINESS_ID,
  productionMail:env.MAIL_PROVIDER==='smtp'&&!!env.SMTP_HOST&&!!env.SMTP_USER&&!!env.SMTP_PASSWORD&&!!env.MAIL_FROM,
- productionStorage:!!env.OBJECT_STORAGE_BUCKET&&!!env.OBJECT_STORAGE_ACCESS_KEY&&!!env.OBJECT_STORAGE_SECRET_KEY&&!!env.OBJECT_STORAGE_ENDPOINT?.startsWith('https:')&&!localHost(env.OBJECT_STORAGE_ENDPOINT),
+ productionStorage:!!env.OBJECT_STORAGE_BUCKET&&!!env.OBJECT_STORAGE_ACCESS_KEY&&!!env.OBJECT_STORAGE_SECRET_KEY&&env.OBJECT_STORAGE_ACCESS_KEY!==env.OBJECT_STORAGE_SECRET_KEY&&!!env.OBJECT_STORAGE_ENDPOINT?.startsWith('https:')&&!localHost(env.OBJECT_STORAGE_ENDPOINT),
 };}
 export function featureEnabled(name:'AI_VIDEO'|'CLIPPER'|'WORKFLOWS'|'PAYMENTS'){return process.env[`${name}_ENABLED`]!=='0';}
 export function clipAnalyzerProvider(env:Record<string,string|undefined>=process.env):'openai'|'wavespeed'|'fake'|null{
