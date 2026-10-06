@@ -1,0 +1,219 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-10-06T10:00:41.116Z",
+  "counts": {
+    "users": 19,
+    "workspaces": 21,
+    "workspace_wallets": 21,
+    "token_ledger_entries": 35,
+    "job_billing": 17,
+    "payments": 0,
+    "payment_events": 0,
+    "billing_quotes": 51
+  },
+  "wallets": {
+    "available": "5080",
+    "reserved": "0"
+  },
+  "ledger": {
+    "available": "5080",
+    "reserved": "0"
+  },
+  "projectionDrift": 0,
+  "reservedJobs": {
+    "jobs": 0,
+    "tokens": "0"
+  },
+  "proposedAccounts": 14,
+  "ambiguous": 0,
+  "mapping": [
+    {
+      "workspace": "Workspace 1",
+      "creator": "Customer 1",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 2",
+      "creator": "Customer 1",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 3",
+      "creator": "Customer 13",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 4",
+      "creator": "Customer 6",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 5",
+      "creator": "Customer 10",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 6",
+      "creator": "Customer 2",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 7",
+      "creator": "Customer 10",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 8",
+      "creator": "Customer 1",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 9",
+      "creator": "Customer 4",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 10",
+      "creator": "Customer 9",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 11",
+      "creator": "Customer 3",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 12",
+      "creator": "Customer 10",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 13",
+      "creator": "Customer 1",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 14",
+      "creator": "Customer 8",
+      "classification": "sole original creator",
+      "available": "5080",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 15",
+      "creator": "Customer 8",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 16",
+      "creator": "Customer 14",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 17",
+      "creator": "Customer 7",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 18",
+      "creator": "Customer 12",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 19",
+      "creator": "Customer 11",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 20",
+      "creator": "Customer 10",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "workspace": "Workspace 21",
+      "creator": "Customer 5",
+      "classification": "sole original creator",
+      "available": "0",
+      "reserved": "0"
+    }
+  ],
+  "fingerprints": {
+    "token_ledger_entries": {
+      "rows": 35,
+      "sha256": "2fe405c0d86d02a12ca365b1163202acb087bfea004319be0e6e2452307dec9c"
+    },
+    "job_billing": {
+      "rows": 17,
+      "sha256": "140830d714c6c8430c1ac30df304eea3aa4b1900ce5b4c0abb839d7785fb76cd"
+    },
+    "payments": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "payment_events": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "billing_quotes": {
+      "rows": 51,
+      "sha256": "db4598b7bea02911f8cd6a131acbc1d4b85537509175f071d40e81b88ce4f1a9"
+    },
+    "jobs": {
+      "rows": 20,
+      "sha256": "f99db3ad0e1535dd38cf5b1de0bd7904cba4849253d60f738066083f7ff19863"
+    },
+    "asset_versions": {
+      "rows": 54,
+      "sha256": "e8a26bbc9f9871cfee7573bc5eebbfd7edf8a64498422cf35cbc245e568f1874"
+    },
+    "product_versions": {
+      "rows": 12,
+      "sha256": "2d2f966fcc1d15cf7a0041fc3b7f68ca64fdcbcc74d8d9e80f86ececb54fd594"
+    },
+    "product_accuracy_rule_versions": {
+      "rows": 12,
+      "sha256": "cfa213aa20e573d161e3f66a45659202872321ed68682934486a2e1579d2fb7b"
+    }
+  },
+  "schemaMatchesTestedBaseline": true,
+  "schemaHash": "cb2c3df3fd9e0a15a5b00da457280aa289ecba615142c903e7be5c0c3f838b05",
+  "originalEvidenceFiles": 113
+}

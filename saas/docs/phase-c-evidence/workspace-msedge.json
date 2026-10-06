@@ -1,0 +1,32 @@
+{
+  "ownerMembership": {
+    "role": "OWNER",
+    "status": "ACTIVE"
+  },
+  "zeroWallet": {
+    "available_tokens": "0",
+    "reserved_tokens": "0"
+  },
+  "repeatedSwitches": 4,
+  "directIdIsolation": true,
+  "responsive": [
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "slots": 8
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "overflow": false,
+      "slots": 8
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "overflow": false,
+      "slots": 8
+    }
+  ]
+}

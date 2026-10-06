@@ -1,0 +1,180 @@
+{
+  "status": "PASS",
+  "appliedAt": "2026-10-06T11:18:37.235Z",
+  "migration": "0013_shared_billing_accounts.sql",
+  "migrationSha256": "69fe18e6b40aa467f1a95bd17aab23cebdd7bd874c0e1e25140d01a3151d72e6",
+  "before": {
+    "available": "5080",
+    "reserved": "0"
+  },
+  "after": {
+    "available": "5080",
+    "reserved": "0"
+  },
+  "accounts": 14,
+  "workspaces": 21,
+  "accountAggregates": [
+    {
+      "accountLabel": "Customer 1",
+      "workspaces": [
+        "Workspace 1",
+        "Workspace 2",
+        "Workspace 8",
+        "Workspace 13"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 2",
+      "workspaces": [
+        "Workspace 6"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 3",
+      "workspaces": [
+        "Workspace 11"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 4",
+      "workspaces": [
+        "Workspace 9"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 5",
+      "workspaces": [
+        "Workspace 21"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 6",
+      "workspaces": [
+        "Workspace 4"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 7",
+      "workspaces": [
+        "Workspace 17"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 8",
+      "workspaces": [
+        "Workspace 14",
+        "Workspace 15"
+      ],
+      "available": "5080",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 9",
+      "workspaces": [
+        "Workspace 10"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 10",
+      "workspaces": [
+        "Workspace 5",
+        "Workspace 7",
+        "Workspace 12",
+        "Workspace 20"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 11",
+      "workspaces": [
+        "Workspace 19"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 12",
+      "workspaces": [
+        "Workspace 18"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 13",
+      "workspaces": [
+        "Workspace 3"
+      ],
+      "available": "0",
+      "reserved": "0"
+    },
+    {
+      "accountLabel": "Customer 14",
+      "workspaces": [
+        "Workspace 16"
+      ],
+      "available": "0",
+      "reserved": "0"
+    }
+  ],
+  "historicalFingerprints": {
+    "token_ledger_entries": {
+      "rows": 35,
+      "sha256": "2fe405c0d86d02a12ca365b1163202acb087bfea004319be0e6e2452307dec9c"
+    },
+    "job_billing": {
+      "rows": 17,
+      "sha256": "140830d714c6c8430c1ac30df304eea3aa4b1900ce5b4c0abb839d7785fb76cd"
+    },
+    "payments": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "payment_events": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "billing_quotes": {
+      "rows": 51,
+      "sha256": "db4598b7bea02911f8cd6a131acbc1d4b85537509175f071d40e81b88ce4f1a9"
+    },
+    "jobs": {
+      "rows": 20,
+      "sha256": "f99db3ad0e1535dd38cf5b1de0bd7904cba4849253d60f738066083f7ff19863"
+    },
+    "asset_versions": {
+      "rows": 54,
+      "sha256": "e8a26bbc9f9871cfee7573bc5eebbfd7edf8a64498422cf35cbc245e568f1874"
+    },
+    "product_versions": {
+      "rows": 12,
+      "sha256": "2d2f966fcc1d15cf7a0041fc3b7f68ca64fdcbcc74d8d9e80f86ececb54fd594"
+    },
+    "product_accuracy_rule_versions": {
+      "rows": 12,
+      "sha256": "cfa213aa20e573d161e3f66a45659202872321ed68682934486a2e1579d2fb7b"
+    }
+  },
+  "drift": 0,
+  "reservedDrift": 0,
+  "ledgerEntriesCreated": 0,
+  "historyUnchanged": true,
+  "originalEvidenceFiles": 113
+}

@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "command": "SaaS unit",
+      "exitCode": 0,
+      "tests": 82
+    },
+    {
+      "command": "Worker unit",
+      "exitCode": 0,
+      "tests": 74
+    }
+  ]
+}

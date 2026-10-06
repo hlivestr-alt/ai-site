@@ -1,0 +1,108 @@
+{
+  "status": "PASS",
+  "migration": "0013_shared_billing_accounts.sql",
+  "migrationSha256": "69fe18e6b40aa467f1a95bd17aab23cebdd7bd874c0e1e25140d01a3151d72e6",
+  "tests": 14,
+  "rows": [
+    {
+      "check": "fresh bootstrap has one empty account-wallet model",
+      "status": "PASS"
+    },
+    {
+      "check": "drift aborts migration and rolls back schema",
+      "status": "PASS"
+    },
+    {
+      "check": "ambiguous ownership aborts migration",
+      "status": "PASS"
+    },
+    {
+      "check": "sole original creator groups A and B",
+      "status": "PASS"
+    },
+    {
+      "check": "shared invited member does not merge different customers",
+      "status": "PASS"
+    },
+    {
+      "check": "multiple owners conservatively produce a separate account",
+      "status": "PASS"
+    },
+    {
+      "check": "account value equals sum of original brand balances",
+      "status": "PASS"
+    },
+    {
+      "check": "global Tokens preserved exactly",
+      "status": "PASS"
+    },
+    {
+      "check": "historical ledger, quotes, jobs, purchases remain unchanged",
+      "status": "PASS"
+    },
+    {
+      "check": "workspace account is immutable",
+      "status": "PASS"
+    },
+    {
+      "check": "direct account balance edit is forbidden",
+      "status": "PASS"
+    },
+    {
+      "check": "ledger remains append-only",
+      "status": "PASS"
+    },
+    {
+      "check": "mismatched quote account rejected by database",
+      "status": "PASS"
+    },
+    {
+      "check": "new account key cannot be duplicated across brands",
+      "status": "PASS"
+    }
+  ],
+  "proof": {
+    "before": {
+      "available": "9923",
+      "reserved": "1160"
+    },
+    "after": {
+      "available": "9923",
+      "reserved": "1160"
+    },
+    "sharedAccount": {
+      "available": "9000",
+      "reserved": "1160"
+    },
+    "historicalFingerprints": {
+      "token_ledger_entries": {
+        "rows": 11,
+        "sha256": "a99e8b09b5ed23aafb347760461b0503e8575070eb3363a68b7c61d855a5520e"
+      },
+      "job_billing": {
+        "rows": 4,
+        "sha256": "39abb510418ab281a24939407a64f80f13ace90b9ef1395b74d977b082ebc6bd"
+      },
+      "payments": {
+        "rows": 1,
+        "sha256": "ac205499ff6b5a08a6511b0125ff4109866edf92fcedf989de147510a39a80f7"
+      },
+      "billing_quotes": {
+        "rows": 4,
+        "sha256": "4b142813bd91a1a5bb45b260b3985cdd066c36df254df7ba2906eb52bb602bb5"
+      }
+    },
+    "workspaceCount": 4,
+    "accountCount": 3,
+    "historicalKeysPreserved": true
+  },
+  "cleanup": {
+    "ownedDatabasesDropped": 2
+  },
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  }
+}

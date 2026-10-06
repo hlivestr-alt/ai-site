@@ -1,0 +1,48 @@
+{
+  "runId": "1791283424505_ba99fd",
+  "status": "PASS",
+  "browserVersion": "154.0.4258.53",
+  "routes": [
+    "/",
+    "/products",
+    "/ai-videos",
+    "/clipper",
+    "/content",
+    "/settings",
+    "/billing",
+    "/products/bb146a29-f0da-4c9c-b730-98015d3112f9/edit?step=assets"
+  ],
+  "media": [
+    {
+      "readyState": 4,
+      "error": null,
+      "duration": 1
+    },
+    {
+      "readyState": 4,
+      "error": null,
+      "duration": 10
+    },
+    {
+      "readyState": 4,
+      "error": null,
+      "duration": 10
+    },
+    {
+      "readyState": 4,
+      "error": null,
+      "duration": 1
+    }
+  ],
+  "consoleErrors": [],
+  "uncaught": [],
+  "networkFailures": [],
+  "requestFailures": [],
+  "secretCategories": [],
+  "scannedResponses": {
+    "text/html; charset=utf-8": 11,
+    "text/css; charset=UTF-8": 1,
+    "application/javascript; charset=UTF-8": 38,
+    "application/json": 28
+  }
+}

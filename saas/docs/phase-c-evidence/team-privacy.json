@@ -1,0 +1,18 @@
+{
+  "runId": "1791284087876_f5bede",
+  "status": "PASS",
+  "workspaceAdminCanSpend": true,
+  "implicitBillingAdmin": false,
+  "ordinaryHistory": "WORKSPACE",
+  "explicitManagerHistory": "ACCOUNT",
+  "brandLabels": true,
+  "siblingJobLinks": false,
+  "siblingDataStatuses": [
+    404,
+    404,
+    404,
+    404,
+    404
+  ],
+  "managerDoesNotGrantWorkspaceAccess": true
+}

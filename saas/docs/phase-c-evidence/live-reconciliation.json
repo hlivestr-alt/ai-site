@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "mode": "read-only",
+  "checks": {
+    "WALLET_LEDGER_MISMATCH": [],
+    "RESERVED_JOB_MISMATCH": [],
+    "TERMINAL_MISSING_SETTLEMENT": [],
+    "CAPTURE_WITHOUT_SUCCESS": [],
+    "PURCHASE_WITHOUT_PAID": [],
+    "PAID_WITHOUT_PURCHASE": [],
+    "PACKAGE_PAYMENT_MISMATCH": [],
+    "LEDGER_ACCOUNT_MISMATCH": [],
+    "QUOTE_ACCOUNT_MISMATCH": [],
+    "PAYMENT_ACCOUNT_MISMATCH": [],
+    "REFUND_MISMATCH": [],
+    "LATE_SUCCESS_AFTER_RELEASE": []
+  },
+  "arbitraryBalanceRepairs": 0
+}

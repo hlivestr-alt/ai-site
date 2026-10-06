@@ -1,0 +1,49 @@
+{
+  "runId": "1791284967574_7a1b48",
+  "suite": "integration",
+  "database": "phase_c_1791284967574_7a1b48",
+  "bucket": "phase-c-1791284967574-7a1b48",
+  "gateway": "phase-c-gateway-1791284967574-7a1b48",
+  "commands": [
+    {
+      "command": "migrations",
+      "exitCode": 0,
+      "seconds": 0
+    },
+    {
+      "command": "npm run test:integration",
+      "exitCode": 0,
+      "seconds": 335
+    }
+  ],
+  "cleanup": {
+    "mailFiles": 58,
+    "bucket": "deleted",
+    "objectsDeleted": 194,
+    "gateway": "deleted",
+    "database": "deleted",
+    "generatedTsconfigChanges": "restored"
+  },
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  },
+  "fixtureCounts": {
+    "users": 50,
+    "workspaces": 45,
+    "products": 28,
+    "asset_versions": 31,
+    "source_assets": 8,
+    "jobs": 87,
+    "job_attempts": 95,
+    "job_artifacts": 64,
+    "clipper_checkpoints": 16,
+    "content_items": 49,
+    "token_ledger_entries": 216,
+    "billing_accounts": 45,
+    "billing_account_wallets": 45
+  },
+  "exitCode": 0
+}
