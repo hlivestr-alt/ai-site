@@ -2,12 +2,12 @@ import "server-only";
 import { mkdir, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {deliverMail} from './mail-core';
+import {nonProductionTestAllowed} from './operational-config';
 
 const mailbox = join(process.cwd(), "data", "mailbox");
 
-function localMailAllowed(): boolean {
-  const base = process.env.APP_BASE_URL || "";
-  return process.env.APP_ENV === "local" && process.env.MAIL_MODE === "development_file" && /^http:\/\/(127\.0\.0\.1|localhost):3200$/.test(base);
+export function localMailAllowed(): boolean {
+  return nonProductionTestAllowed() && (process.env.MAIL_PROVIDER||process.env.MAIL_MODE) === "development_file";
 }
 
 export async function deliverLocalMail(to: string, subject: string, url: string) {

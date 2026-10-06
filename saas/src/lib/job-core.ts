@@ -6,6 +6,7 @@ import {correlationMetadata} from './operational-logging';
 import {clipperCustomerMessages,customerWorkerFailure,customerWorkerStage} from './worker-messages';
 
 export type JobStatus="QUEUED"|"WAITING_FOR_WORKER"|"RUNNING"|"RECONCILING"|"SUCCEEDED"|"FAILED"|"CANCELLED";
+export const activeJobStatuses:JobStatus[]=['QUEUED','WAITING_FOR_WORKER','RUNNING','RECONCILING'];
 export type FrozenAsset={assetId:string;assetVersionId:string;purpose:string;type:string;storageKey:string;sha256:string;byteSize:number;mimeType:string;width?:number|null;height?:number|null};
 export type FrozenProduct={id:string;versionId:string;versionNumber:number;ruleVersionId:string;ruleVersionNumber:number;information:Record<string,unknown>;rules:Record<string,unknown>;assets:FrozenAsset[]};
 export type SystemTestInput={schemaVersion:1;kind?:"SYSTEM_TEST";fixture:{steps:number;delayMs:number};product?:FrozenProduct};

@@ -10,9 +10,10 @@ import { signatureMatches, uploadInput } from "./media-validation";
 import { probeVideo } from "./media-probe";
 import type { Session } from "./auth";
 import {checkAssetQuota,checkStorageQuota} from './operational-limits';
+import {referenceSlot,type ReferenceSlot} from './reference-slots';
 
 type AssetRow={id:string;workspace_id:string;product_id:string;type:"IMAGE"|"VIDEO";purpose:string;status:string;current_version_id:string|null};
-type AssetVersionRow={id:string;workspace_id:string;product_id:string;asset_id:string;version_number:number;status:string;storage_key:string;upload_key:string;original_filename:string;mime_type:string;expected_byte_size:string;expected_sha256:string|null;byte_size:string|null;sha256:string|null;thumbnail_key:string|null};
+type AssetVersionRow={id:string;workspace_id:string;product_id:string;asset_id:string;version_number:number;status:string;storage_key:string;upload_key:string;original_filename:string;mime_type:string;expected_byte_size:string;expected_sha256:string|null;byte_size:string|null;sha256:string|null;thumbnail_key:string|null;reference_slot:ReferenceSlot|null};
 
 async function scopedAsset(db:DbClient,workspaceId:string,productId:string,assetId:string,lock=false):Promise<AssetRow> {
   if(!isUuid(assetId)||!isUuid(productId))throw new AppError(404,"Asset not found.");
@@ -32,18 +33,21 @@ async function scopedVersion(db:DbClient,workspaceId:string,productId:string,ass
 export async function createUploadIntent(session:Session,workspaceId:string,productId:string,raw:Record<string,unknown>,replaceAssetId?:string) {
   await requireActiveWorkspace(session,workspaceId,"future:edit");
   const input=uploadInput(raw);
-  const assetId=replaceAssetId||randomUUID(),versionId=randomUUID();
-  const uploadKey=uploadObjectKey(workspaceId,productId,assetId,versionId);
-  const storageKey=originalObjectKey(workspaceId,productId,assetId,versionId);
+  const slot=referenceSlot(input.purpose),versionId=randomUUID();
   const result=await transaction(async db=>{
     await requireRole(session.userId,workspaceId,"future:edit",db);
-    await checkAssetQuota(db,workspaceId,input.byteSize,input.mimeType.startsWith('image/'),!!replaceAssetId);
     const product=await db.query<{status:string}>("SELECT status FROM products WHERE workspace_id=$1 AND id=$2 FOR UPDATE",[workspaceId,productId]);
     if(!product.rows[0])throw new AppError(404,"Product not found.");
     if(product.rows[0].status==="ARCHIVED")throw new AppError(409,"Archived products cannot receive media.");
+    const selected=(await db.query<AssetRow>("SELECT a.* FROM product_reference_slots s JOIN assets a ON a.workspace_id=s.workspace_id AND a.product_id=s.product_id AND a.id=s.asset_id WHERE s.workspace_id=$1 AND s.product_id=$2 AND s.slot=$3 AND a.status='READY'",[workspaceId,productId,slot])).rows[0];
+    const replacementId=replaceAssetId||(selected?.purpose===input.purpose&&selected.type===input.type?selected.id:undefined);
+    const assetId=replacementId||randomUUID();
+    const uploadKey=uploadObjectKey(workspaceId,productId,assetId,versionId),storageKey=originalObjectKey(workspaceId,productId,assetId,versionId);
+    if((await db.query("SELECT 1 FROM asset_versions WHERE workspace_id=$1 AND product_id=$2 AND reference_slot=$3 AND status='PENDING_UPLOAD'",[workspaceId,productId,slot])).rows[0])throw new AppError(409,"This reference already has a pending upload. Finish it or retry later.");
+    await checkAssetQuota(db,workspaceId,input.byteSize,input.type==='IMAGE',!!replacementId);
     let versionNumber=1;
-    if(replaceAssetId) {
-      const asset=await scopedAsset(db,workspaceId,productId,replaceAssetId,true);
+    if(replacementId) {
+      const asset=await scopedAsset(db,workspaceId,productId,replacementId,true);
       if(asset.status==="ARCHIVED")throw new AppError(409,"Archived assets cannot be replaced.");
       if(asset.purpose!==input.purpose||asset.type!==input.type)throw new AppError(400,"Replacement must keep its purpose and media type.");
       const pending=await db.query("SELECT 1 FROM asset_versions WHERE workspace_id=$1 AND product_id=$2 AND asset_id=$3 AND status='PENDING_UPLOAD'",[workspaceId,productId,assetId]);
@@ -55,15 +59,15 @@ export async function createUploadIntent(session:Session,workspaceId:string,prod
       if(Number(capacity.rows[0].count)>=100)throw new AppError(409,"A product can have at most 100 current assets.");
       await db.query("INSERT INTO assets(id,workspace_id,product_id,type,purpose,status,created_by) VALUES($1,$2,$3,$4,$5,'PENDING_UPLOAD',$6)",[assetId,workspaceId,productId,input.type,input.purpose,session.userId]);
     }
-    await db.query(`INSERT INTO asset_versions(id,workspace_id,product_id,asset_id,version_number,status,storage_key,upload_key,original_filename,mime_type,expected_byte_size,expected_sha256,source_type,permission_note,permission_confirmed_at,uploaded_by)
-      VALUES($1,$2,$3,$4,$5,'PENDING_UPLOAD',$6,$7,$8,$9,$10,$11,$12,$13,now(),$14)`,[versionId,workspaceId,productId,assetId,versionNumber,storageKey,uploadKey,input.originalFilename,input.mimeType,input.byteSize,input.expectedSha256||null,input.sourceType,input.permissionNote,session.userId]);
-    return {assetId,versionId,versionNumber};
+    await db.query(`INSERT INTO asset_versions(id,workspace_id,product_id,asset_id,version_number,status,storage_key,upload_key,original_filename,mime_type,expected_byte_size,expected_sha256,source_type,permission_note,permission_confirmed_at,uploaded_by,reference_slot)
+      VALUES($1,$2,$3,$4,$5,'PENDING_UPLOAD',$6,$7,$8,$9,$10,$11,$12,$13,CASE WHEN $15 THEN now() ELSE NULL END,$14,$16)`,[versionId,workspaceId,productId,assetId,versionNumber,storageKey,uploadKey,input.originalFilename,input.mimeType,input.byteSize,input.expectedSha256||null,input.sourceType,input.permissionNote,session.userId,input.permissionConfirmed,slot]);
+    return {assetId,versionId,versionNumber,uploadKey};
   });
   try {
-    const uploadUrl=await objectStorage().issueUpload(uploadKey,input.mimeType,300);
-    return {...result,uploadUrl,requiredHeaders:{"Content-Type":input.mimeType},expiresInSeconds:300};
+    const uploadUrl=await objectStorage().issueUpload(result.uploadKey,input.mimeType,300);
+    return {assetId:result.assetId,versionId,versionNumber:result.versionNumber,uploadUrl,requiredHeaders:{"Content-Type":input.mimeType},expiresInSeconds:300};
   } catch(error) {
-    await markFailed(workspaceId,productId,assetId,versionId,"SIGN_FAILED").catch(()=>undefined);
+    await markFailed(workspaceId,productId,result.assetId,versionId,"SIGN_FAILED").catch(()=>undefined);
     throw error;
   }
 }
@@ -143,6 +147,8 @@ async function finalizeUploadLocked(session:Session,workspaceId:string,productId
   const result=await transaction(async db=>{
     await requireRole(session.userId,workspaceId,"future:edit",db);
     await checkStorageQuota(db,workspaceId);
+    const product=(await db.query<{status:string}>("SELECT status FROM products WHERE workspace_id=$1 AND id=$2 FOR UPDATE",[workspaceId,productId])).rows[0];
+    if(product?.status==='ARCHIVED')throw new AppError(409,"Archived products cannot receive media.");
     const asset=await scopedAsset(db,workspaceId,productId,assetId,true);
     const current=await scopedVersion(db,workspaceId,productId,assetId,versionId);
     if(current.status==="READY")return {assetId,versionId,status:"READY" as const,alreadyFinalized:true};
@@ -151,6 +157,10 @@ async function finalizeUploadLocked(session:Session,workspaceId:string,productId
     await db.query(`UPDATE asset_versions SET status='READY',byte_size=$1,sha256=$2,width=$3,height=$4,thumbnail_key=$5,verified_at=now(),failure_code=$6
       WHERE workspace_id=$7 AND product_id=$8 AND asset_id=$9 AND id=$10`,[verified.total,verified.sha256,verified.width,verified.height,thumbnailKey,verified.thumbnail?thumbnailKey?null:"THUMBNAIL_FAILED":null,workspaceId,productId,assetId,versionId]);
     await db.query("UPDATE assets SET current_version_id=$1,status='READY',updated_at=now() WHERE workspace_id=$2 AND product_id=$3 AND id=$4",[versionId,workspaceId,productId,assetId]);
+    const slot=current.reference_slot||referenceSlot(asset.purpose as Parameters<typeof referenceSlot>[0]);
+    const previous=(await db.query<{asset_id:string|null}>("SELECT asset_id FROM product_reference_slots WHERE workspace_id=$1 AND product_id=$2 AND slot=$3",[workspaceId,productId,slot])).rows[0];
+    if(previous?.asset_id&&previous.asset_id!==assetId)await db.query("UPDATE products SET cover_asset_id=$1 WHERE workspace_id=$2 AND id=$3 AND cover_asset_id=$4",[asset.type==='IMAGE'?assetId:null,workspaceId,productId,previous.asset_id]);
+    await db.query("INSERT INTO product_reference_slots(workspace_id,product_id,slot,asset_id) VALUES($1,$2,$3,$4) ON CONFLICT(workspace_id,product_id,slot) DO UPDATE SET asset_id=excluded.asset_id",[workspaceId,productId,slot,assetId]);
     await audit(db,{workspaceId,actorUserId:session.userId,type:"PRODUCT_ASSET_CREATED",targetType:"asset",targetId:assetId,metadata:{version:current.version_number,purpose:asset.purpose}});
     return {assetId,versionId,status:"READY" as const,alreadyFinalized:false,sha256:verified.sha256,byteSize:verified.total,width:verified.width,height:verified.height,thumbnailAvailable:!!thumbnailKey};
   });
@@ -208,10 +218,24 @@ export async function archiveAsset(session:Session,workspaceId:string,productId:
   await requireActiveWorkspace(session,workspaceId,"future:edit");
   return transaction(async db=>{
     await requireRole(session.userId,workspaceId,"future:edit",db);
+    await db.query("SELECT id FROM products WHERE workspace_id=$1 AND id=$2 FOR UPDATE",[workspaceId,productId]);
     const asset=await scopedAsset(db,workspaceId,productId,assetId,true);
     if(asset.status==="ARCHIVED")return {id:assetId,status:"ARCHIVED" as const};
     await db.query("UPDATE assets SET status='ARCHIVED',archived_at=now(),updated_at=now() WHERE workspace_id=$1 AND product_id=$2 AND id=$3",[workspaceId,productId,assetId]);
+    await db.query("UPDATE product_reference_slots SET asset_id=NULL WHERE workspace_id=$1 AND product_id=$2 AND asset_id=$3",[workspaceId,productId,assetId]);
+    await db.query("UPDATE products SET cover_asset_id=NULL WHERE workspace_id=$1 AND id=$2 AND cover_asset_id=$3",[workspaceId,productId,assetId]);
     await audit(db,{workspaceId,actorUserId:session.userId,type:"PRODUCT_ASSET_ARCHIVED",targetType:"asset",targetId:assetId});
     return {id:assetId,status:"ARCHIVED" as const};
+  });
+}
+
+export async function abortUpload(session:Session,workspaceId:string,productId:string,assetId:string,versionId:string){
+  await requireActiveWorkspace(session,workspaceId,'future:edit');
+  return withMediaFinalizeLock(`asset:${workspaceId}:${versionId}`,async()=>{
+    await scopedAsset({query},workspaceId,productId,assetId);
+    const version=await scopedVersion({query},workspaceId,productId,assetId,versionId);
+    if(version.status==='READY')return {status:'READY'};
+    await markFailed(workspaceId,productId,assetId,versionId,'UPLOAD_ABORTED');
+    return {status:'FAILED'};
   });
 }

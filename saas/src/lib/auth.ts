@@ -1,6 +1,7 @@
 import "server-only";
 import { query, transaction, type DbClient } from "./db";
-import { AppError, audit, displayName, hashPassword, hashToken, normalizeEmail, randomToken, rateLimit, validPassword, verifyPassword } from "./core";
+import { AppError, audit, displayName, hashPassword, hashToken, normalizeEmail, randomToken, rateLimit, safeNext, validPassword, verifyPassword } from "./core";
+import { enqueueMail } from "./mail-core";
 
 export type Session = { id: string; userId: string; email: string; displayName: string; activeWorkspaceId: string | null; expiresAt: Date };
 export const SESSION_COOKIE = "saas_session";
@@ -22,21 +23,37 @@ export async function getSession(raw: string | undefined): Promise<Session | nul
   return row ? { id: row.id, userId: row.user_id, email: row.email, displayName: row.display_name, activeWorkspaceId: row.active_workspace_id, expiresAt: row.expires_at } : null;
 }
 
-export async function register(input: { email: unknown; displayName: unknown; password: unknown }): Promise<{ email: string; verifyToken: string }> {
+async function queueAuthLink(db:DbClient,userId:string,email:string,kind:"VERIFY_EMAIL"|"RESET_PASSWORD",next?:unknown) {
+  const raw=randomToken();
+  await db.query("UPDATE auth_tokens SET used_at=now() WHERE user_id=$1 AND kind=$2 AND used_at IS NULL",[userId,kind]);
+  const token=(await db.query<{id:string}>("INSERT INTO auth_tokens(user_id,kind,token_hash,expires_at) VALUES($1,$2,$3,now()+CASE WHEN $2='VERIFY_EMAIL' THEN interval '24 hours' ELSE interval '30 minutes' END) RETURNING id",[userId,kind,hashToken(raw)])).rows[0];
+  const link=new URL(kind==='VERIFY_EMAIL'?'/verify':'/reset-password',process.env.APP_BASE_URL);
+  link.searchParams.set('token',raw);
+  if(kind==='VERIFY_EMAIL')link.searchParams.set('next',safeNext(next));
+  return enqueueMail(db,email,kind==='VERIFY_EMAIL'?'Verify your account':'Reset your password',link.toString(),token.id);
+}
+
+export async function register(input: { email: unknown; displayName: unknown; password: unknown; next?:unknown }): Promise<{ deliveryId:string|null }> {
   const email = normalizeEmail(input.email), name = displayName(input.displayName), password = validPassword(input.password);
   await rateLimit({ query }, "register", email, 5);
-  const passwordHash = await hashPassword(password), verifyToken = randomToken();
-  await transaction(async db => {
-    const user = await db.query<{ id: string }>("INSERT INTO users(email,display_name,password_hash,status) VALUES($1,$2,$3,'PENDING_VERIFICATION') RETURNING id", [email, name, passwordHash]);
-    await db.query("INSERT INTO auth_tokens(user_id,kind,token_hash,expires_at) VALUES($1,'VERIFY_EMAIL',$2,now()+interval '24 hours')", [user.rows[0].id, hashToken(verifyToken)]);
-    await audit(db, { actorUserId: user.rows[0].id, type: "USER_REGISTERED", targetType: "user", targetId: user.rows[0].id });
+  const passwordHash = await hashPassword(password);
+  return transaction(async db => {
+    const inserted = await db.query<{ id: string }>("INSERT INTO users(email,display_name,password_hash,status) VALUES($1,$2,$3,'PENDING_VERIFICATION') ON CONFLICT(email) DO NOTHING RETURNING id", [email, name, passwordHash]);
+    const user=(await db.query<{id:string;status:string}>("SELECT id,status FROM users WHERE email=$1 FOR UPDATE",[email])).rows[0];
+    if(user.status!=='PENDING_VERIFICATION')return {deliveryId:null};
+    // Retrying never changes the original account password or profile.
+    const deliveryId=await queueAuthLink(db,user.id,email,'VERIFY_EMAIL',input.next);
+    await audit(db, { actorUserId: user.id, type: inserted.rows.length?"USER_REGISTERED":"EMAIL_VERIFICATION_REQUESTED", targetType: "user", targetId: user.id });
+    return {deliveryId};
   });
-  return { email, verifyToken };
 }
 
 export async function verifyEmailToken(raw: string): Promise<{ raw: string }> {
   if (!/^[A-Za-z0-9_-]{30,100}$/.test(raw)) throw new AppError(400, "Verification link is invalid or expired.");
   return transaction(async db => {
+    const owner=(await db.query<{user_id:string}>("SELECT user_id FROM auth_tokens WHERE token_hash=$1 AND kind='VERIFY_EMAIL'",[hashToken(raw)])).rows[0];
+    if(!owner)throw new AppError(400,"Verification link is invalid or expired.");
+    await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[owner.user_id]);
     const found = await db.query<{ id: string; user_id: string; expires_at: Date; used_at: Date | null }>("SELECT id,user_id,expires_at,used_at FROM auth_tokens WHERE token_hash=$1 AND kind='VERIFY_EMAIL' FOR UPDATE", [hashToken(raw)]);
     const token = found.rows[0];
     if (!token || token.used_at || token.expires_at <= new Date()) throw new AppError(400, "Verification link is invalid or expired.");
@@ -71,31 +88,30 @@ export async function logout(session: Session): Promise<void> {
 
 export async function requestVerification(emailInput:unknown){
   const email=normalizeEmail(emailInput);await rateLimit({query},'resend-verification',email,4);
-  const token=randomToken();const found=await transaction(async db=>{
-    const u=(await db.query<{id:string}>("SELECT id FROM users WHERE email=$1 AND status='PENDING_VERIFICATION' FOR UPDATE",[email])).rows[0];if(!u)return false;
-    await db.query("UPDATE auth_tokens SET used_at=now() WHERE user_id=$1 AND kind='VERIFY_EMAIL' AND used_at IS NULL",[u.id]);
-    await db.query("INSERT INTO auth_tokens(user_id,kind,token_hash,expires_at) VALUES($1,'VERIFY_EMAIL',$2,now()+interval '24 hours')",[u.id,hashToken(token)]);
-    await audit(db,{actorUserId:u.id,type:'EMAIL_VERIFICATION_REQUESTED',targetType:'user',targetId:u.id});return true;
-  });return found?{email,token}:null;
+  return transaction(async db=>{
+    const u=(await db.query<{id:string}>("SELECT id FROM users WHERE email=$1 AND status='PENDING_VERIFICATION' FOR UPDATE",[email])).rows[0];if(!u)return null;
+    const deliveryId=await queueAuthLink(db,u.id,email,'VERIFY_EMAIL');
+    await audit(db,{actorUserId:u.id,type:'EMAIL_VERIFICATION_REQUESTED',targetType:'user',targetId:u.id});return deliveryId;
+  });
 }
-export async function requestPasswordReset(emailInput: unknown): Promise<{ email: string; token: string } | null> {
+export async function requestPasswordReset(emailInput: unknown): Promise<string | null> {
   const email = normalizeEmail(emailInput);
   await rateLimit({ query }, "reset-request", email, 4);
-  const user = await query<{ id: string }>("SELECT id FROM users WHERE email=$1 AND status='ACTIVE'", [email]);
-  if (!user.rows[0]) return null;
-  const token = randomToken();
-  await transaction(async db => {
-    await db.query("UPDATE auth_tokens SET used_at=now() WHERE user_id=$1 AND kind='RESET_PASSWORD' AND used_at IS NULL", [user.rows[0].id]);
-    await db.query("INSERT INTO auth_tokens(user_id,kind,token_hash,expires_at) VALUES($1,'RESET_PASSWORD',$2,now()+interval '30 minutes')", [user.rows[0].id, hashToken(token)]);
-    await audit(db, { actorUserId: user.rows[0].id, type: "PASSWORD_RECOVERY_REQUESTED", targetType: "user", targetId: user.rows[0].id });
+  return transaction(async db => {
+    const user=(await db.query<{id:string}>("SELECT id FROM users WHERE email=$1 AND status='ACTIVE' FOR UPDATE",[email])).rows[0];if(!user)return null;
+    const deliveryId=await queueAuthLink(db,user.id,email,'RESET_PASSWORD');
+    await audit(db, { actorUserId: user.id, type: "PASSWORD_RECOVERY_REQUESTED", targetType: "user", targetId: user.id });
+    return deliveryId;
   });
-  return { email, token };
 }
 
 export async function resetPassword(raw: string, passwordInput: unknown): Promise<void> {
   if (!/^[A-Za-z0-9_-]{30,100}$/.test(raw)) throw new AppError(400, "Reset link is invalid or expired.");
   const passwordHash = await hashPassword(validPassword(passwordInput));
   await transaction(async db => {
+    const owner=(await db.query<{user_id:string}>("SELECT user_id FROM auth_tokens WHERE token_hash=$1 AND kind='RESET_PASSWORD'",[hashToken(raw)])).rows[0];
+    if(!owner)throw new AppError(400,"Reset link is invalid or expired.");
+    await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[owner.user_id]);
     const found = await db.query<{ id: string; user_id: string; expires_at: Date; used_at: Date | null }>("SELECT id,user_id,expires_at,used_at FROM auth_tokens WHERE token_hash=$1 AND kind='RESET_PASSWORD' FOR UPDATE", [hashToken(raw)]);
     const token = found.rows[0];
     if (!token || token.used_at || token.expires_at <= new Date()) throw new AppError(400, "Reset link is invalid or expired.");

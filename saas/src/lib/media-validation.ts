@@ -26,10 +26,11 @@ export function uploadInput(raw:Record<string,unknown>) {
   if(typeof sourceType!=="string"||!sourceTypes.includes(sourceType as SourceType))throw new AppError(400,"Invalid source type.");
   const permissionNote=raw.permissionNote;
   if(permissionNote!=null&&(typeof permissionNote!=="string"||permissionNote.length>1000))throw new AppError(400,"Permission note is too long.");
-  if(raw.permissionConfirmed!==true)throw new AppError(400,"Confirm that you have permission to use this media.");
+  // An authenticated upload is provenance, not a fabricated rights attestation.
+  if((raw.sourceType!=null||raw.permissionConfirmed!=null)&&raw.permissionConfirmed!==true)throw new AppError(400,"Confirm that you have permission to use this media.");
   const expectedSha256=raw.sha256;
   if(expectedSha256!=null&&(typeof expectedSha256!=="string"||!/^[a-f0-9]{64}$/.test(expectedSha256)))throw new AppError(400,"Invalid SHA-256 checksum.");
-  return {purpose:purpose as AssetPurpose,mimeType,type,byteSize,originalFilename,sourceType:sourceType as SourceType,permissionNote:(permissionNote as string|undefined||"").trim(),expectedSha256:expectedSha256 as string|undefined,max};
+  return {purpose:purpose as AssetPurpose,mimeType,type,byteSize,originalFilename,sourceType:sourceType as SourceType,permissionNote:(permissionNote as string|undefined||"").trim(),permissionConfirmed:raw.permissionConfirmed===true,expectedSha256:expectedSha256 as string|undefined,max};
 }
 
 export function signatureMatches(mimeType:string,first:Uint8Array):boolean {

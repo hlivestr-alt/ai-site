@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import { register,requestVerification } from '../../src/lib/auth';
+import { mailDeliveryBatch,decryptMail } from '../../src/lib/mail-core';
+import { query,pool } from '../../src/lib/db';
+import {localMailAllowed} from '../../src/lib/mail';
+if(!process.env.DATABASE_URL?.includes('/phase_b_'))throw new Error('Owned Phase B database required');
+const input={email:`b-mail-${Date.now()}@example.test`,displayName:'Mail Safety',password:'ValidPassword123!'};
+const key=process.env.MAIL_ENCRYPTION_KEY,base=process.env.APP_BASE_URL;
+async function main(){try{
+  process.env.APP_BASE_URL='https://mail-test.invalid';process.env.MAIL_ENCRYPTION_KEY='';
+  assert.equal(localMailAllowed(),false);
+  await assert.rejects(register(input));
+  assert.equal((await query('SELECT 1 FROM users WHERE email=$1',[input.email])).rowCount,0);
+  process.env.APP_BASE_URL=base;process.env.MAIL_ENCRYPTION_KEY=key;
+  assert.equal(localMailAllowed(),true);
+  const first=await register(input);assert.ok(first.deliveryId);
+  const original=(await query('SELECT id,password_hash,display_name FROM users WHERE email=$1',[input.email])).rows[0];
+  const firstToken=(await query('SELECT token_hash FROM auth_tokens WHERE user_id=$1 AND used_at IS NULL',[original.id])).rows[0].token_hash;
+  const payload=(await query('SELECT encrypted_payload FROM mail_deliveries WHERE id=$1',[first.deliveryId])).rows[0].encrypted_payload;
+  const plain=new URL(decryptMail(payload)).searchParams.get('token')!;
+  assert.ok(!payload.includes(plain)&&!firstToken.includes(plain));
+  process.env.APP_BASE_URL='https://mail-test.invalid';process.env.MAIL_ENCRYPTION_KEY='';
+  await assert.rejects(requestVerification(input.email));
+  assert.equal((await query('SELECT token_hash FROM auth_tokens WHERE user_id=$1 AND used_at IS NULL',[original.id])).rows[0].token_hash,firstToken);
+  process.env.APP_BASE_URL=base;process.env.MAIL_ENCRYPTION_KEY=key;
+  process.env.ENABLE_TEST_MAIL_FAILURE='1';await mailDeliveryBatch(1,first.deliveryId!);
+  assert.equal((await query('SELECT status FROM mail_deliveries WHERE id=$1',[first.deliveryId])).rows[0].status,'PENDING');
+  const retry=await register({...input,displayName:'Untrusted Retry',password:'AnotherPassword123!'});
+  const retained=(await query('SELECT password_hash,display_name FROM users WHERE id=$1',[original.id])).rows[0];assert.deepEqual(retained,{password_hash:original.password_hash,display_name:original.display_name});
+  process.env.ENABLE_TEST_MAIL_FAILURE='0';await mailDeliveryBatch(5);
+  assert.equal((await query('SELECT status FROM mail_deliveries WHERE id=$1',[first.deliveryId])).rows[0].status,'FAILED');
+  assert.equal((await query('SELECT status FROM mail_deliveries WHERE id=$1',[retry.deliveryId])).rows[0].status,'SENT');
+  await query("UPDATE auth_tokens SET expires_at=now()-interval '1 second' WHERE user_id=$1 AND used_at IS NULL",[original.id]);
+  const renewed=await requestVerification(input.email);assert.ok(renewed);
+  await mailDeliveryBatch(1,renewed!);assert.equal((await query('SELECT status FROM mail_deliveries WHERE id=$1',[renewed])).rows[0].status,'SENT');
+  console.log(JSON.stringify({atomicRollback:true,retryPreservesPassword:true,encryptedQueue:true,transientDeliveryDurable:true,supersededDeliverySkipped:true,expiredTokenRenewed:true,publicMailboxDisabled:true,localMailboxAllowed:true}));
+}finally{await pool().end();}}
+main().catch(()=>{console.error('AUTH_QUEUE_PROBE_FAILED');process.exitCode=1;});

@@ -6,7 +6,7 @@ import {login} from './browser-checks';
 export {observe,mediaChecks,login} from './browser-checks';
 export const base=process.env.SAAS_TEST_BASE_URL!;
 export async function database(){const db=new pg.Client({connectionString:process.env.TEST_DATABASE_URL});await db.connect();return db;}
-export async function evidence(name:string,data:unknown){await mkdir('docs/stabilization-phase-a-evidence',{recursive:true});await writeFile(`docs/stabilization-phase-a-evidence/${name}.json`,JSON.stringify({runId:process.env.STABILIZATION_RUN_ID,...data as Record<string,unknown>},null,2));}
+export async function evidence(name:string,data:unknown){const directory=process.env.STABILIZATION_EVIDENCE_DIR||'docs/stabilization-phase-a-evidence';await mkdir(directory,{recursive:true});await writeFile(`${directory}/${name}.json`,JSON.stringify({runId:process.env.STABILIZATION_RUN_ID,...data as Record<string,unknown>},null,2));}
 export async function fixtures(){
   const file='test-data/stabilization-phase-a/fixtures.json';
   try{const f=JSON.parse(await readFile(file,'utf8'));if(f.runId===process.env.STABILIZATION_RUN_ID)return f;}catch{}

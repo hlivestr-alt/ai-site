@@ -6,11 +6,11 @@ import { join } from "node:path";
 const base=(process.env.SAAS_TEST_BASE_URL||"http://127.0.0.1:3200");
 const password="ValidPassword123!";
 type Mail={to:string;subject:string;url:string};
-async function mail(to:string,subject:string):Promise<Mail> {
+async function mail(to:string,subject:string,excludeToken?:string):Promise<Mail> {
   const folder=join(process.cwd(),"data","mailbox");
   for(let attempt=0;attempt<40;attempt++) {
     const names=(await readdir(folder).catch(()=>[])).filter(x=>x.endsWith(".json")).sort().reverse();
-    for(const name of names) { const item=JSON.parse(await readFile(join(folder,name),"utf8")) as Mail; if(item.to===to&&item.subject.includes(subject))return item; }
+    for(const name of names) { const item=JSON.parse(await readFile(join(folder,name),"utf8")) as Mail; if(item.to===to&&item.subject.includes(subject)&&(!excludeToken||new URL(item.url).searchParams.get('token')!==excludeToken))return item; }
     await new Promise(resolve=>setTimeout(resolve,100));
   }
   throw new Error(`No local mail for ${to}: ${subject}`);
@@ -32,7 +32,7 @@ test("identity, workspaces, roles, invitations, isolation, recovery and audit",a
   const db=new pg.Client({connectionString:process.env.TEST_DATABASE_URL});await db.connect();
   try {
     await register(a,aEmail,"Brand A Owner");
-    expect((await post(a,"/api/auth/register",{email:aEmail,displayName:"Duplicate",password})).status()).toBe(409);
+    expect((await post(a,"/api/auth/register",{email:aEmail,displayName:"Duplicate",password})).status()).toBe(201);
     const aWs=await workspace(a,"Brand A");
     expect(aWs).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
     const aSession=await (await a.get("/api/auth/session")).json();
@@ -129,7 +129,7 @@ test("identity, workspaces, roles, invitations, isolation, recovery and audit",a
     await db.query("UPDATE auth_tokens SET expires_at=now()-interval '1 minute' WHERE user_id=(SELECT id FROM users WHERE email=$1) AND kind='RESET_PASSWORD'",[aEmail]);
     expect((await post(a,"/api/auth/reset-password",{token:resetToken,password:"NewValidPassword456!"})).status()).toBe(400);
     expect((await post(a,"/api/auth/forgot-password",{email:aEmail})).status()).toBe(200);
-    const resetToken2=new URL((await mail(aEmail,"Reset")).url).searchParams.get("token")!;
+    const resetToken2=new URL((await mail(aEmail,"Reset",resetToken)).url).searchParams.get("token")!;
     expect((await post(a,"/api/auth/reset-password",{token:resetToken2,password:"NewValidPassword456!"})).status()).toBe(200);
     expect((await post(a,"/api/auth/reset-password",{token:resetToken2,password:"NewValidPassword456!"})).status()).toBe(400);
     expect((await a.get("/api/auth/session")).status()).toBe(401);

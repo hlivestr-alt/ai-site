@@ -5,7 +5,7 @@ import { AppError, isUuid } from "./core";
 import { requireRole } from "./workspaces";
 import { getProductSnapshot, requireActiveWorkspace } from "./products";
 import { frozenProductFromSnapshot } from "./jobs";
-import { type AiVideoInput } from "./job-core";
+import { activeJobStatuses,type AiVideoInput } from "./job-core";
 import { customerVideoOptions, fakeEnabled } from "./video-providers";
 import {createQuote,lockWallet,jobBilling} from "./billing-core";
 import { objectStorage } from "./storage";
@@ -37,6 +37,10 @@ export async function createAiVideoJob(session:Session,workspaceId:string,raw:Re
   });
 }
 export async function aiVideoOptions(session:Session,workspaceId:string){await requireActiveWorkspace(session,workspaceId,"workspace:read");return customerVideoOptions();}
+export async function latestActiveAiVideo(session:Session,workspaceId:string){
+  await requireActiveWorkspace(session,workspaceId,'workspace:read');
+  return (await query<{id:string}>("SELECT id FROM jobs WHERE workspace_id=$1 AND type='AI_VIDEO' AND status=ANY($2::text[]) ORDER BY created_at DESC,id DESC LIMIT 1",[workspaceId,activeJobStatuses])).rows[0]||null;
+}
 export async function aiVideoProducts(session:Session,workspaceId:string){
   await requireActiveWorkspace(session,workspaceId,"workspace:read");
   const rows=await query<{id:string;name:string;brand:string;version_number:number}>(`SELECT p.id,v.name,v.brand,v.version_number FROM products p JOIN product_versions v ON v.id=p.current_version_id AND v.workspace_id=p.workspace_id AND v.product_id=p.id

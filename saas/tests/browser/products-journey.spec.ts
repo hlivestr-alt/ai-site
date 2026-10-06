@@ -16,18 +16,17 @@ test("real product wizard, private references, versions and tenant-limited viewi
   await page.getByLabel("Brand").fill("Customer Brand");await page.getByLabel("Product name").fill("Reference Cream");await page.getByLabel("Category").fill("Skincare");await page.getByLabel(/SKU/).fill("UI-REF-01");
   await page.getByLabel("Short description").fill("First description");await page.getByLabel(/Key selling points/).fill("Hydrating feel\nSimple routine");await page.getByLabel("Target audience").fill("Adults");
   await page.getByRole("button",{name:/Continue to assets/}).click();
-  await expect(page.getByRole("heading",{name:"Product assets"})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Product references"})).toBeVisible();
   const productId=new URL(page.url()).pathname.split("/")[2];
   const ws=(await (await page.request.get("/api/auth/session")).json()).currentWorkspace.id as string;
-  for(const purpose of ["FRONT","BACK","CAP_PUMP","USAGE_IMAGE"]){
-    await page.getByLabel("Reference purpose").selectOption(purpose);
-    await page.getByLabel("File").setInputFiles({name:`${purpose.toLowerCase()}.png`,mimeType:"image/png",buffer:image});
-    await page.getByLabel(/I confirm I have permission/).check();
-    await page.getByRole("button",{name:"Upload reference"}).click();
-    await expect(page.getByRole("status")).toContainText("uploaded and verified");
+  for(const [purpose,label] of [["FRONT","Front"],["BACK","Back"],["CAP_PUMP","Cap / Pump"],["USAGE_IMAGE","Real Usage"]]){
+    const card=page.locator(`[data-slot="${purpose==="USAGE_IMAGE"?"REAL_USAGE":purpose}"]`);
+    await page.getByLabel(`${label} file`,{exact:true}).setInputFiles({name:`${purpose.toLowerCase()}.png`,mimeType:"image/png",buffer:image});
+    await card.getByRole("button",{name:"Upload",exact:true}).click();
+    await expect(card.locator(".reference-status")).toHaveText("Ready");
   }
-  await expect(page.locator(".asset-card")).toHaveCount(4);
-  await page.getByRole("button",{name:/Continue to rules/}).click();
+  await expect(page.locator(".reference-card")).toHaveCount(8);
+  await page.getByRole("button",{name:/Continue to accuracy/}).click();
   await page.getByLabel("Keep logo").uncheck();
   await page.getByLabel("Additional instructions").fill("Keep the label legible.");
   await page.getByRole("button",{name:/Save product/}).click();
@@ -40,16 +39,15 @@ test("real product wizard, private references, versions and tenant-limited viewi
   await expect(page.getByText("First description")).toBeVisible();
   await page.getByRole("link",{name:"Edit product"}).click();
   await page.getByLabel("Short description").fill("Edited description");await page.getByRole("button",{name:/Continue to assets/}).click();
-  await page.getByRole("button",{name:/Continue to rules/}).click();await page.getByRole("button",{name:/Save changes/}).click();
+  await page.getByRole("button",{name:/Continue to accuracy/}).click();await page.getByRole("button",{name:/Save changes/}).click();
   await expect(page.getByText("Edited description")).toBeVisible();await expect(page.getByText("Version 2").first()).toBeVisible();
   await page.getByRole("link",{name:"Manage assets"}).click();
   const detail=await (await page.request.get(`/api/workspaces/${ws}/products/${productId}`)).json();
   const front=detail.assets.find((x:{purpose:string})=>x.purpose==="FRONT");
-  await page.getByLabel(/Replace existing asset/).selectOption(front.id);
-  await page.getByLabel("File").setInputFiles({name:"new-front.png",mimeType:"image/png",buffer:image});
-  await page.getByLabel(/I confirm I have permission/).check();
-  await page.getByRole("button",{name:"Upload reference"}).click();
-  await expect(page.getByRole("status")).toContainText("uploaded and verified");
+  const frontCard=page.locator('[data-slot="FRONT"]');
+  await page.getByLabel("Front file",{exact:true}).setInputFiles({name:"new-front.png",mimeType:"image/png",buffer:image});
+  await frontCard.getByRole("button",{name:"Replace",exact:true}).click();
+  await expect(frontCard.getByText("Version 2",{exact:true})).toBeVisible();
   await page.getByRole("link",{name:"Product detail"}).click();
   await expect(page).toHaveURL(new RegExp(`/products/${productId}$`));
   await expect(page.locator(".asset-card strong").filter({hasText:"new-front.png"})).toBeVisible();
