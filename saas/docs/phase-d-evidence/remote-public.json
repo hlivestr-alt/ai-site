@@ -1,0 +1,82 @@
+{
+  "status": "PASS",
+  "healthStatus": 200,
+  "results": [
+    {
+      "channel": "chrome",
+      "browserVersion": "154.0.8037.98",
+      "status": "PASS",
+      "checks": [
+        {
+          "path": "/login",
+          "status": 200,
+          "localMailboxWording": false
+        },
+        {
+          "path": "/register",
+          "status": 200,
+          "localMailboxWording": false
+        },
+        {
+          "path": "/forgot-password",
+          "status": 200,
+          "localMailboxWording": false
+        },
+        {
+          "path": "/verify",
+          "status": 200,
+          "markerInHTML": false
+        },
+        {
+          "path": "/reset-password",
+          "status": 200,
+          "markerInHTML": false
+        }
+      ],
+      "secretLeaks": [],
+      "pageErrors": []
+    },
+    {
+      "channel": "msedge",
+      "browserVersion": "154.0.4258.53",
+      "status": "PASS",
+      "checks": [
+        {
+          "path": "/login",
+          "status": 200,
+          "localMailboxWording": false
+        },
+        {
+          "path": "/register",
+          "status": 200,
+          "localMailboxWording": false
+        },
+        {
+          "path": "/forgot-password",
+          "status": 200,
+          "localMailboxWording": false
+        },
+        {
+          "path": "/verify",
+          "status": 200,
+          "markerInHTML": false
+        },
+        {
+          "path": "/reset-password",
+          "status": 200,
+          "markerInHTML": false
+        }
+      ],
+      "secretLeaks": [],
+      "pageErrors": []
+    }
+  ],
+  "remoteDataMutations": 0,
+  "realEmails": 0,
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  }
+}

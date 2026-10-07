@@ -1,0 +1,20 @@
+{
+  "runId": "1791346867192_ac2f13",
+  "status": "PASS",
+  "startingAvailable": 100,
+  "concurrentRequests": [
+    100,
+    100
+  ],
+  "admissionStatuses": [
+    201,
+    402
+  ],
+  "negativeWallets": 0,
+  "legacyWorkerCannotClaim": true,
+  "updatedNormalClipperCapabilityCanClaim": true,
+  "gpuRequired": false,
+  "analyzerRequired": false,
+  "reservation": 1,
+  "release": 1
+}

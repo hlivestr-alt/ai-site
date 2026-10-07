@@ -1,0 +1,355 @@
+{
+  "status": "PASS",
+  "unit": {
+    "command": "npm run test:unit",
+    "passed": 91,
+    "failed": 0,
+    "skipped": 0
+  },
+  "worker": {
+    "command": "python -m unittest discover -s tests -v",
+    "passed": 82,
+    "failed": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "variations",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 7,
+        "bucket": "deleted",
+        "objectsDeleted": 140,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "A/D: real visual variation reuses analysis, preserves original bytes and settles once on replay",
+        "B/C: independent variations and editing an existing variation preserve root and parent lineage",
+        "E: definite variation failure and cancellation each release exactly once",
+        "G/H: shared brand wallet spends 100 but direct content, artifact, variation, job and media IDs stay isolated",
+        "I: concurrent same-root requests allocate unique labels and actual workers publish distinct artifacts",
+        "validation and immutable database guards reject invalid edits before reservation",
+        "archiving a variation preserves its parent and children and retained artifacts"
+      ]
+    },
+    {
+      "suite": "restart-variation",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 5,
+        "bucket": "deleted",
+        "objectsDeleted": 100,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "variation worker process loss at RENDERING_VARIATION recovers under the same reservation",
+        "variation worker process loss at DURING_FFMPEG recovers under the same reservation",
+        "variation worker process loss at UPLOADING_VARIATION recovers under the same reservation",
+        "variation worker process loss at UPLOAD_FINALIZE recovers under the same reservation",
+        "variation retries stop at three lost attempts and release once"
+      ]
+    },
+    {
+      "suite": "editor",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 2,
+        "bucket": "deleted",
+        "objectsDeleted": 36,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "J: chrome editor in desktop/tablet/mobile and light/dark renders a customer variation",
+        "J: msedge editor in desktop/tablet/mobile and light/dark renders a customer variation"
+      ]
+    },
+    {
+      "suite": "integration",
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 58,
+        "bucket": "deleted",
+        "objectsDeleted": 194,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "AI Video durable provider path, failures and workspace isolation",
+        "ambiguous payment creation is held and never recreated; authoritative recovery and late paid event",
+        "ledger cursors preserve tied timestamps; reconciliation reports drift without rewriting projection",
+        "Clipper sealed multi-output job captures one quote; publication/poster/review/variant/download/archive are free",
+        "zero wallets, verified purchases, concurrent callbacks, rollback and provider reconciliation",
+        "quotes bind inputs and versions; two-device spending, ten replays, transactional rollback",
+        "paid fake success/failure/retries/unknown outcomes settle once; token refunds and late success quarantine",
+        "workspace isolation and explicit account billing permissions",
+        "Clipper source, duplicate submit, private artifacts, multi-output completion and workspace isolation",
+        "multipart upload resumes individual parts and finalized source is immutable",
+        "two Clipper workers obey per-worker GPU capacity, cancellation, retry and fencing",
+        "Content publication, frozen references, Chrome review, isolation, retention and variants",
+        "non-successful jobs never publish content",
+        "replacement versions require their own approval and unsafe lineage cannot enter Content",
+        "identity, workspaces, roles, invitations, isolation, recovery and audit",
+        "durable fixture jobs, idempotency, claims, fencing and isolation",
+        "Product snapshots stay frozen and worker media/output access follows the current lease",
+        "worker rotation, drain, cancellation and bounded retry",
+        "workspace-owned product versions and private media stay isolated",
+        "WaveSpeed Clipper freezes its model and requires a matching configured private worker",
+        "WaveSpeed existing-output recovery: success, original identity, private MP4 and idempotent Content",
+        "WaveSpeed existing-output recovery: transient, original identity, private MP4 and idempotent Content",
+        "WaveSpeed durable execution: one ambiguous submit, bounded GET recovery, verified private MP4 ingest and immutable Content",
+        "AI workflow: four paid children, frozen versions, mixed review, lineage and zero parent charge",
+        "low funds, expired quote refresh, price change and budget increase retain the same child intent",
+        "wallet funding automatically resumes a blocked run without a customer Resume action",
+        "a refunded successful child keeps consuming the v1 ceiling and is never automatically rerun",
+        "pause lets admitted children finish, creates no new children, then resumes remaining children once",
+        "cancel preserves completed captures, uses child cancellation for running work and never admits the rest",
+        "partial failures release child tokens and successful siblings reach review; all failed skips review",
+        "all rejected fails without a generation refund",
+        "review binds exact versions and a replacement version cannot inherit an old approval",
+        "two concurrent reconcilers and crashes at both admission boundaries create one job and reservation",
+        "Clipper workflow uses one paid child, survives a lost worker lease and reviews two deterministic clips",
+        "workspace substitution is denied, Viewer is read-only and composite lineage constraints reject foreign jobs"
+      ]
+    },
+    {
+      "suite": "browser",
+      "passed": 41,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 72,
+        "bucket": "deleted",
+        "objectsDeleted": 222,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "customer creates a video, closes the page, and returns to a private result",
+        "Chrome purchase, quote, paid job, close/reopen, capture, Content, failed job release and isolation",
+        "browser closure leaves ten fixture jobs running in the private agent",
+        "customer registration to shared workspace, role controls and sign-out",
+        "real product wizard, private references, versions and tenant-limited viewing",
+        "customer saves a recipe, closes the browser, returns to review four outputs and sees real final results",
+        "AI Video durable provider path, failures and workspace isolation",
+        "ambiguous payment creation is held and never recreated; authoritative recovery and late paid event",
+        "ledger cursors preserve tied timestamps; reconciliation reports drift without rewriting projection",
+        "Clipper sealed multi-output job captures one quote; publication/poster/review/variant/download/archive are free",
+        "zero wallets, verified purchases, concurrent callbacks, rollback and provider reconciliation",
+        "quotes bind inputs and versions; two-device spending, ten replays, transactional rollback",
+        "paid fake success/failure/retries/unknown outcomes settle once; token refunds and late success quarantine",
+        "workspace isolation and explicit account billing permissions",
+        "Clipper source, duplicate submit, private artifacts, multi-output completion and workspace isolation",
+        "multipart upload resumes individual parts and finalized source is immutable",
+        "two Clipper workers obey per-worker GPU capacity, cancellation, retry and fencing",
+        "Content publication, frozen references, Chrome review, isolation, retention and variants",
+        "non-successful jobs never publish content",
+        "replacement versions require their own approval and unsafe lineage cannot enter Content",
+        "identity, workspaces, roles, invitations, isolation, recovery and audit",
+        "durable fixture jobs, idempotency, claims, fencing and isolation",
+        "Product snapshots stay frozen and worker media/output access follows the current lease",
+        "worker rotation, drain, cancellation and bounded retry",
+        "workspace-owned product versions and private media stay isolated",
+        "WaveSpeed Clipper freezes its model and requires a matching configured private worker",
+        "WaveSpeed existing-output recovery: success, original identity, private MP4 and idempotent Content",
+        "WaveSpeed existing-output recovery: transient, original identity, private MP4 and idempotent Content",
+        "WaveSpeed durable execution: one ambiguous submit, bounded GET recovery, verified private MP4 ingest and immutable Content",
+        "AI workflow: four paid children, frozen versions, mixed review, lineage and zero parent charge",
+        "low funds, expired quote refresh, price change and budget increase retain the same child intent",
+        "wallet funding automatically resumes a blocked run without a customer Resume action",
+        "a refunded successful child keeps consuming the v1 ceiling and is never automatically rerun",
+        "pause lets admitted children finish, creates no new children, then resumes remaining children once",
+        "cancel preserves completed captures, uses child cancellation for running work and never admits the rest",
+        "partial failures release child tokens and successful siblings reach review; all failed skips review",
+        "all rejected fails without a generation refund",
+        "review binds exact versions and a replacement version cannot inherit an old approval",
+        "two concurrent reconcilers and crashes at both admission boundaries create one job and reservation",
+        "Clipper workflow uses one paid child, survives a lost worker lease and reviews two deterministic clips",
+        "workspace substitution is denied, Viewer is read-only and composite lineage constraints reject foreign jobs"
+      ]
+    },
+    {
+      "suite": "shared",
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 17,
+        "bucket": "deleted",
+        "objectsDeleted": 56,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "A: 10000 shared Tokens become 9440 after AI and 8840 after Clipper",
+        "B: concurrent 700 admissions across brands serialize on the 1000 account wallet",
+        "C: definite Clipper failure releases 600 once into the shared account",
+        "D: lost worker lease retries under the original shared-account reservation",
+        "E: separate account 5000/800 switches and foreign quote/payment/ledger IDs are isolated",
+        "F: fake verified payment from Brand B credits the account exactly once",
+        "G: explicit account refunds and adjustments are audited and idempotent",
+        "H: new brand attaches to one existing wallet without funds or ledger duplication",
+        "I: workspace admins spend but cannot manage billing or inspect sibling data; explicit manager grants only billing",
+        "account reconciliation matches all workspace reservations and ledger sums",
+        "concurrent initial onboarding creates one zero-funded account and wallet atomically",
+        "chrome: shared billing, repeated switching, new brand, separate account and both quote refresh states",
+        "msedge: shared billing, repeated switching, new brand, separate account and both quote refresh states"
+      ]
+    },
+    {
+      "suite": "focused",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 2,
+        "bucket": "deleted",
+        "objectsDeleted": 18,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "media finalization locks preserve a single-connection query pool and release after failure",
+        "20 corrupt Product/source media cannot become usable or reserve tokens; valid controls and failed retention",
+        "21 scoped signatures reject public-identifier forgery, tampering, expiry and listing",
+        "25 synthetic worker diagnostics and legacy rows produce only catalog messages",
+        "23/26/27 chrome critical navigation, media, downloads and clean console",
+        "23/26/27 msedge critical navigation, media, downloads and clean console"
+      ]
+    },
+    {
+      "suite": "restart",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 2,
+        "bucket": "deleted",
+        "objectsDeleted": 88,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "worker process loss at DOWNLOADING_SOURCE creates a new attempt and completes once",
+        "worker process loss at TRANSCRIBING creates a new attempt and completes once",
+        "worker process loss at ANALYZING_TRANSCRIPT creates a new attempt and completes once",
+        "worker process loss at RENDERING creates a new attempt and completes once",
+        "worker process loss at UPLOADING_RESULTS creates a new attempt and completes once",
+        "worker process loss at FINALIZING creates a new attempt and completes once",
+        "lost leases stop at maxAttempts and release tokens once; interrupted child is retryable"
+      ]
+    },
+    {
+      "suite": "phase-b",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 12,
+        "bucket": "deleted",
+        "objectsDeleted": 39,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "atomic signup, encrypted queue, pending retries, active response and single-use verification",
+        "chrome: customer creates workspace and switches A → B → A → B without reload",
+        "msedge: customer creates workspace and switches A → B → A → B without reload",
+        "automatic replacement, cover selection, immutable frozen jobs, archive and restore",
+        "chrome: eight cards, real transfer progress, simultaneous uploads, retry, cover and restore",
+        "msedge: eight cards, real transfer progress, simultaneous uploads, retry, cover and restore",
+        "AI Videos reopens latest canonical active job across navigation, refresh, new tabs and workspaces",
+        "insufficient AI and Clipper Tokens disable actions, refresh enables, stale quote rejected on server"
+      ]
+    },
+    {
+      "suite": "isolation",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cleanup": {
+        "mailFiles": 3,
+        "bucket": "deleted",
+        "objectsDeleted": 47,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "tests": [
+        "lost response and browser refresh replay one variation; a confirmed draft can start a new intent",
+        "G/H: shared brand wallet spends 100 but direct content, artifact, variation, job and media IDs stay isolated",
+        "worker gate and underfunded concurrent variations keep account accounting exact"
+      ]
+    }
+  ],
+  "successfulExecutions": 300,
+  "distinctCasesByTitle": 264,
+  "overlappingExecutions": 36,
+  "overlapNote": "Integration is included in the full browser suite; one focused contract is also run in another regression suite.",
+  "editorMatrix": {
+    "browsers": [
+      "chrome",
+      "msedge"
+    ],
+    "viewports": [
+      "1440x1000",
+      "768x1024",
+      "390x844"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "cells": 12
+  },
+  "remainingOwnedResources": {
+    "databases": 0,
+    "buckets": 0,
+    "gateways": 0
+  },
+  "gates": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "schemaMigration": "PASS",
+    "liveMigration": "PASS",
+    "preservation": "PASS",
+    "remotePublicHTTPS": "PASS",
+    "secrets": "PASS"
+  },
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  }
+}

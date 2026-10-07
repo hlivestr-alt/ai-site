@@ -1,0 +1,50 @@
+{
+  "runId": "1791346867192_ac2f13",
+  "suite": "isolation",
+  "database": "phase_d_1791346867192_ac2f13",
+  "bucket": "phase-d-1791346867192-ac2f13",
+  "gateway": "phase-d-gateway-1791346867192-ac2f13",
+  "commands": [
+    {
+      "command": "migrations",
+      "exitCode": 0,
+      "seconds": 1
+    },
+    {
+      "command": "focused tests (isolation)",
+      "exitCode": 0,
+      "seconds": 113
+    }
+  ],
+  "cleanup": {
+    "mailFiles": 3,
+    "bucket": "deleted",
+    "objectsDeleted": 47,
+    "gateway": "deleted",
+    "database": "deleted",
+    "generatedTsconfigChanges": "restored"
+  },
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  },
+  "fixtureCounts": {
+    "clipper_variations": 4,
+    "users": 3,
+    "workspaces": 4,
+    "products": 0,
+    "asset_versions": 0,
+    "source_assets": 3,
+    "jobs": 7,
+    "job_attempts": 7,
+    "job_artifacts": 18,
+    "clipper_checkpoints": 18,
+    "content_items": 8,
+    "token_ledger_entries": 17,
+    "billing_accounts": 3,
+    "billing_account_wallets": 3
+  },
+  "exitCode": 0
+}
