@@ -1,0 +1,46 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 5,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 310692.95900000003
+  },
+  "tests": [
+    {
+      "title": "variation worker process loss at RENDERING_VARIATION recovers under the same reservation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 79465,
+      "retry": 0
+    },
+    {
+      "title": "variation worker process loss at DURING_FFMPEG recovers under the same reservation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 70230,
+      "retry": 0
+    },
+    {
+      "title": "variation worker process loss at UPLOADING_VARIATION recovers under the same reservation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 72107,
+      "retry": 0
+    },
+    {
+      "title": "variation worker process loss at UPLOAD_FINALIZE recovers under the same reservation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 75461,
+      "retry": 0
+    },
+    {
+      "title": "variation retries stop at three lost attempts and release once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 10956,
+      "retry": 0
+    }
+  ]
+}

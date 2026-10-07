@@ -1,0 +1,65 @@
+{
+  "runId": "1791369906564_7373d1",
+  "status": "PASS",
+  "checks": [
+    {
+      "kind": "product",
+      "case": "ftyp-only",
+      "status": 422
+    },
+    {
+      "kind": "product",
+      "case": "renamed-text",
+      "status": 422
+    },
+    {
+      "kind": "product",
+      "case": "broken-png",
+      "status": 422
+    },
+    {
+      "kind": "product",
+      "case": "mime-mismatch",
+      "status": 422
+    },
+    {
+      "kind": "product",
+      "case": "zero-video",
+      "status": 413
+    },
+    {
+      "kind": "product",
+      "case": "unsupported",
+      "status": 415
+    },
+    {
+      "kind": "product",
+      "case": "advertised-oversize",
+      "status": 413
+    },
+    {
+      "kind": "source",
+      "case": "ftyp-only",
+      "status": 422
+    },
+    {
+      "kind": "source",
+      "case": "renamed-text",
+      "status": 422
+    },
+    {
+      "kind": "source",
+      "case": "zero-video",
+      "status": 413
+    }
+  ],
+  "legacyAdmissionRejected": true,
+  "walletUnchanged": true,
+  "providerAndWorkerCountsUnchanged": true,
+  "retention": {
+    "dryRunPreservedObjects": true,
+    "failedObjectsRemoved": 6,
+    "readyReferencePreserved": true,
+    "validSourcePreserved": true
+  }
+}

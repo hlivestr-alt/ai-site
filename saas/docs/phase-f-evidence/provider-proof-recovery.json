@@ -1,0 +1,12 @@
+{
+  "runId": "1791370771743_45e889",
+  "status": "PASS",
+  "durableAcceptedMessageEvidence": true,
+  "reconciliations": [
+    1,
+    0
+  ],
+  "simulatedMessageCalls": 1,
+  "capturedTokens": 10,
+  "automaticCertification": false
+}

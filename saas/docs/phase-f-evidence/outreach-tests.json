@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 13,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 63405.331000000006
+  },
+  "tests": [
+    {
+      "title": "A/B: one-click frozen TEST campaign and concurrent replay make one campaign, snapshot, reservation and send per recipient",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 8368,
+      "retry": 0
+    },
+    {
+      "title": "C/L: mixed outcomes keep exact counts, hold unknown Tokens, refuse arbitrary resolution and reconcile provider proof once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7043,
+      "retry": 0
+    },
+    {
+      "title": "L: unresolved provider status retains reservation and exclusion until confirmed NOT_SENT evidence permits one safe retry",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2790,
+      "retry": 0
+    },
+    {
+      "title": "D: pause stops new dispatch, resume continues frozen remaining recipients without duplicates",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 6152,
+      "retry": 0
+    },
+    {
+      "title": "E: cancel before dispatch releases all; partial cancellation charges only confirmed sends",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 1907,
+      "retry": 0
+    },
+    {
+      "title": "retry/pacing: only definitive temporary failures retry, attempts are bounded and never reserve twice",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 8061,
+      "retry": 0
+    },
+    {
+      "title": "G/H/I: shared wallet never shares channels, campaign/message/delivery/attempt/audit IDs or control permissions",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 12997,
+      "retry": 0
+    },
+    {
+      "title": "J/concurrency: insufficient/stale quotes and parallel campaigns cannot overspend the shared account",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 1377,
+      "retry": 0
+    },
+    {
+      "title": "K/freeze: cooldown, do-not-contact and active reservations apply; frozen recipient/message survive directory changes",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3132,
+      "retry": 0
+    },
+    {
+      "title": "permissions/validation: editor/viewer cannot send/manage channels, invalid configuration never reserves, disconnected sender denies admission",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 1418,
+      "retry": 0
+    },
+    {
+      "title": "database safety: terminal shortcuts, blind unknown retry, sender reassignment and changed operation settings are rejected",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 1626,
+      "retry": 0
+    },
+    {
+      "title": "Dispatch authorization: recheck do-not-contact after freeze, honor provider rate-limit delay and reconcile an inactive channel without sending",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4618,
+      "retry": 0
+    },
+    {
+      "title": "Frozen set: no later recipient/intent can be appended to an admitted campaign",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 1222,
+      "retry": 0
+    }
+  ]
+}

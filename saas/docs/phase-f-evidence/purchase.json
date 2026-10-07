@@ -1,0 +1,11 @@
+{
+  "runId": "1791368662949_be0663",
+  "status": "PASS",
+  "provider": "fake",
+  "initiatingBrand": "B",
+  "purchasedTokens": 10000,
+  "verifiedEvents": 3,
+  "purchases": 1,
+  "bothBrandsSameBalance": true,
+  "realCharges": 0
+}

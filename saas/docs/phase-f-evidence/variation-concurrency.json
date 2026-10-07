@@ -1,0 +1,15 @@
+{
+  "runId": "1791368742323_11a0f9",
+  "status": "PASS",
+  "simultaneousAdmissions": 2,
+  "realWorkers": 2,
+  "labels": [
+    1,
+    2
+  ],
+  "distinctArtifactKeys": true,
+  "distinctOutputChecksums": true,
+  "separateWorkerDirectories": true,
+  "oneReservationAndCapturePerJob": true,
+  "originalUnchanged": true
+}

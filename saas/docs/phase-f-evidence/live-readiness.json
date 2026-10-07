@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "readOnly": true,
+  "providerConfiguration": {
+    "fixture": false,
+    "configured": false,
+    "realSending": false,
+    "bulkSending": false
+  },
+  "migrationPresent": true,
+  "outreachTables": 22,
+  "outreachRecords": 0,
+  "wallet": {
+    "available": "3880",
+    "reserved": "1200"
+  },
+  "realSaaSOutreachMessages": 0
+}

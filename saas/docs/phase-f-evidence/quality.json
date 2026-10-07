@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "saasUnit": 118,
+  "workerUnit": 82,
+  "lint": "PASS",
+  "typecheck": "PASS",
+  "productionBuild": "PASS",
+  "productionRouteTypegen": "PASS",
+  "migrationApplied": true,
+  "promotedBuildTypeCorrection": "Regenerated ignored route types with next typegen after moving the staged build to .next; no application source change",
+  "remoteChrome": "PASS",
+  "remoteEdge": "PASS",
+  "realProviderCertification": "BLOCKED_NO_DEDICATED_APP",
+  "realCanary": "NOT_READY_NOT_RUN",
+  "realMessages": 0,
+  "realPaidCalls": 0
+}

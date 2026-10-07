@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 3,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 112139.511
+  },
+  "tests": [
+    {
+      "title": "lost response and browser refresh replay one variation; a confirmed draft can start a new intent",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 57515,
+      "retry": 0
+    },
+    {
+      "title": "G/H: shared brand wallet spends 100 but direct content, artifact, variation, job and media IDs stay isolated",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 46786,
+      "retry": 0
+    },
+    {
+      "title": "worker gate and underfunded concurrent variations keep account accounting exact",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5204,
+      "retry": 0
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 7,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 504096.47400000005
+  },
+  "tests": [
+    {
+      "title": "worker process loss at DOWNLOADING_SOURCE creates a new attempt and completes once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 72281,
+      "retry": 0
+    },
+    {
+      "title": "worker process loss at TRANSCRIBING creates a new attempt and completes once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 70688,
+      "retry": 0
+    },
+    {
+      "title": "worker process loss at ANALYZING_TRANSCRIPT creates a new attempt and completes once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 77680,
+      "retry": 0
+    },
+    {
+      "title": "worker process loss at RENDERING creates a new attempt and completes once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 83936,
+      "retry": 0
+    },
+    {
+      "title": "worker process loss at UPLOADING_RESULTS creates a new attempt and completes once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 87858,
+      "retry": 0
+    },
+    {
+      "title": "worker process loss at FINALIZING creates a new attempt and completes once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 99028,
+      "retry": 0
+    },
+    {
+      "title": "lost leases stop at maxAttempts and release tokens once; interrupted child is retryable",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 10040,
+      "retry": 0
+    }
+  ]
+}

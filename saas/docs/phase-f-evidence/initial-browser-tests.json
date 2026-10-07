@@ -1,0 +1,53 @@
+{
+  "status": "failed",
+  "stats": {
+    "expected": 5,
+    "unexpected": 1,
+    "skipped": 0,
+    "duration": 200806.622
+  },
+  "tests": [
+    {
+      "title": "customer creates a video, closes the page, and returns to a private result",
+      "status": "failed",
+      "expectedStatus": "passed",
+      "duration": 2713,
+      "retry": 0
+    },
+    {
+      "title": "Chrome purchase, quote, paid job, close/reopen, capture, Content, failed job release and isolation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 27253,
+      "retry": 0
+    },
+    {
+      "title": "browser closure leaves ten fixture jobs running in the private agent",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 115696,
+      "retry": 0
+    },
+    {
+      "title": "customer registration to shared workspace, role controls and sign-out",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 10514,
+      "retry": 0
+    },
+    {
+      "title": "real product wizard, private references, versions and tenant-limited viewing",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 13835,
+      "retry": 0
+    },
+    {
+      "title": "customer saves a recipe, closes the browser, returns to review four outputs and sees real final results",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 26326,
+      "retry": 0
+    }
+  ]
+}

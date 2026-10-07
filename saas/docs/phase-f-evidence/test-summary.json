@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "suites": {
+    "integration": 35,
+    "browser": 41,
+    "shared": 13,
+    "variations": 8,
+    "restart-variation": 5,
+    "editor": 2,
+    "isolation": 3,
+    "focused": 6,
+    "restart": 7,
+    "phase-b": 8,
+    "outreach": 13,
+    "outreach-restart": 6,
+    "outreach-browser": 5,
+    "provider": 22,
+    "provider-browser": 2,
+    "canary-browser": 2
+  },
+  "saasUnit": 118,
+  "workerUnit": 82,
+  "earlierExecutions": {
+    "initial-provider": {
+      "executions": 18,
+      "passed": 7,
+      "failed": 11
+    },
+    "second-provider": {
+      "executions": 18,
+      "passed": 15,
+      "failed": 3
+    },
+    "initial-browser": {
+      "executions": 6,
+      "passed": 5,
+      "failed": 1
+    },
+    "initial-focused": {
+      "executions": 6,
+      "passed": 5,
+      "failed": 1
+    },
+    "preliminaryProvider": {
+      "executions": 18,
+      "passed": 18,
+      "failed": 0
+    }
+  },
+  "finalAcceptanceExecutionTotal": 378,
+  "allRecordedExecutions": 444,
+  "distinctTotal": 341,
+  "distinctMethod": "unit cases plus unique Playwright scenario titles",
+  "duplicateExecutions": 37,
+  "allRetries": 0,
+  "allSkipped": 0,
+  "ownedFixturesRemoved": true,
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  }
+}

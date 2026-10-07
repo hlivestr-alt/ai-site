@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 13,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 76587.621
+  },
+  "tests": [
+    {
+      "title": "A: 10000 shared Tokens become 9440 after AI and 8840 after Clipper",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 14968,
+      "retry": 0
+    },
+    {
+      "title": "B: concurrent 700 admissions across brands serialize on the 1000 account wallet",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3071,
+      "retry": 0
+    },
+    {
+      "title": "C: definite Clipper failure releases 600 once into the shared account",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4404,
+      "retry": 0
+    },
+    {
+      "title": "D: lost worker lease retries under the original shared-account reservation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5598,
+      "retry": 0
+    },
+    {
+      "title": "E: separate account 5000/800 switches and foreign quote/payment/ledger IDs are isolated",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4773,
+      "retry": 0
+    },
+    {
+      "title": "F: fake verified payment from Brand B credits the account exactly once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2283,
+      "retry": 0
+    },
+    {
+      "title": "G: explicit account refunds and adjustments are audited and idempotent",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4850,
+      "retry": 0
+    },
+    {
+      "title": "H: new brand attaches to one existing wallet without funds or ledger duplication",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 1277,
+      "retry": 0
+    },
+    {
+      "title": "I: workspace admins spend but cannot manage billing or inspect sibling data; explicit manager grants only billing",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 8315,
+      "retry": 0
+    },
+    {
+      "title": "account reconciliation matches all workspace reservations and ledger sums",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2471,
+      "retry": 0
+    },
+    {
+      "title": "concurrent initial onboarding creates one zero-funded account and wallet atomically",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 1223,
+      "retry": 0
+    },
+    {
+      "title": "chrome: shared billing, repeated switching, new brand, separate account and both quote refresh states",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 10279,
+      "retry": 0
+    },
+    {
+      "title": "msedge: shared billing, repeated switching, new brand, separate account and both quote refresh states",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 10330,
+      "retry": 0
+    }
+  ]
+}

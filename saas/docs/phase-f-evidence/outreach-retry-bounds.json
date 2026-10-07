@@ -1,0 +1,9 @@
+{
+  "runId": "1791370535261_2b72b0",
+  "status": "PASS",
+  "temporaryAttempts": 2,
+  "boundedFailureAttempts": 3,
+  "singleReservation": true,
+  "pacingMs": 1000,
+  "noRealSends": true
+}

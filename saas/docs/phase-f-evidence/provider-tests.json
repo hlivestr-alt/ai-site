@@ -1,0 +1,165 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 22,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 133808.54
+  },
+  "tests": [
+    {
+      "title": "A/B: owned fake-real connection, authenticated encryption and secret-free browser metadata",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4247,
+      "retry": 0
+    },
+    {
+      "title": "C: EXPIRED stops dispatch and requires reauthorization without another account",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3849,
+      "retry": 0
+    },
+    {
+      "title": "C: REVOKED stops dispatch and requires reauthorization without another account",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3758,
+      "retry": 0
+    },
+    {
+      "title": "C: UNAUTHORIZED stops dispatch and requires reauthorization without another account",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3721,
+      "retry": 0
+    },
+    {
+      "title": "C: expired local metadata and missing scope never authorize new work",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4701,
+      "retry": 0
+    },
+    {
+      "title": "D: verified credential replacement retires metadata atomically; uncertain refresh requires reconnect",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5737,
+      "retry": 0
+    },
+    {
+      "title": "E: external identity is unique across Workspaces; internal-account exclusion fails closed",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7499,
+      "retry": 0
+    },
+    {
+      "title": "F: callback ownership, state freshness, supersession and replay are enforced",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7829,
+      "retry": 0
+    },
+    {
+      "title": "G: full Retry-After stops claims and does not clip a one-hour provider limit",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7042,
+      "retry": 0
+    },
+    {
+      "title": "G: temporary pre-send rate failure resumes through the same bounded attempt/outbox path",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7949,
+      "retry": 0
+    },
+    {
+      "title": "H/J: ambiguous dispatch holds reservation and exclusion across disconnect; reconciliation cannot guess",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7705,
+      "retry": 0
+    },
+    {
+      "title": "H/proof: accepted proof survives lost completion and resolves once without another send",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 11654,
+      "retry": 0
+    },
+    {
+      "title": "I/J: disconnect preserves completed history and stops queued or already claimed unsent work",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5352,
+      "retry": 0
+    },
+    {
+      "title": "K: controlled exact provider recipient is scoped and native/synthetic records cannot enter real targeting",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4475,
+      "retry": 0
+    },
+    {
+      "title": "L/N: foreign connection/campaign/recipient/delivery/control IDs remain private across billing accounts",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 8207,
+      "retry": 0
+    },
+    {
+      "title": "M: confirmed fake-real send uses shared account wallet without sharing owned sender",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7337,
+      "retry": 0
+    },
+    {
+      "title": "O: default gate, operator approval, exact config and one-message allowance all fail closed",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 6524,
+      "retry": 0
+    },
+    {
+      "title": "proof/accounting: real SENT without accepted evidence is rejected; definite restrictions release all Tokens",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5462,
+      "retry": 0
+    },
+    {
+      "title": "O/authority: revoked approver and global Outreach disable prevent provider calls",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5894,
+      "retry": 0
+    },
+    {
+      "title": "F/selection: multiple authorized shops require one owned selection and cannot replay",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2761,
+      "retry": 0
+    },
+    {
+      "title": "D/key: refresh activates a new key version while the previous envelope remains immutable",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4768,
+      "retry": 0
+    },
+    {
+      "title": "J/claimed: disconnect before provider execution releases only definitely unsent work",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4427,
+      "retry": 0
+    }
+  ]
+}

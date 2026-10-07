@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 2,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 42785.979
+  },
+  "tests": [
+    {
+      "title": "chrome: connection/reauth/disconnect/TEST/readiness/default-off states fit all three viewports",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 21241,
+      "retry": 0
+    },
+    {
+      "title": "msedge: connection/reauth/disconnect/TEST/readiness/default-off states fit all three viewports",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 18935,
+      "retry": 0
+    }
+  ]
+}

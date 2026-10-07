@@ -1,0 +1,256 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 35,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 352853.908
+  },
+  "tests": [
+    {
+      "title": "AI Video durable provider path, failures and workspace isolation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 62335,
+      "retry": 0
+    },
+    {
+      "title": "ambiguous payment creation is held and never recreated; authoritative recovery and late paid event",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4355,
+      "retry": 0
+    },
+    {
+      "title": "ledger cursors preserve tied timestamps; reconciliation reports drift without rewriting projection",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2022,
+      "retry": 0
+    },
+    {
+      "title": "Clipper sealed multi-output job captures one quote; publication/poster/review/variant/download/archive are free",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 13397,
+      "retry": 0
+    },
+    {
+      "title": "zero wallets, verified purchases, concurrent callbacks, rollback and provider reconciliation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3178,
+      "retry": 0
+    },
+    {
+      "title": "quotes bind inputs and versions; two-device spending, ten replays, transactional rollback",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3555,
+      "retry": 0
+    },
+    {
+      "title": "paid fake success/failure/retries/unknown outcomes settle once; token refunds and late success quarantine",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 13293,
+      "retry": 0
+    },
+    {
+      "title": "workspace isolation and explicit account billing permissions",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3796,
+      "retry": 0
+    },
+    {
+      "title": "Clipper source, duplicate submit, private artifacts, multi-output completion and workspace isolation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 9609,
+      "retry": 0
+    },
+    {
+      "title": "multipart upload resumes individual parts and finalized source is immutable",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3620,
+      "retry": 0
+    },
+    {
+      "title": "two Clipper workers obey per-worker GPU capacity, cancellation, retry and fencing",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 6983,
+      "retry": 0
+    },
+    {
+      "title": "Content publication, frozen references, Chrome review, isolation, retention and variants",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 25176,
+      "retry": 0
+    },
+    {
+      "title": "non-successful jobs never publish content",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2102,
+      "retry": 0
+    },
+    {
+      "title": "replacement versions require their own approval and unsafe lineage cannot enter Content",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 24059,
+      "retry": 0
+    },
+    {
+      "title": "identity, workspaces, roles, invitations, isolation, recovery and audit",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 12723,
+      "retry": 0
+    },
+    {
+      "title": "durable fixture jobs, idempotency, claims, fencing and isolation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 6908,
+      "retry": 0
+    },
+    {
+      "title": "Product snapshots stay frozen and worker media/output access follows the current lease",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2767,
+      "retry": 0
+    },
+    {
+      "title": "worker rotation, drain, cancellation and bounded retry",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7042,
+      "retry": 0
+    },
+    {
+      "title": "workspace-owned product versions and private media stay isolated",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 10940,
+      "retry": 0
+    },
+    {
+      "title": "WaveSpeed Clipper freezes its model and requires a matching configured private worker",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2060,
+      "retry": 0
+    },
+    {
+      "title": "WaveSpeed existing-output recovery: success, original identity, private MP4 and idempotent Content",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 1949,
+      "retry": 0
+    },
+    {
+      "title": "WaveSpeed existing-output recovery: transient, original identity, private MP4 and idempotent Content",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2022,
+      "retry": 0
+    },
+    {
+      "title": "WaveSpeed durable execution: one ambiguous submit, bounded GET recovery, verified private MP4 ingest and immutable Content",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4093,
+      "retry": 0
+    },
+    {
+      "title": "AI workflow: four paid children, frozen versions, mixed review, lineage and zero parent charge",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 19946,
+      "retry": 0
+    },
+    {
+      "title": "low funds, expired quote refresh, price change and budget increase retain the same child intent",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3818,
+      "retry": 0
+    },
+    {
+      "title": "wallet funding automatically resumes a blocked run without a customer Resume action",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2438,
+      "retry": 0
+    },
+    {
+      "title": "a refunded successful child keeps consuming the v1 ceiling and is never automatically rerun",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 9177,
+      "retry": 0
+    },
+    {
+      "title": "pause lets admitted children finish, creates no new children, then resumes remaining children once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 10430,
+      "retry": 0
+    },
+    {
+      "title": "cancel preserves completed captures, uses child cancellation for running work and never admits the rest",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 14662,
+      "retry": 0
+    },
+    {
+      "title": "partial failures release child tokens and successful siblings reach review; all failed skips review",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 11652,
+      "retry": 0
+    },
+    {
+      "title": "all rejected fails without a generation refund",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 8537,
+      "retry": 0
+    },
+    {
+      "title": "review binds exact versions and a replacement version cannot inherit an old approval",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 15172,
+      "retry": 0
+    },
+    {
+      "title": "two concurrent reconcilers and crashes at both admission boundaries create one job and reservation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5298,
+      "retry": 0
+    },
+    {
+      "title": "Clipper workflow uses one paid child, survives a lost worker lease and reviews two deterministic clips",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7441,
+      "retry": 0
+    },
+    {
+      "title": "workspace substitution is denied, Viewer is read-only and composite lineage constraints reject foreign jobs",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 12052,
+      "retry": 0
+    }
+  ]
+}

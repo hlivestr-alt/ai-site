@@ -1,0 +1,9 @@
+{
+  "runId": "1791370771743_45e889",
+  "status": "PASS",
+  "source": "CONTROLLED_PROVIDER_RECIPIENT",
+  "exactProviderIdentityRequired": true,
+  "unauthorizedRowExcluded": true,
+  "nativeDirectory": "NOT CERTIFIED",
+  "nativeRecordsImported": 0
+}

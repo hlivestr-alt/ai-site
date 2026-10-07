@@ -1,0 +1,14 @@
+{
+  "runId": "1791368662949_be0663",
+  "status": "PASS",
+  "accountBalances": [
+    5000,
+    800
+  ],
+  "sameAccountSwitchUnchanged": true,
+  "crossAccountSwitchCorrect": true,
+  "foreignQuote": 404,
+  "foreignBilling": 404,
+  "immutableWorkspaceAccount": true,
+  "foreignQuoteAccountRejected": true
+}

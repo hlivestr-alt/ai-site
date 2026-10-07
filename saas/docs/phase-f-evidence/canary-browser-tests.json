@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 2,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 20314.603000000003
+  },
+  "tests": [
+    {
+      "title": "chrome: only exact approved fake-real canary enables one-click Send Campaign",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 10068,
+      "retry": 0
+    },
+    {
+      "title": "msedge: only exact approved fake-real canary enables one-click Send Campaign",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7635,
+      "retry": 0
+    }
+  ]
+}

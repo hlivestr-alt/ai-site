@@ -1,0 +1,12 @@
+{
+  "runId": "1791370535261_2b72b0",
+  "status": "PASS",
+  "campaigns": 1,
+  "versions": 1,
+  "recipients": 4,
+  "deliveries": 4,
+  "simulatedSends": 4,
+  "RESERVE": 1,
+  "CAPTURE": 1,
+  "realSends": 0
+}

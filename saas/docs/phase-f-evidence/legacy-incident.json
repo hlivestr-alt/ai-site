@@ -1,0 +1,28 @@
+{
+  "incident": "LEGACY_DATABASE_CONNECTION_STRING",
+  "identifiedWithConfidence": true,
+  "sourceConfiguration": "Old AI Site Outreach database connection",
+  "credentialStillActive": true,
+  "matchedNativeConfigurations": [
+    {
+      "configuration": "native private environment",
+      "key": "DATABASE_URL"
+    },
+    {
+      "configuration": "native private environment",
+      "key": "DATABASE_URL"
+    }
+  ],
+  "affectedRunningServices": [
+    "tiktokoutreach-discovery-worker-1",
+    "tiktokoutreach-api-1",
+    "tiktokoutreach-outbound-live-1",
+    "tiktokoutreach-history-worker-1",
+    "tiktokoutreach-postgres-1"
+  ],
+  "rotated": false,
+  "resolved": false,
+  "manualRotationRecommended": true,
+  "secretValuesEmitted": 0,
+  "nativeMutations": 0
+}

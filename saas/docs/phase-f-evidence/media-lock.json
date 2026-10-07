@@ -1,0 +1,8 @@
+{
+  "runId": "1791369906564_7373d1",
+  "status": "PASS",
+  "singleConnectionPool": true,
+  "concurrentSameIdentityRejected": true,
+  "failureReleasesLock": true,
+  "concurrentFinalizationsBounded": true
+}

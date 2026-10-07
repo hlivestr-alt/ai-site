@@ -1,0 +1,67 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 8,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 74187.318
+  },
+  "tests": [
+    {
+      "title": "atomic signup, encrypted queue, pending retries, active response and single-use verification",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 1170,
+      "retry": 0
+    },
+    {
+      "title": "chrome: customer creates workspace and switches A → B → A → B without reload",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 8694,
+      "retry": 0
+    },
+    {
+      "title": "msedge: customer creates workspace and switches A → B → A → B without reload",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5137,
+      "retry": 0
+    },
+    {
+      "title": "automatic replacement, cover selection, immutable frozen jobs, archive and restore",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5895,
+      "retry": 0
+    },
+    {
+      "title": "chrome: eight cards, real transfer progress, simultaneous uploads, retry, cover and restore",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 19523,
+      "retry": 0
+    },
+    {
+      "title": "msedge: eight cards, real transfer progress, simultaneous uploads, retry, cover and restore",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 18185,
+      "retry": 0
+    },
+    {
+      "title": "AI Videos reopens latest canonical active job across navigation, refresh, new tabs and workspaces",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5551,
+      "retry": 0
+    },
+    {
+      "title": "insufficient AI and Clipper Tokens disable actions, refresh enables, stale quote rejected on server",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 6975,
+      "retry": 0
+    }
+  ]
+}

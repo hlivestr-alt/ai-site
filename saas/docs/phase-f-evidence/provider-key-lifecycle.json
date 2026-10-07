@@ -1,0 +1,11 @@
+{
+  "runId": "1791370771743_45e889",
+  "status": "PASS",
+  "keyVersions": [
+    1,
+    2
+  ],
+  "independentCredentialGenerations": true,
+  "historicalEnvelopeRetained": true,
+  "secretValuesEmitted": 0
+}

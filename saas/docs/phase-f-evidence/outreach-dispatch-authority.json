@@ -1,0 +1,9 @@
+{
+  "runId": "1791370535261_2b72b0",
+  "status": "PASS",
+  "eligibilityRecheckedBeforeDispatch": true,
+  "blockedBeforeProviderCall": true,
+  "rateLimitRespected": true,
+  "disconnectedStatusReconciliationReadOnly": true,
+  "realSends": 0
+}

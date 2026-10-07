@@ -1,0 +1,13 @@
+{
+  "runId": "1791368662949_be0663",
+  "status": "PASS",
+  "tokens": 600,
+  "attempts": [
+    "LOST",
+    "SUCCEEDED"
+  ],
+  "reserves": 1,
+  "captures": 1,
+  "available": 9400,
+  "reserved": 0
+}

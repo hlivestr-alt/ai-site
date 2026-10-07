@@ -1,0 +1,13 @@
+{
+  "runId": "1791370635849_283375",
+  "status": "PASS",
+  "intentionalAbortedReply": true,
+  "reloadRecoveredSameCampaign": true,
+  "allCandidatesAlreadyReserved": true,
+  "campaigns": 1,
+  "recipients": 12,
+  "deliveries": 12,
+  "reservations": 1,
+  "insufficientTokensButtonDisabled": true,
+  "realSends": 0
+}

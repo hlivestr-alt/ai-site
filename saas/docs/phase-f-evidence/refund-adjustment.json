@@ -1,0 +1,13 @@
+{
+  "runId": "1791368662949_be0663",
+  "status": "PASS",
+  "refundTokens": 560,
+  "refunds": 1,
+  "replayIdempotent": true,
+  "secondRefundRejected": true,
+  "explicitWrongAccountRejected": true,
+  "crossBrandSupportKeyRejected": true,
+  "adjustment": -40,
+  "available": 9960,
+  "operatorReasonAndBothIdentitiesAudited": true
+}

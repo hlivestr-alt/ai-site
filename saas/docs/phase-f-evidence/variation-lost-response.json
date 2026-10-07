@@ -1,0 +1,14 @@
+{
+  "runId": "1791369559750_a1bbe6",
+  "status": "PASS",
+  "realBrowser": "chrome",
+  "responseAbortedAfterCommittedAdmission": true,
+  "refreshKeepsIdempotencyIdentity": true,
+  "jobsForOriginalIntent": 1,
+  "rendersForOriginalIntent": 1,
+  "reservesForOriginalIntent": 1,
+  "capturesForOriginalIntent": 1,
+  "knownDraftLinksToSavedJob": true,
+  "explicitAnotherIntentUsesNewKey": true,
+  "genericJobLinkRestoresClipperPage": true
+}

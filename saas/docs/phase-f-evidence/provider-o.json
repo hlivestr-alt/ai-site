@@ -1,0 +1,12 @@
+{
+  "runId": "1791370771743_45e889",
+  "status": "PASS",
+  "globalGateEnforced": true,
+  "approvalRequired": true,
+  "maxRecipients": 1,
+  "maxMessageAttempts": 1,
+  "changedMessageDenied": true,
+  "allowanceReplayDenied": true,
+  "bulkSending": false,
+  "externalMessages": 0
+}

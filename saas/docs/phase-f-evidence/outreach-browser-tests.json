@@ -1,0 +1,46 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 5,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 64149.51
+  },
+  "tests": [
+    {
+      "title": "chrome: four Outreach pages at desktop/tablet/mobile in light/dark, with one-click sending",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 27189,
+      "retry": 0
+    },
+    {
+      "title": "chrome: a lost admission reply recovers the same campaign even when all candidates are reserved; insufficient Tokens disable Send",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5244,
+      "retry": 0
+    },
+    {
+      "title": "msedge: four Outreach pages at desktop/tablet/mobile in light/dark, with one-click sending",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 20615,
+      "retry": 0
+    },
+    {
+      "title": "msedge: a lost admission reply recovers the same campaign even when all candidates are reserved; insufficient Tokens disable Send",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5330,
+      "retry": 0
+    },
+    {
+      "title": "Unknown delivery is visible and the customer reconciliation action cannot invent an outcome",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2820,
+      "retry": 0
+    }
+  ]
+}

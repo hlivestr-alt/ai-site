@@ -1,0 +1,661 @@
+{
+  "runId": "1791370702859_3f5e44",
+  "status": "PASS",
+  "actualBrowser": true,
+  "browserVersion": "154.0.8037.98",
+  "checks": [
+    {
+      "state": "connected",
+      "page": "/outreach",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "/outreach",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "/outreach",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "/outreach",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "/outreach",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "/outreach",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "/outreach",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "/outreach",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "/outreach",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "/outreach",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "/outreach",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "/outreach",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "/outreach",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "connected",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "/outreach",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "needs-reauth",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "/outreach",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "disconnected",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "/outreach",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-channel-ready",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "/outreach",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "real-send-disabled",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "/outreach",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    },
+    {
+      "state": "canary-ready",
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false
+    }
+  ],
+  "syntheticExplicit": true,
+  "realSendingDisabled": true,
+  "credentialFields": 0,
+  "credentialLeaks": 0,
+  "realMessages": 0
+}

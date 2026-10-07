@@ -1,0 +1,53 @@
+{
+  "status": "failed",
+  "stats": {
+    "expected": 5,
+    "unexpected": 1,
+    "skipped": 0,
+    "duration": 41909.132000000005
+  },
+  "tests": [
+    {
+      "title": "media finalization locks preserve a single-connection query pool and release after failure",
+      "status": "failed",
+      "expectedStatus": "passed",
+      "duration": 96,
+      "retry": 0
+    },
+    {
+      "title": "20 corrupt Product/source media cannot become usable or reserve tokens; valid controls and failed retention",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 8203,
+      "retry": 0
+    },
+    {
+      "title": "21 scoped signatures reject public-identifier forgery, tampering, expiry and listing",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3172,
+      "retry": 0
+    },
+    {
+      "title": "25 synthetic worker diagnostics and legacy rows produce only catalog messages",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4842,
+      "retry": 0
+    },
+    {
+      "title": "23/26/27 chrome critical navigation, media, downloads and clean console",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 18567,
+      "retry": 0
+    },
+    {
+      "title": "23/26/27 msedge critical navigation, media, downloads and clean console",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3532,
+      "retry": 0
+    }
+  ]
+}

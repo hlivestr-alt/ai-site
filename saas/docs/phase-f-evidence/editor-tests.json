@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 2,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 134764.80899999998
+  },
+  "tests": [
+    {
+      "title": "J: chrome editor in desktop/tablet/mobile and light/dark renders a customer variation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 70485,
+      "retry": 0
+    },
+    {
+      "title": "J: msedge editor in desktop/tablet/mobile and light/dark renders a customer variation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 61757,
+      "retry": 0
+    }
+  ]
+}

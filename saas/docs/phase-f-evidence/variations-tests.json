@@ -1,0 +1,67 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 8,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 363766.095
+  },
+  "tests": [
+    {
+      "title": "A/D: real visual variation reuses analysis, preserves original bytes and settles once on replay",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 51816,
+      "retry": 0
+    },
+    {
+      "title": "B/C: independent variations and editing an existing variation preserve root and parent lineage",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 121205,
+      "retry": 0
+    },
+    {
+      "title": "E: definite variation failure and cancellation each release exactly once",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7338,
+      "retry": 0
+    },
+    {
+      "title": "G/H: shared brand wallet spends 100 but direct content, artifact, variation, job and media IDs stay isolated",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 46923,
+      "retry": 0
+    },
+    {
+      "title": "I: concurrent same-root requests allocate unique labels and actual workers publish distinct artifacts",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 44657,
+      "retry": 0
+    },
+    {
+      "title": "validation and immutable database guards reject invalid edits before reservation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3960,
+      "retry": 0
+    },
+    {
+      "title": "worker gate and underfunded concurrent variations keep account accounting exact",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4423,
+      "retry": 0
+    },
+    {
+      "title": "archiving a variation preserves its parent and children and retained artifacts",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 80837,
+      "retry": 0
+    }
+  ]
+}

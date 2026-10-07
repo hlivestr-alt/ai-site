@@ -1,0 +1,53 @@
+{
+  "status": "passed",
+  "stats": {
+    "expected": 6,
+    "unexpected": 0,
+    "skipped": 0,
+    "duration": 31494.471
+  },
+  "tests": [
+    {
+      "title": "F: kill actual Outreach worker before_claim; durable recovery never duplicates a message or wallet entry",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 4422,
+      "retry": 0
+    },
+    {
+      "title": "F: kill actual Outreach worker after_claim; durable recovery never duplicates a message or wallet entry",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 8152,
+      "retry": 0
+    },
+    {
+      "title": "F: kill actual Outreach worker after_provider; durable recovery never duplicates a message or wallet entry",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 7377,
+      "retry": 0
+    },
+    {
+      "title": "F: kill actual Outreach worker after_completion; durable recovery never duplicates a message or wallet entry",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2605,
+      "retry": 0
+    },
+    {
+      "title": "Safe boundary: pause stops new claims while an already active delivery may finish",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3675,
+      "retry": 0
+    },
+    {
+      "title": "Safe boundary: cancel stops new claims while an already active delivery may finish",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 2729,
+      "retry": 0
+    }
+  ]
+}

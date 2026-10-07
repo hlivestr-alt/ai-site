@@ -1,0 +1,11 @@
+{
+  "runId": "1791370601475_d7f876",
+  "status": "PASS",
+  "activeDeliveryMayFinish": true,
+  "newClaimsStopped": true,
+  "sent": 1,
+  "unsent": 3,
+  "captured": 10,
+  "released": 30,
+  "realSends": 0
+}
