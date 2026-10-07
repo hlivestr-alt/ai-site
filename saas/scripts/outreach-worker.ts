@@ -3,20 +3,26 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
 import { AppError } from '../src/lib/core';
-import { testOutreachEnabled } from '../src/lib/outreach';
-import { outreachHeartbeat, recoverOutreachLeases, claimOutreach, fakeSend, finishOutreach, outreachSettlementBatch } from '../src/lib/outreach-worker';
+import { outreachHeartbeat, recoverOutreachLeases, claimOutreach, executeOutreach, outreachWorkerEnabled, finishOutreach, outreachSettlementBatch } from '../src/lib/outreach-worker';
 import { pool } from '../src/lib/db';
 async function main() {
-    if (!testOutreachEnabled())
-        throw new Error('Only an isolated Phase E TEST provider/database may run this worker.');
+    if (!outreachWorkerEnabled())
+        throw new Error('Outreach provider activation is pending; no shared internal sender is available.');
     const workerId = randomUUID();
     let running = true;
     process.on('SIGTERM', () => { running = false; });
     process.on('SIGINT', () => { running = false; });
-    async function fault(stage: string, id: string | null) { if (process.env.PHASE_E_PROCESS_TEST !== '1' || process.env.PHASE_E_PAUSE_STAGE !== stage)
-        return; const dir = process.env.PHASE_E_FAULT_DIR; if (!dir || !resolve(dir).startsWith(resolve('test-data/phase-e') + sep))
-        throw new Error('Owned Phase E fault directory required.'); await mkdir(dir, { recursive: true }); await writeFile(resolve(dir, 'paused.json'), JSON.stringify({ stage, deliveryId: id })); while (running)
-        await wait(100); }
+    async function fault(stage: string, id: string | null) {
+        if (process.env.PHASE_E_PROCESS_TEST !== '1' || process.env.PHASE_E_PAUSE_STAGE !== stage)
+            return;
+        const dir = process.env.PHASE_E_FAULT_DIR;
+        if (!dir || !resolve(dir).startsWith(resolve('test-data/phase-e') + sep))
+            throw new Error('Owned Phase E fault directory required.');
+        await mkdir(dir, { recursive: true });
+        await writeFile(resolve(dir, 'paused.json'), JSON.stringify({ stage, deliveryId: id }));
+        while (running)
+            await wait(100);
+    }
     try {
         while (running) {
             await outreachHeartbeat(workerId);
@@ -30,7 +36,7 @@ async function main() {
                 await fault('after_claim', d.id);
                 if (!running)
                     break;
-                const outcome = await fakeSend(d);
+                const outcome = await executeOutreach(d);
                 await fault('after_provider', d.id);
                 await finishOutreach(d, outcome, true);
                 await fault('after_completion', d.id);

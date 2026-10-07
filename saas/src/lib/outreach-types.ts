@@ -19,6 +19,7 @@ export type Filters = {
     minEngagementRate?: number;
 };
 export type CampaignConfig = {
+    canaryId?: string;
     channelId: string;
     name: string;
     productName: string;

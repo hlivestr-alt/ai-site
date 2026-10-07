@@ -15,7 +15,7 @@ export function renderMessage(template: string, values: {
     throw new AppError(400, 'Use only creator_display_name, product_name and campaign_name variables.'); return values[k as keyof typeof values]; }); if (/{{|}}/.test(rendered) || !rendered.trim() || rendered.length > 2000)
     throw new AppError(400, 'Rendered messages must be 1–2,000 characters with valid variables.'); return rendered; }
 export function validateCampaign(raw: Record<string, unknown>): CampaignConfig {
-    const allowed = ['channelId', 'name', 'productName', 'messageTemplate', 'targetCount', 'cooldownDays', 'rankingMetric', 'rankingDirection', 'filters', 'operation', 'idempotencyKey', 'quoteId', 'quoteHash'];
+    const allowed = ['channelId', 'name', 'productName', 'messageTemplate', 'targetCount', 'cooldownDays', 'rankingMetric', 'rankingDirection', 'filters', 'operation', 'idempotencyKey', 'quoteId', 'quoteHash', 'canaryId'];
     if (Object.keys(raw).some(k => !allowed.includes(k)))
         throw new AppError(400, 'Unsupported campaign setting.');
     if (typeof raw.channelId !== 'string' || !isUuid(raw.channelId))
@@ -50,7 +50,8 @@ export function validateCampaign(raw: Record<string, unknown>): CampaignConfig {
     for (const [min, max] of [['minFollowers', 'maxFollowers'], ['minGmv', 'maxGmv']] as const)
         if (filters[min] !== undefined && filters[max] !== undefined && filters[min]! > filters[max]!)
             throw new AppError(400, 'Minimum cannot exceed maximum.');
-    return { channelId: raw.channelId, name, productName, messageTemplate, targetCount: whole(raw.targetCount, 1, 500, 'Target count'), cooldownDays: whole(raw.cooldownDays, 0, 3650, 'Cooldown'), rankingMetric: raw.rankingMetric as RankingMetric, rankingDirection: raw.rankingDirection as 'ASC' | 'DESC', filters };
+    if(raw.canaryId!==undefined&&(typeof raw.canaryId!=='string'||!isUuid(raw.canaryId)))throw new AppError(400,'Canary identity is invalid.');
+    return { ...(raw.canaryId?{canaryId:raw.canaryId as string}:{}),channelId: raw.channelId, name, productName, messageTemplate, targetCount: whole(raw.targetCount, 1, 500, 'Target count'), cooldownDays: whole(raw.cooldownDays, 0, 3650, 'Cooldown'), rankingMetric: raw.rankingMetric as RankingMetric, rankingDirection: raw.rankingDirection as 'ASC' | 'DESC', filters };
 }
 export function matchesFilters(c: Creator, f: Filters) { if (f.keyword && !`${c.username} ${c.display_name}`.toLowerCase().includes(f.keyword.toLowerCase()))
     return false; if (f.categoryIds?.length && !f.categoryIds.some(id => c.category_ids.includes(id)))

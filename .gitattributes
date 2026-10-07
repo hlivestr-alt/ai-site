@@ -2,3 +2,5 @@
 saas/migrations/0013_shared_billing_accounts.sql text eol=crlf
 saas/migrations/0014_clipper_variations.sql text eol=crlf
 saas/migrations/0015_outreach_saas.sql text eol=crlf
+
+saas/migrations/0016_outreach_provider_onboarding.sql text eol=crlf
