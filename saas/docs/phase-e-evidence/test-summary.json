@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "suites": {
+    "integration": 35,
+    "browser": 41,
+    "shared": 13,
+    "variations": 8,
+    "restart-variation": 5,
+    "editor": 2,
+    "isolation": 3,
+    "focused": 6,
+    "restart": 7,
+    "phase-b": 8,
+    "outreach": 13,
+    "outreach-restart": 6,
+    "outreach-browser": 5
+  },
+  "saasUnit": 103,
+  "workerUnit": 82,
+  "executionTotal": 337,
+  "distinctTotal": 300,
+  "distinctMethod": "unit cases plus unique Playwright scenario titles",
+  "duplicateExecutions": 37,
+  "allRetries": 0,
+  "allSkipped": 0,
+  "ownedFixturesRemoved": true,
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  }
+}

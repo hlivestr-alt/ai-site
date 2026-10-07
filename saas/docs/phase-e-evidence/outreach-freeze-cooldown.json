@@ -1,0 +1,10 @@
+{
+  "runId": "1791353646808_093013",
+  "status": "PASS",
+  "frozenSnapshotUnchanged": true,
+  "immutableMessage": true,
+  "cooldownExcluded": 2,
+  "doNotContactExcluded": 1,
+  "activeReservationExcluded": 1,
+  "scope": "Workspace-owned channel"
+}

@@ -1,0 +1,15 @@
+{
+  "atomicRollback": true,
+  "retryPreservesPassword": true,
+  "encryptedQueue": true,
+  "transientDeliveryDurable": true,
+  "supersededDeliverySkipped": true,
+  "expiredTokenRenewed": true,
+  "publicMailboxDisabled": true,
+  "localMailboxAllowed": true,
+  "concurrentSignup": true,
+  "activeGenericResponse": true,
+  "singleUse": true,
+  "mailTransport": "LOCAL_QA",
+  "remoteSMTP": "Prior Phase B certification preserved; no real mail sent in this regression"
+}

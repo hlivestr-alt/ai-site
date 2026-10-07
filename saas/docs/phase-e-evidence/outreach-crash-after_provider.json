@@ -1,0 +1,12 @@
+{
+  "runId": "1791353282019_239eb9",
+  "status": "PASS",
+  "actualProcessKilled": true,
+  "workerRestarted": true,
+  "oldLeaseRejected": true,
+  "providerCalls": 1,
+  "simulatedSends": 1,
+  "singleReserve": true,
+  "singleCapture": true,
+  "realSends": 0
+}

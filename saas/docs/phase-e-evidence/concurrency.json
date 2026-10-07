@@ -1,0 +1,18 @@
+{
+  "runId": "1791351452474_560621",
+  "status": "PASS",
+  "startingAvailable": 1000,
+  "requests": [
+    700,
+    700
+  ],
+  "statuses": [
+    201,
+    402
+  ],
+  "available": 300,
+  "reserved": 700,
+  "jobs": 1,
+  "reservations": 1,
+  "negativeBalances": 0
+}

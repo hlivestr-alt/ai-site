@@ -1,0 +1,12 @@
+{
+  "runId": "1791353646808_093013",
+  "status": "PASS",
+  "responses": [
+    201,
+    402
+  ],
+  "available": 10,
+  "reserved": 20,
+  "campaigns": 1,
+  "noNegativeWallet": true
+}

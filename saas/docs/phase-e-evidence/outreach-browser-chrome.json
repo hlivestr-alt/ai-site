@@ -1,0 +1,229 @@
+{
+  "runId": "1791353315440_7ed4d9",
+  "status": "PASS",
+  "actualInstalledBrowser": true,
+  "checks": [
+    {
+      "page": "/outreach",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "/outreach",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "/outreach",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": false
+    },
+    {
+      "page": "/outreach",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "/outreach",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "/outreach",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/new",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "campaign-detail",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    },
+    {
+      "page": "/outreach/channels",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": false
+    }
+  ],
+  "oneClickCustomerSubmission": true,
+  "pauseResume": true,
+  "backgroundWorker": true,
+  "secretLeaks": 0,
+  "consoleErrors": 0,
+  "realSends": 0
+}

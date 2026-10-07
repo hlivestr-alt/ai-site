@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "commands": [
+    {
+      "command": "npm run test:unit",
+      "exitCode": 0,
+      "passed": 103
+    },
+    {
+      "command": "npm run test:integration",
+      "exitCode": 0,
+      "passed": 35
+    },
+    {
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "passed": 41
+    },
+    {
+      "command": "npm run lint",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "directory": "worker-agent",
+      "exitCode": 0,
+      "passed": 82
+    }
+  ],
+  "localRuntime": {
+    "address": "127.0.0.1",
+    "port": 3200,
+    "healthStatus": 200,
+    "fakeProviderEnabled": false,
+    "ownedTestWorkersStopped": true
+  },
+  "liveMigration": "PASS",
+  "operatorRuntimeActivity": "Two confirmed Clipper jobs; see runtime-preservation.json",
+  "secretScope": "Artifact audit PASS; one disclosed initial legacy database connection string in the session transcript",
+  "phase10": "NOT_STARTED",
+  "pushed": false,
+  "logFingerprints": {
+    "unit.log": "3789c1f4863ac26d8927c5d85396f64f2fc3e79e68e6eb711794de51571e2d66",
+    "lint.log": "2df85d9d1f5002ece6b5e97b7e95d6ad2c311bbed6d9dbb2c7b098f082af71b0",
+    "typecheck.log": "8aab446b2fddb09e9e39909435f87639b17c3d851ca52807115021e0f1fac1ca",
+    "build.log": "aa822406946a9f07dc842fc43783132d09c443c8b0201e39b9283514a5366258"
+  }
+}

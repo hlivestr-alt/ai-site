@@ -1,0 +1,175 @@
+{
+  "status": "PASS",
+  "scope": "historical rows and migration; operator runtime remains active",
+  "operatorConfirmedClipperJobs": 2,
+  "strictFullTableDriftExpected": true,
+  "remoteSmokeDataMutations": 0,
+  "checks": [
+    {
+      "table": "users",
+      "originalRows": 19,
+      "currentRows": 19,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "workspaces",
+      "originalRows": 21,
+      "currentRows": 21,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "workspace_members",
+      "originalRows": 22,
+      "currentRows": 22,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "billing_accounts",
+      "originalRows": 14,
+      "currentRows": 14,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "billing_account_members",
+      "originalRows": 14,
+      "currentRows": 14,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "billing_account_wallets",
+      "originalRows": 14,
+      "currentRows": 14,
+      "fullFingerprintUnchanged": false,
+      "reason": "operator Clipper reservations; checked against ledger below"
+    },
+    {
+      "table": "billing_quotes",
+      "originalRows": 51,
+      "currentRows": 56,
+      "originalRowsUnchanged": true,
+      "appendedRows": 5
+    },
+    {
+      "table": "token_ledger_entries",
+      "originalRows": 35,
+      "currentRows": 37,
+      "originalRowsUnchanged": true,
+      "appendedRows": 2
+    },
+    {
+      "table": "job_billing",
+      "originalRows": 17,
+      "currentRows": 19,
+      "originalRowsUnchanged": true,
+      "appendedRows": 2
+    },
+    {
+      "table": "payments",
+      "originalRows": 0,
+      "currentRows": 0,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "payment_events",
+      "originalRows": 0,
+      "currentRows": 0,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "jobs",
+      "originalRows": 20,
+      "currentRows": 22,
+      "originalRowsUnchanged": true,
+      "appendedRows": 2
+    },
+    {
+      "table": "job_attempts",
+      "originalRows": 25,
+      "currentRows": 27,
+      "originalRowsUnchanged": true,
+      "appendedRows": 2
+    },
+    {
+      "table": "job_artifacts",
+      "originalRows": 30,
+      "currentRows": 32,
+      "originalRowsUnchanged": true,
+      "appendedRows": 2
+    },
+    {
+      "table": "clipper_checkpoints",
+      "originalRows": 22,
+      "currentRows": 24,
+      "originalRowsUnchanged": true,
+      "appendedRows": 2
+    },
+    {
+      "table": "content_items",
+      "originalRows": 13,
+      "currentRows": 13,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "content_versions",
+      "originalRows": 13,
+      "currentRows": 13,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "source_assets",
+      "originalRows": 3,
+      "currentRows": 3,
+      "fullFingerprintUnchanged": false,
+      "reason": "operator source-validation metadata; existing immutable identity trigger retained"
+    },
+    {
+      "table": "products",
+      "originalRows": 12,
+      "currentRows": 12,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "asset_versions",
+      "originalRows": 54,
+      "currentRows": 54,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "product_versions",
+      "originalRows": 12,
+      "currentRows": 12,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    },
+    {
+      "table": "clipper_variations",
+      "originalRows": 0,
+      "currentRows": 0,
+      "originalRowsUnchanged": true,
+      "appendedRows": 0
+    }
+  ],
+  "wallet": {
+    "available": "3880",
+    "reserved": "1200"
+  },
+  "walletLedgerMatches": true,
+  "sourceIdentityGuardEnabled": true,
+  "liveOutreachEntities": 0,
+  "migrationPreservedAll22Fingerprints": true,
+  "baselineWallet": {
+    "available": "5080",
+    "reserved": "0"
+  }
+}

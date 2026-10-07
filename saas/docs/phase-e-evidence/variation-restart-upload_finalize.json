@@ -1,0 +1,25 @@
+{
+  "runId": "1791351996664_2806d8",
+  "status": "PASS",
+  "stage": "UPLOAD_FINALIZE",
+  "realWorkerProcessKilled": true,
+  "realFfmpegChild": false,
+  "realClipPutBeforeKill": true,
+  "attempts": [
+    "LOST",
+    "SUCCEEDED"
+  ],
+  "oldLeaseProgress": 409,
+  "oldLeaseComplete": 409,
+  "metrics": {
+    "analyzer": 0,
+    "render": 1,
+    "transcription": 0
+  },
+  "transcriptionCalls": 0,
+  "analysisCalls": 0,
+  "reserves": 1,
+  "captures": 1,
+  "contentVersions": 1,
+  "originalUnchanged": true
+}

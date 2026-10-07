@@ -1,0 +1,123 @@
+{
+  "status": "PASS",
+  "mode": "--apply",
+  "migration": "0015_outreach_saas.sql",
+  "migrationSha256": "5d5e7378c0fe6a4c1a33fb5cb1996c20d0dfc5d07e84dc6214a21c224ecf9bb2",
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  },
+  "nativeSchema": {
+    "unchanged": true,
+    "tables": 41,
+    "sha256": "7bfb7d99ca2516028a346561813716bbdd8e309de59e314024faa4afc3e2691b",
+    "readOnly": true
+  },
+  "internalBetaPrice": 10,
+  "realms": [
+    "PRODUCTION",
+    "TEST"
+  ],
+  "applied": true,
+  "schemaMatchesTestedBaseline": true,
+  "historicalFingerprints": {
+    "users": {
+      "rows": 19,
+      "sha256": "1d3831f3c86dd13a4ab3a9473a25bb00683c44fd25a128ab1ac2acd7caa19bf8"
+    },
+    "workspaces": {
+      "rows": 21,
+      "sha256": "0923c842aef2ad80079b57e1bf8992a049b748e368eb6d7f785d1af3bb43b5c7"
+    },
+    "workspace_members": {
+      "rows": 22,
+      "sha256": "e4fe741215fd547076f753a2b45c4fa1b5901a4d65c64b4c7e7b1e4d45570061"
+    },
+    "billing_accounts": {
+      "rows": 14,
+      "sha256": "e9b10bfc1ca4ecba5c60b04d117a7fc8f92709a31aa531b0f145bd16cf408b26"
+    },
+    "billing_account_members": {
+      "rows": 14,
+      "sha256": "ec422d31cf8be679b38ac06e9f06b9ca40824b4e1a96c6a23a78d4996f6d27cd"
+    },
+    "billing_account_wallets": {
+      "rows": 14,
+      "sha256": "91f891fc6051e6b69789ed511d4624b5ad6f525618ef5d510932aa518b7f9bff"
+    },
+    "billing_quotes": {
+      "rows": 51,
+      "sha256": "189a87bfabaaf9a1af7bdd916921bbfeb7576dac10fe4ca59625fb5e64f93a95"
+    },
+    "token_ledger_entries": {
+      "rows": 35,
+      "sha256": "f7f8a9879e505d87f3d718b97f1f615a301756e202b5729f8cb36dc4259f9e2d"
+    },
+    "job_billing": {
+      "rows": 17,
+      "sha256": "f2438073aef751c464d0eae0cb339a339663a45a3161dd163cff763b5aab6746"
+    },
+    "payments": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "payment_events": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "jobs": {
+      "rows": 20,
+      "sha256": "39cb6b424487af7cbe0c8c3d767d843ac021b4cd7cc2d231574e472c368fd0ac"
+    },
+    "job_attempts": {
+      "rows": 25,
+      "sha256": "0f461f184d63f5f4a6a8b20131dcc8697766e4042d584a8e78ecd25fcd12862b"
+    },
+    "job_artifacts": {
+      "rows": 30,
+      "sha256": "2da2bcfc2399466533f1509b7fd41f91b987f286910e2d59af0a609b6364d6f7"
+    },
+    "clipper_checkpoints": {
+      "rows": 22,
+      "sha256": "dadd832e537e2e2d6ee3dbf41caa8db5c135bb6d1884fd3177a72cd509fe8d61"
+    },
+    "content_items": {
+      "rows": 13,
+      "sha256": "bbd458ae42359ca9c7567b10deb7b171a731fd917bfad954fb06893d9ad9229f"
+    },
+    "content_versions": {
+      "rows": 13,
+      "sha256": "06c695e6e8786cbd5c8cb6f6918c634d429d1c2adb6ea9164657ef91e70f7cb9"
+    },
+    "source_assets": {
+      "rows": 3,
+      "sha256": "892e2b06b3b8780f6eff442c133e5364795fdbf4403cc2d331a7d080d3275d0a"
+    },
+    "products": {
+      "rows": 12,
+      "sha256": "59ad86f8cf8e9f945a0ed6f1d212725856dd76c36bc1e6a780393dddba376520"
+    },
+    "asset_versions": {
+      "rows": 54,
+      "sha256": "d520783b4f0985fe59ce9b580a75df37bc2816ca1f469cc914e9a956fac78b1e"
+    },
+    "product_versions": {
+      "rows": 12,
+      "sha256": "bc8e92cc527a1059f15c898c06c691ae1947541acb3ab798986fbfa8b7a90b4d"
+    },
+    "clipper_variations": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "wallet": {
+    "available": "5080",
+    "reserved": "0"
+  },
+  "nativeFilesUnchanged": 264,
+  "oldEvidenceFilesUnchanged": 360,
+  "historicalLedgerEntriesAdded": 0,
+  "historicalContentVersionsChanged": 0
+}

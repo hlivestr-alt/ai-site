@@ -1,0 +1,118 @@
+{
+  "runId": "1791352312341_813c96",
+  "status": "PASS",
+  "channel": "chrome",
+  "actualInstalledBrowser": true,
+  "checks": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": {
+        "viewport": 1440,
+        "body": 1440,
+        "editor": 1078
+      },
+      "privatePreview": true,
+      "tokenQuoteContrast": 12.70965716201797,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "credentialLeaks": 0,
+      "networkErrors": 0
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "light",
+      "overflow": {
+        "viewport": 768,
+        "body": 768,
+        "editor": 720
+      },
+      "privatePreview": true,
+      "tokenQuoteContrast": 12.70965716201797,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "credentialLeaks": 0,
+      "networkErrors": 0
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": {
+        "viewport": 390,
+        "body": 390,
+        "editor": 342
+      },
+      "privatePreview": true,
+      "tokenQuoteContrast": 12.70965716201797,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "credentialLeaks": 0,
+      "networkErrors": 0
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": {
+        "viewport": 1440,
+        "body": 1440,
+        "editor": 1078
+      },
+      "privatePreview": true,
+      "tokenQuoteContrast": 13.651017507662353,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "credentialLeaks": 0,
+      "networkErrors": 0
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "colorScheme": "dark",
+      "overflow": {
+        "viewport": 768,
+        "body": 768,
+        "editor": 720
+      },
+      "privatePreview": true,
+      "tokenQuoteContrast": 13.651017507662353,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "credentialLeaks": 0,
+      "networkErrors": 0
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": {
+        "viewport": 390,
+        "body": 390,
+        "editor": 342
+      },
+      "privatePreview": true,
+      "tokenQuoteContrast": 13.651017507662353,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "credentialLeaks": 0,
+      "networkErrors": 0
+    }
+  ],
+  "customerFormSubmission": true,
+  "realWorkerOutput": true
+}

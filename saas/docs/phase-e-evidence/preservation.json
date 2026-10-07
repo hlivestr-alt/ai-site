@@ -1,0 +1,20 @@
+{
+  "status": "FAIL",
+  "mode": "--verify",
+  "migration": "0015_outreach_saas.sql",
+  "migrationSha256": "5d5e7378c0fe6a4c1a33fb5cb1996c20d0dfc5d07e84dc6214a21c224ecf9bb2",
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  },
+  "nativeSchema": {
+    "unchanged": true,
+    "tables": 41,
+    "sha256": "7bfb7d99ca2516028a346561813716bbdd8e309de59e314024faa4afc3e2691b",
+    "readOnly": true
+  },
+  "failedCheck": "historical-fingerprints",
+  "failureCode": "LIVE_HISTORY_CHANGED"
+}
