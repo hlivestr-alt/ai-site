@@ -126,6 +126,17 @@ class ClipperExecutor:
         callbacks = Callbacks(agent.client, claim, work, guard)
         try:
             inputs = claim["inputSnapshot"]
+            if inputs.get("kind") == "CLIPPER_VARIATION":
+                from clipper_pipeline.variation import VariationPipeline
+                manifest = VariationPipeline().run(inputs, callbacks)
+                callbacks.post("complete", manifest)
+                atomic_json(work / "receipt.json", {"status": "SUCCEEDED", "jobId": claim["jobId"], "metrics": callbacks.metrics})
+                for name in ["source", "transcript", "analysis", "render"]:
+                    target = (work / name).resolve()
+                    if not target.is_relative_to(work.resolve()):
+                        raise ValueError("Cleanup escaped attempt")
+                    shutil.rmtree(target)
+                return
             provider = inputs["analyzerProvider"]
             if provider == "fake" and claim.get("requiredCapability") != "CLIPPER_TEST_V1":
                 raise PipelineError("FIXTURE_CAPABILITY_REQUIRED")

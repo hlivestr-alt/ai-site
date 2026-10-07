@@ -44,7 +44,7 @@ export function configurationChecks(env:Record<string,string|undefined>=process.
     checks.push({name:'CLIP_ANALYZER_CREDENTIAL',status:waveSpeedAnalyzerConfigured(env,true)?'configured':env.WAVESPEED_API_KEY||env.CLIP_ANALYZER_WORKER_CREDENTIAL_CONFIGURED?'invalid':'missing',required:true});
   }
   if(env.CLIP_ANALYZER_WORKER_CREDENTIAL_CONFIGURED)add('CLIP_ANALYZER_WORKER_CREDENTIAL_CONFIGURED',v=>['0','1'].includes(v));
-  for(const name of ['AI_VIDEO_ENABLED','CLIPPER_ENABLED','WORKFLOWS_ENABLED','PAYMENTS_ENABLED'])if(env[name])checks.push({name,status:['0','1'].includes(env[name]!)?'configured':'invalid',required:true});
+  for(const name of ['AI_VIDEO_ENABLED','CLIPPER_ENABLED','CLIPPER_VARIATION_ENABLED','WORKFLOWS_ENABLED','PAYMENTS_ENABLED'])if(env[name])checks.push({name,status:['0','1'].includes(env[name]!)?'configured':'invalid',required:true});
   const emails=(env.PLATFORM_OPERATOR_EMAILS||'').split(',').map(v=>v.trim()).filter(Boolean),ids=(env.PLATFORM_OPERATOR_USER_IDS||'').split(',').map(v=>v.trim()).filter(Boolean);
   checks.push({name:'PLATFORM_OPERATOR_ALLOWLIST',status:emails.length+ids.length?emails.every(v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))&&ids.every(v=>/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(v))?'configured':'invalid':'missing',required:strict});
   if(env.OPS_READINESS_TOKEN)add('OPS_READINESS_TOKEN',v=>v.length>=32);
@@ -65,7 +65,7 @@ export function externalConfiguration(env:Record<string,string|undefined>=proces
  productionMail:env.MAIL_PROVIDER==='smtp'&&!!env.SMTP_HOST&&!!env.SMTP_USER&&!!env.SMTP_PASSWORD&&!!env.MAIL_FROM,
  productionStorage:!!env.OBJECT_STORAGE_BUCKET&&!!env.OBJECT_STORAGE_ACCESS_KEY&&!!env.OBJECT_STORAGE_SECRET_KEY&&env.OBJECT_STORAGE_ACCESS_KEY!==env.OBJECT_STORAGE_SECRET_KEY&&!!env.OBJECT_STORAGE_ENDPOINT?.startsWith('https:')&&!localHost(env.OBJECT_STORAGE_ENDPOINT),
 };}
-export function featureEnabled(name:'AI_VIDEO'|'CLIPPER'|'WORKFLOWS'|'PAYMENTS'){return process.env[`${name}_ENABLED`]!=='0';}
+export function featureEnabled(name:'AI_VIDEO'|'CLIPPER'|'CLIPPER_VARIATION'|'WORKFLOWS'|'PAYMENTS'){return process.env[`${name}_ENABLED`]!=='0'&&(name!=='CLIPPER_VARIATION'||process.env.CLIPPER_ENABLED!=='0');}
 export function clipAnalyzerProvider(env:Record<string,string|undefined>=process.env):'openai'|'wavespeed'|'fake'|null{
   const selected=env.CLIP_ANALYZER_PROVIDER;
   if((!selected||selected==='fake')&&nonProductionTestAllowed(env)&&env.ENABLE_FAKE_CLIP_ANALYZER==='1')return 'fake';

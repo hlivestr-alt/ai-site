@@ -1,0 +1,5 @@
+import {handle,ok,requestSession} from '@/lib/http';
+import {requireActiveWorkspace} from '@/lib/products';
+import {query} from '@/lib/db';
+import {AppError,isUuid} from '@/lib/core';
+export async function GET(request:Request,{params}:{params:Promise<{workspaceId:string;variationId:string}>}){return handle(async()=>{const {workspaceId,variationId}=await params,session=await requestSession(request);await requireActiveWorkspace(session,workspaceId,'workspace:read');if(!isUuid(variationId))throw new AppError(404,'Variation not found.');const v=(await query<{number:number;name:string;jobId:string;contentId:string|null;status:string}>(`SELECT v.variation_number AS number,v.settings_snapshot->>'name' AS name,v.render_job_id AS "jobId",v.result_content_id AS "contentId",j.status FROM clipper_variations v JOIN jobs j ON j.workspace_id=v.workspace_id AND j.id=v.render_job_id WHERE v.workspace_id=$1 AND v.id=$2`,[workspaceId,variationId])).rows[0];if(!v)throw new AppError(404,'Variation not found.');return ok({variation:v});});}

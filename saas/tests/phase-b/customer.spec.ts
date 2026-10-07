@@ -38,7 +38,7 @@ test('atomic signup, encrypted queue, pending retries, active response and singl
     const active=await c.post('/api/auth/register',{data:{email,displayName:'Changed Name',password:'AnotherPassword123!'}});expect(active.status()).toBe(201);expect(await active.json()).toEqual(await responses[0].json());
     expect((await c.post('/api/auth/login',{data:{email,password}})).status()).toBe(200);
     expect((await c.post('/api/auth/login',{data:{email,password:'AnotherPassword123!'}})).status()).toBe(401);
-    await evidence('auth-application',{...result,concurrentSignup:true,activeGenericResponse:true,singleUse:true,...(evidenceDir.includes('phase-c')?{mailTransport:'LOCAL_QA',remoteSMTP:'Prior Phase B certification preserved; no real mail sent in this regression'}:{realRemoteSMTP:'EXTERNAL CONFIG REQUIRED'})});
+    await evidence('auth-application',{...result,concurrentSignup:true,activeGenericResponse:true,singleUse:true,...(/phase-[cd]/.test(evidenceDir)?{mailTransport:'LOCAL_QA',remoteSMTP:'Prior Phase B certification preserved; no real mail sent in this regression'}:{realRemoteSMTP:'EXTERNAL CONFIG REQUIRED'})});
   }finally{await c.dispose();await database.end();}
 });
 

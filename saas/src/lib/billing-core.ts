@@ -6,13 +6,14 @@ import {allowlistedOperator} from './platform-access';
 import {nonProductionTestAllowed} from './operational-config';
 import {workspaceBillingAccount} from './billing-accounts';
 
-export type Operation="AI_VIDEO"|"CLIPPER";
+export type Operation="AI_VIDEO"|"CLIPPER"|'CLIPPER_VARIATION';
 export function billingRealm(){return ['local','test'].includes(process.env.APP_ENV||'')&&process.env.ENABLE_TEST_BILLING==="1"?"TEST":"PRODUCTION";}
 export function integer(value:unknown,positive=false){if(typeof value!=="string"||! /^(0|[1-9][0-9]{0,15})$/.test(value))throw new AppError(400,"Use an integer decimal amount.");const n=BigInt(value);if(n>BigInt(9007199254740991)||positive&&n<=BigInt(0))throw new AppError(400,"Invalid amount.");return n;}
 export function canonicalHash(value:unknown):string{function sorted(v:unknown):unknown{if(Array.isArray(v))return v.map(sorted);if(v&&typeof v==="object")return Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>[k,sorted(x)]));return v;}return createHash("sha256").update(JSON.stringify(sorted(value))).digest("hex");}
 export function calculateTokens(operation:Operation,input:JobInput,rules:Record<string,unknown>){
  if(operation==="AI_VIDEO"&&input.kind==="AI_VIDEO"){if(rules.tier!==input.tier)throw new AppError(503,"No price is configured for this tier.");return (integer(rules.base)+integer(rules.perSecond)*BigInt(input.durationSeconds))*BigInt(input.quantity);}
  if(operation==="CLIPPER"&&input.kind==="CLIPPER")return integer(rules.base)+integer(rules.perClip)*BigInt(input.targetClipCount)+(input.captions?integer(rules.captions):BigInt(0));
+ if(operation==='CLIPPER_VARIATION'&&input.kind==='CLIPPER_VARIATION'){if(rules.policyVersion!==input.variationPolicyVersion||rules.approval!=='INTERNAL_BETA'||typeof rules.maxDurationSeconds!=='number'||!Number.isFinite(rules.maxDurationSeconds)||rules.maxDurationSeconds<1||rules.maxDurationSeconds>90||input.lineage.clip.duration>Number(rules.maxDurationSeconds))throw new AppError(503,'This variation price is unavailable.');return integer(rules.perRender,true);}
  throw new AppError(400,"Unsupported priced operation.");
 }
 export type Quote={id:string;workspace_id:string;billing_account_id:string;operation:Operation;price_version_id:string;request_hash:string;input_hash:string;token_amount:string;quote_hash:string;expires_at:Date};
@@ -26,7 +27,7 @@ export async function createQuote(db:DbClient,workspaceId:string,userId:string,o
  const id=randomUUID(),expires=new Date(Date.now()+ttl*60000),hash=inputHash(input),quoteHash=canonicalHash({id,workspaceId,billingAccountId,operation,requestHash,inputHash:hash,priceVersionId:version.id,tokenAmount:amount.toString(),expiresAt:expires.toISOString()});
  await db.query("INSERT INTO billing_quotes(id,workspace_id,created_by,operation,price_version_id,request_hash,input_hash,input_snapshot,token_amount,quote_hash,expires_at,billing_account_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11,$12)",[id,workspaceId,userId,operation,version.id,requestHash,hash,JSON.stringify(input),amount.toString(),quoteHash,expires,billingAccountId]);
  const wallet=(await db.query<{available_tokens:string;reserved_tokens:string}>("SELECT available_tokens,reserved_tokens FROM billing_account_wallets WHERE billing_account_id=$1",[billingAccountId])).rows[0];
- return {id,billingAccountId,operation,priceVersionId:version.id,priceLabel:version.label,tokenAmount:amount.toString(),quoteHash,expiresAt:expires.toISOString(),availableTokens:wallet.available_tokens,reservedTokens:wallet.reserved_tokens,affordable:BigInt(wallet.available_tokens)>=amount,test:billingRealm()==="TEST"};
+ return {id,billingAccountId,operation,priceVersionId:version.id,priceLabel:version.label,tokenAmount:amount.toString(),quoteHash,expiresAt:expires.toISOString(),availableTokens:wallet.available_tokens,reservedTokens:wallet.reserved_tokens,affordable:BigInt(wallet.available_tokens)>=amount,test:billingRealm()==="TEST",internalBeta:version.rules.approval==='INTERNAL_BETA'};
 }
 export async function validateQuote(db:DbClient,workspaceId:string,operation:Operation,raw:Record<string,unknown>,input:JobInput,requestHash:string){
  if(typeof raw.quoteId!=="string"||!isUuid(raw.quoteId)||typeof raw.quoteHash!=="string")throw new AppError(400,"Get a token quote before submitting.");

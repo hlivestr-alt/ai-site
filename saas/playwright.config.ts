@@ -28,6 +28,7 @@ if(process.env.SAAS_TEST_STORAGE_PORT){
 }
 
 export default defineConfig({
+  reporter:process.env.STABILIZATION_EVIDENCE_DIR==='docs/phase-d-evidence'?[['line'],['./tests/phase-d/reporter.ts',{outputFile:`${process.env.STABILIZATION_LOG_DIR}/playwright.json`}]]:'list',
   testDir: "./tests",
   outputDir:process.env.SAAS_TEST_OUTPUT_DIR||'test-results',
   testMatch: ["**/integration/*.spec.ts", "**/browser/*.spec.ts"],

@@ -32,7 +32,7 @@ SAFE_PIPELINE_CODES = frozenset({
     "SOURCE_CHECKSUM_MISMATCH", "SOURCE_DOWNLOAD_FAILED", "SOURCE_INVALID",
     "SOURCE_SIZE_MISMATCH", "SOURCE_TOO_LARGE", "TRANSCRIPTION_MODEL_UNAVAILABLE",
     "TRANSCRIPT_EMPTY", "TRANSCRIPT_INVALID", "TRANSCRIPT_SEGMENT_TOO_LARGE",
-    "WORKER_DISK_SPACE_LOW", "WORKER_INTERRUPTED",
+    "WORKER_DISK_SPACE_LOW", "WORKER_INTERRUPTED", "VARIATION_INPUT_INVALID",
 })
 
 
@@ -220,7 +220,7 @@ class Agent:
         return {"transcriberAvailable": importlib.util.find_spec("faster_whisper") is not None,
             "ffmpegAvailable": bool(shutil.which(os.getenv("FFMPEG_PATH", "ffmpeg")) and shutil.which(os.getenv("FFPROBE_PATH", "ffprobe"))),
             "gpuAvailable": self.gpu_available,
-            "freeDiskBytes": shutil.disk_usage(self.config.work_dir).free, **analyzer_health()}
+            "freeDiskBytes": shutil.disk_usage(self.config.work_dir).free, "variationRenderAvailable": shutil.which(os.environ.get("FFMPEG_PATH", "ffmpeg")) is not None, **analyzer_health()}
 
     def heartbeat(self, *, available_slots: int | None = None) -> dict:
         result = self.client.post("/api/worker/heartbeat", {
@@ -245,7 +245,7 @@ class Agent:
         lease = {"attemptId": attempt_id, "leaseId": claim["leaseId"], "fencingToken": claim["fencingToken"]}
         try:
             work = self.work_directory(job_id, attempt_id)
-            if claim["type"] == "CLIPPER":
+            if claim["type"] in {"CLIPPER", "CLIPPER_VARIATION"}:
                 from clipper_executor import ClipperExecutor
                 ClipperExecutor().execute(self, claim, work)
                 return

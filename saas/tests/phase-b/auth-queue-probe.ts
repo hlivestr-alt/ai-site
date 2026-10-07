@@ -3,7 +3,7 @@ import { register,requestVerification } from '../../src/lib/auth';
 import { mailDeliveryBatch,decryptMail } from '../../src/lib/mail-core';
 import { query,pool } from '../../src/lib/db';
 import {localMailAllowed} from '../../src/lib/mail';
-if(!process.env.DATABASE_URL||process.env.DATABASE_URL!==process.env.TEST_DATABASE_URL||!/^\/phase_[bc]_[a-z0-9_]+$/.test(new URL(process.env.DATABASE_URL).pathname))throw new Error('Owned Phase B/C database required');
+if(!process.env.DATABASE_URL||process.env.DATABASE_URL!==process.env.TEST_DATABASE_URL||!/^\/phase_[bcd]_[a-z0-9_]+$/.test(new URL(process.env.DATABASE_URL).pathname))throw new Error('Owned Phase B/C/D database required');
 const input={email:`b-mail-${Date.now()}@example.test`,displayName:'Mail Safety',password:'ValidPassword123!'};
 const key=process.env.MAIL_ENCRYPTION_KEY,base=process.env.APP_BASE_URL;
 async function main(){try{

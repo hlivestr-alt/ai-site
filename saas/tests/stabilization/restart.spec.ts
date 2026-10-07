@@ -12,7 +12,7 @@ async function pauseMarker(work: string, jobId: string, attemptId: string) {
 }
 function launch(credential: string, work: string, stage = '') {
   let output = '';
-  const child = spawn('python', ['worker_agent.py'], { cwd: workerRoot, windowsHide: true, env: { ...process.env, SAAS_BASE_URL: base, WORKER_TOKEN: credential, WORKER_WORK_DIR: work, WORKER_MAX_CONCURRENCY: '1', WORKER_POLL_SECONDS: '0.2', WORKER_HEARTBEAT_SECONDS: '1', CLIP_ANALYZER_PROVIDER: 'fake', ENABLE_FAKE_CLIP_ANALYZER: '1', WAVESPEED_API_KEY: '', OPENAI_API_KEY: '', PHASE_A_PROCESS_TEST: '1', PHASE_A_PAUSE_STAGE: stage, PYTHONPATH: resolve(workerRoot, 'tests/phase_a_fixtures') }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn('python', ['worker_agent.py','--env',resolve(work,'isolated-no-provider.env')], { cwd: workerRoot, windowsHide: true, env: { ...process.env, SAAS_BASE_URL: base, WORKER_TOKEN: credential, WORKER_WORK_DIR: work, WORKER_MAX_CONCURRENCY: '1', WORKER_POLL_SECONDS: '0.2', WORKER_HEARTBEAT_SECONDS: '1', CLIP_ANALYZER_PROVIDER: 'fake', ENABLE_FAKE_CLIP_ANALYZER: '1', WAVESPEED_API_KEY: '', OPENAI_API_KEY: '', PHASE_A_PROCESS_TEST: '1', PHASE_A_PAUSE_STAGE: stage, PYTHONPATH: resolve(workerRoot, 'tests/phase_a_fixtures') }, stdio: ['ignore', 'pipe', 'pipe'] });
   child.stdout!.on('data', b => output += b); child.stderr!.on('data', b => output += b);
   return { child, output: () => output.replaceAll(credential, '[REDACTED]') };
 }

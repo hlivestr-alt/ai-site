@@ -4,6 +4,7 @@ import { AppError, isUuid } from "./core";
 import { objectStorage } from "./storage";
 import {correlationMetadata} from './operational-logging';
 import {clipperCustomerMessages,customerWorkerFailure,customerWorkerStage} from './worker-messages';
+import type {VariationSettings} from './clipper-variation-settings';
 
 export type JobStatus="QUEUED"|"WAITING_FOR_WORKER"|"RUNNING"|"RECONCILING"|"SUCCEEDED"|"FAILED"|"CANCELLED";
 export const activeJobStatuses:JobStatus[]=['QUEUED','WAITING_FOR_WORKER','RUNNING','RECONCILING'];
@@ -12,13 +13,15 @@ export type FrozenProduct={id:string;versionId:string;versionNumber:number;ruleV
 export type SystemTestInput={schemaVersion:1;kind?:"SYSTEM_TEST";fixture:{steps:number;delayMs:number};product?:FrozenProduct};
 export type AiVideoInput={schemaVersion:1;kind:"AI_VIDEO";product:FrozenProduct;customerPrompt:string;accuracyInstructions:string;tier:"QUALITY";durationSeconds:number;aspectRatio:"9:16"|"16:9"|"1:1";quantity:1;referenceAssetVersionIds:string[];providerPolicyVersion:string;executionProvider:"BYTEPLUS"|"WAVESPEED"|"FAKE";testScenario?:"SUCCESS"|"FAILURE"|"RATE_LIMIT"|"SUBMISSION_UNKNOWN"|"DOWNLOAD_FAIL_ONCE"|"OVERSIZED_OUTPUT"|"INVALID_MIME"|"INVALID_CHECKSUM"};
 export type ClipperInput={schemaVersion:1;kind:"CLIPPER";analyzerProvider:"openai"|"wavespeed"|"fake";analyzerModel?:string;source:{origin:"SOURCE_ASSET";sourceAssetId:string;byteSize:number;mimeType:string;storageIdentity:string;storageKey:string;filename:string;sha256?:string};product?:FrozenProduct;language:string;goal:string;targetClipCount:number;minClipSeconds:number;maxClipSeconds:number;aspectRatio:"9:16";captions:boolean;analyzerPolicyVersion:string;renderPolicyVersion:string};
-export type JobInput=SystemTestInput|AiVideoInput|ClipperInput;
-export type JobRow={id:string;workspace_id:string;type:string;required_capability:string;status:JobStatus;input_snapshot:JobInput;input_hash:string;progress_percent:number;progress_stage:string;progress_message:string;progress_sequence:number;attempt_count:number;max_attempts:number;available_at:Date;cancel_requested_at:Date|null;result:Record<string,unknown>|null;error_code?:string|null};
+export type ClipperVariationInput=Omit<ClipperInput,'kind'|'analyzerProvider'|'analyzerModel'>&{kind:'CLIPPER_VARIATION';variationPolicyVersion:string;settings:VariationSettings;settingsHash:string;lineage:{sourceContentId:string;sourceVersionId:string;sourceArtifactId:string;rootContentId:string;rootVersionId:string;rootJobId:string;rootArtifactId:string;parentVariationId:string|null;transcriptArtifactId:string;transcriptSha256:string;planArtifactId:string;planSha256:string;clip:import('./clipper-core').Clip}};
+export type ClipperWorkerInput=ClipperInput|ClipperVariationInput;
+export type JobInput=SystemTestInput|AiVideoInput|ClipperInput|ClipperVariationInput;
+export type JobRow={id:string;workspace_id:string;type:string;required_capability:string;status:JobStatus;input_snapshot:JobInput;input_hash:string;progress_percent:number;progress_stage:string;progress_message:string;progress_sequence:number;attempt_count:number;max_attempts:number;available_at:Date;cancel_requested_at:Date|null;started_at?:Date|null;finished_at?:Date|null;result:Record<string,unknown>|null;error_code?:string|null};
 
 export function inputHash(input:JobInput){return createHash("sha256").update(JSON.stringify(input)).digest("hex");}
 export function safeWorkerInput(input:JobInput){
   if(input.kind==="AI_VIDEO")throw new AppError(409,"Cloud video input is not available to private workers.");
-  if(input.kind==="CLIPPER"){
+  if(input.kind==="CLIPPER"||input.kind==='CLIPPER_VARIATION'){
     const {storageKey,...source}=input.source;void storageKey;
     return {...input,source,product:input.product?{...input.product,assets:[]}:undefined};
   }
@@ -33,7 +36,7 @@ export async function jobEvent(db:DbClient,workspaceId:string,jobId:string,type:
   await db.query("INSERT INTO job_events(workspace_id,job_id,attempt_id,worker_id,event_type,safe_data) VALUES($1,$2,$3,$4,$5,$6::jsonb)",[workspaceId,jobId,attemptId||null,workerId||null,type,JSON.stringify({...data,...correlationMetadata()})]);
 }
 
-export async function insertJob(db:DbClient,args:{workspaceId:string;createdBy:string;type:"SYSTEM_TEST"|"AI_VIDEO"|"CLIPPER";capability:string;idempotencyKey:string;input:JobInput;maxAttempts:number;requestHash?:string;billingMode?:"PAID"|"DIAGNOSTIC";workflow?:{runId:string;stepId:string}}){
+export async function insertJob(db:DbClient,args:{workspaceId:string;createdBy:string;type:"SYSTEM_TEST"|"AI_VIDEO"|"CLIPPER"|'CLIPPER_VARIATION';capability:string;idempotencyKey:string;input:JobInput;maxAttempts:number;requestHash?:string;billingMode?:"PAID"|"DIAGNOSTIC";workflow?:{runId:string;stepId:string}}){
   const hash=inputHash(args.input),product=args.input.product;
   const created=await db.query<{id:string}>(`INSERT INTO jobs(workspace_id,type,required_capability,input_snapshot,input_hash,idempotency_key,product_id,product_version_id,product_rule_version_id,created_by,max_attempts,client_request_hash,billing_mode,workflow_run_id,workflow_step_id)
     VALUES($1,$2,$3,$4::jsonb,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
@@ -70,7 +73,7 @@ export async function listWorkspaceJobs(workspaceId:string,options:{status?:stri
   return {jobs:rows.rows.map(customerJobFields),total:Number(count.rows[0].count),page,pageSize:30};
 }
 function customerJobFields(row:Record<string,unknown>){
-  if(row.type!=='CLIPPER')return row;
+  if(row.type!=='CLIPPER'&&row.type!=='CLIPPER_VARIATION')return row;
   const safe=clipperCustomerMessages({status:String(row.status),progress_stage:String(row.progress_stage),error_code:typeof row.error_code==='string'?row.error_code:null,attempt_count:Number(row.attempt_count),max_attempts:Number(row.max_attempts)});
   return {...row,progress_stage:safe.stage,progress_message:safe.message,error_code:row.error_code?customerWorkerFailure(String(row.error_code)).code:null,error_message_safe:safe.errorMessage};
 }
@@ -88,7 +91,7 @@ export async function workspaceJobDetail(workspaceId:string,jobId:string){
     query("SELECT id,attempt_number,status,progress_percent,started_at,finished_at,error_code,error_message_safe FROM job_attempts WHERE workspace_id=$1 AND job_id=$2 ORDER BY attempt_number DESC LIMIT 20",[workspaceId,jobId]),
     query("SELECT event_type,safe_data,created_at FROM job_events WHERE workspace_id=$1 AND job_id=$2 ORDER BY created_at DESC,id DESC LIMIT 50",[workspaceId,jobId]),
   ]);
-  const clipper=job.rows[0]?.type==='CLIPPER';
+  const clipper=['CLIPPER','CLIPPER_VARIATION'].includes(job.rows[0]?.type);
   return {job:customerJobFields(job.rows[0]),attempts:clipper?attempts.rows.map(a=>({...a,error_code:a.error_code?customerWorkerFailure(a.error_code).code:null,error_message_safe:a.status==='FAILED'?customerWorkerFailure(a.error_code||'').message:null})):attempts.rows,events:clipper?events.rows.map(e=>({...e,safe_data:{...e.safe_data,...(e.safe_data?.code?{code:customerWorkerFailure(String(e.safe_data.code)).code}:{}),...(e.safe_data?.stage?{stage:customerWorkerStage(String(e.safe_data.stage)).stage}:{})}})):events.rows};
 }
 export async function cancelWorkspaceJob(db:DbClient,workspaceId:string,jobId:string){
@@ -107,10 +110,17 @@ export async function cancelWorkspaceJob(db:DbClient,workspaceId:string,jobId:st
 }
 
 export async function snapshotMediaAvailable(job:JobRow,db:DbClient={query}){
-  if(job.input_snapshot.kind==="CLIPPER"){
+  if(job.input_snapshot.kind==="CLIPPER"||job.input_snapshot.kind==='CLIPPER_VARIATION'){
     const source=job.input_snapshot.source;
     const found=await db.query<{storage_key:string;byte_size:string;status:string;sha256:string|null;mime_type:string}>("SELECT storage_key,byte_size,status,sha256,mime_type FROM source_assets WHERE workspace_id=$1 AND id=$2",[job.workspace_id,source.sourceAssetId]);
-    const row=found.rows[0];return !!row&&["UPLOADED","VERIFIED"].includes(row.status)&&row.storage_key===source.storageKey&&Number(row.byte_size)===source.byteSize&&row.mime_type===source.mimeType&&(!source.sha256||row.sha256===source.sha256)&&!!await objectStorage().head(row.storage_key);
+    const row=found.rows[0];if(!row||!["UPLOADED","VERIFIED"].includes(row.status)||row.storage_key!==source.storageKey||Number(row.byte_size)!==source.byteSize||row.mime_type!==source.mimeType||source.sha256&&row.sha256!==source.sha256||!await objectStorage().head(row.storage_key))return false;
+    if(job.input_snapshot.kind==='CLIPPER_VARIATION'){
+      const l=job.input_snapshot.lineage;
+      const reusable=(await db.query<{id:string;sha256:string;storage_key:string}>("SELECT a.id,a.sha256,a.storage_key FROM job_artifacts a JOIN jobs j ON j.id=a.job_id AND j.workspace_id=a.workspace_id WHERE a.workspace_id=$1 AND a.job_id=$2 AND a.id=ANY($3::uuid[]) AND a.status='READY' AND j.status='SUCCEEDED' AND j.result->'artifactIds' ? a.id::text AND NOT EXISTS(SELECT 1 FROM job_billing b WHERE b.job_id=j.id AND b.status='RELEASED')",[job.workspace_id,l.rootJobId,[l.transcriptArtifactId,l.planArtifactId,l.rootArtifactId]])).rows;
+      if(reusable.length!==3||reusable.find(a=>a.id===l.transcriptArtifactId)?.sha256!==l.transcriptSha256||reusable.find(a=>a.id===l.planArtifactId)?.sha256!==l.planSha256)return false;
+      for(const a of reusable)if(!await objectStorage().head(a.storage_key))return false;
+    }
+    return true;
   }
   const product=job.input_snapshot.product;
   if(!product)return true;
@@ -147,7 +157,7 @@ export async function dispatchOne(jobId?:string){
 export async function dispatchBatch(limit=25){let count=0;for(;count<limit;count++)if(!await dispatchOne())break;return count;}
 
 export async function scheduleRetry(db:DbClient,job:JobRow,reason:string,attemptId:string,workerId:string|null){
-  if(job.type!=="SYSTEM_TEST"&&job.type!=="CLIPPER"){
+  if(job.type!=="SYSTEM_TEST"&&job.type!=="CLIPPER"&&job.type!=='CLIPPER_VARIATION'){
     await db.query("UPDATE jobs SET status='RECONCILING',error_code=$1,error_message_safe='Execution outcome requires review.',updated_at=now() WHERE id=$2",[reason,job.id]);
     await jobEvent(db,job.workspace_id,job.id,"JOB_RECONCILING",attemptId,workerId,{code:reason});return "RECONCILING";
   }

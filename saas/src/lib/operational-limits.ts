@@ -4,7 +4,7 @@ import {boundedSetting} from './operational-config';
 export const LIMIT_DEFAULTS={active_jobs:20,active_workflows:10,queued_ai_videos:10,queued_clipper_jobs:5,source_uploads_daily:20,storage_bytes:21474836480,product_assets:500} as const;
 export type LimitName=keyof typeof LIMIT_DEFAULTS;
 export const ACTIVE_JOB_STATES=['QUEUED','WAITING_FOR_WORKER','RUNNING','RECONCILING'];
-export function operationStorageBudget(input:{kind:string;targetClipCount?:number}){if(input.kind==='AI_VIDEO')return boundedSetting('MAX_GENERATED_VIDEO_BYTES',268435456,1048576,536870912);if(input.kind==='CLIPPER')return (input.targetClipCount||1)*boundedSetting('MAX_CLIPPER_OUTPUT_BYTES',268435456,1048576,536870912)+88080384;return 0;}
+export function operationStorageBudget(input:{kind:string;targetClipCount?:number}){if(input.kind==='AI_VIDEO')return boundedSetting('MAX_GENERATED_VIDEO_BYTES',268435456,1048576,536870912);if((input.kind==='CLIPPER'||input.kind==='CLIPPER_VARIATION'))return (input.targetClipCount||1)*boundedSetting('MAX_CLIPPER_OUTPUT_BYTES',268435456,1048576,536870912)+88080384;return 0;}
 export async function additionalArtifactBytes(db:DbClient,jobId:string,bytes:number){const job=(await db.query<{input_snapshot:{kind:string;targetClipCount?:number};status:string}>('SELECT input_snapshot,status FROM jobs WHERE id=$1',[jobId])).rows[0];const allocated=(await db.query<{bytes:string}>("SELECT coalesce(sum(expected_byte_size),0)::text AS bytes FROM job_artifacts WHERE job_id=$1 AND status IN('PENDING','READY')",[jobId])).rows[0].bytes;const remaining=job&&ACTIVE_JOB_STATES.includes(job.status)?Math.max(0,operationStorageBudget(job.input_snapshot)-Number(allocated)):0;return Math.max(0,bytes-remaining);}
 export async function workspaceQuotaLock(db:DbClient,workspaceId:string){await db.query('SELECT pg_advisory_xact_lock(hashtextextended($1,9))',[workspaceId]);}
 export async function workspaceLimits(workspaceId:string,db:DbClient={query}){
@@ -17,9 +17,9 @@ export async function workspaceLimits(workspaceId:string,db:DbClient={query}){
 }
 async function ceiling(db:DbClient,workspaceId:string,name:LimitName){return BigInt((await workspaceLimits(workspaceId,db)).find(l=>l.name===name)!.value);}
 function exceeded(name:LimitName){return new AppError(429,`Workspace ${name.replaceAll('_',' ')} limit reached. Try again later or contact support.`,'WORKSPACE_QUOTA',60);}
-export async function checkJobQuota(db:DbClient,workspaceId:string,type:'AI_VIDEO'|'CLIPPER'){
+export async function checkJobQuota(db:DbClient,workspaceId:string,type:'AI_VIDEO'|'CLIPPER'|'CLIPPER_VARIATION'){
   await workspaceQuotaLock(db,workspaceId);
-  const counts=(await db.query<{active:string;queued:string}>(`SELECT count(*) FILTER(WHERE status=ANY($2::text[]))::text AS active,count(*) FILTER(WHERE type=$3 AND status IN('QUEUED','WAITING_FOR_WORKER'))::text AS queued FROM jobs WHERE workspace_id=$1`,[workspaceId,ACTIVE_JOB_STATES,type])).rows[0];
+  const counts=(await db.query<{active:string;queued:string}>(`SELECT count(*) FILTER(WHERE status=ANY($2::text[]))::text AS active,count(*) FILTER(WHERE type=ANY($3::text[]) AND status IN('QUEUED','WAITING_FOR_WORKER'))::text AS queued FROM jobs WHERE workspace_id=$1`,[workspaceId,ACTIVE_JOB_STATES,type==='AI_VIDEO'?[type]:['CLIPPER','CLIPPER_VARIATION']])).rows[0];
   if(BigInt(counts.active)>=await ceiling(db,workspaceId,'active_jobs'))throw exceeded('active_jobs');
   const name=type==='AI_VIDEO'?'queued_ai_videos':'queued_clipper_jobs';if(BigInt(counts.queued)>=await ceiling(db,workspaceId,name))throw exceeded(name);
 }
@@ -31,7 +31,7 @@ export async function workspaceStorageUsage(workspaceId:string,db:DbClient={quer
     UNION ALL SELECT byte_size FROM source_assets WHERE workspace_id=$1 AND status='PENDING_UPLOAD'
     UNION ALL SELECT expected_byte_size FROM job_artifacts WHERE workspace_id=$1 AND status='PENDING'
     UNION ALL SELECT 1048576 FROM content_posters WHERE workspace_id=$1 AND status='PROCESSING'
-    UNION ALL SELECT greatest(0,CASE WHEN j.type='AI_VIDEO' THEN $2::bigint ELSE coalesce((j.input_snapshot->>'targetClipCount')::bigint,1)*$3::bigint+88080384 END-(SELECT coalesce(sum(a.expected_byte_size),0) FROM job_artifacts a WHERE a.job_id=j.id AND a.status IN('PENDING','READY'))) FROM jobs j WHERE j.workspace_id=$1 AND j.type IN('AI_VIDEO','CLIPPER') AND j.status IN('QUEUED','WAITING_FOR_WORKER','RUNNING','RECONCILING')) allocations`,[workspaceId,operationStorageBudget({kind:'AI_VIDEO'}),boundedSetting('MAX_CLIPPER_OUTPUT_BYTES',268435456,1048576,536870912)])).rows[0].bytes;
+    UNION ALL SELECT greatest(0,CASE WHEN j.type='AI_VIDEO' THEN $2::bigint ELSE coalesce((j.input_snapshot->>'targetClipCount')::bigint,1)*$3::bigint+88080384 END-(SELECT coalesce(sum(a.expected_byte_size),0) FROM job_artifacts a WHERE a.job_id=j.id AND a.status IN('PENDING','READY'))) FROM jobs j WHERE j.workspace_id=$1 AND j.type IN('AI_VIDEO','CLIPPER','CLIPPER_VARIATION') AND j.status IN('QUEUED','WAITING_FOR_WORKER','RUNNING','RECONCILING')) allocations`,[workspaceId,operationStorageBudget({kind:'AI_VIDEO'}),boundedSetting('MAX_CLIPPER_OUTPUT_BYTES',268435456,1048576,536870912)])).rows[0].bytes;
   const bytes=categories.reduce((n,c)=>n+BigInt(c.bytes),0n),objects=categories.reduce((n,c)=>n+Number(c.objects),0),unmeasured=categories.reduce((n,c)=>n+Number(c.unmeasured),0);
   return {bytes:bytes.toString(),objectCount:objects,unmeasuredObjects:unmeasured,pendingBytes:pending,quotaBytes:(bytes+BigInt(pending)+BigInt(unmeasured)*1048576n).toString(),categories};
 }

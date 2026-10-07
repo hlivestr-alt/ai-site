@@ -39,7 +39,8 @@ export async function workerHeartbeat(worker:Worker,raw:Record<string,unknown>){
   if(typeof slots!=="number"||!Number.isInteger(slots)||slots<0||slots>worker.max_concurrency)throw new AppError(400,"Invalid available slots.");
   if(raw.activeLeaseIds!==undefined&&(!Array.isArray(raw.activeLeaseIds)||raw.activeLeaseIds.length>16||raw.activeLeaseIds.some(x=>typeof x!=="string"||!isUuid(x))))throw new AppError(400,"Invalid active lease list.");
   const health=raw.clipperHealth as Record<string,unknown>|undefined;
-  if(health&&(!["transcriberAvailable","ffmpegAvailable","gpuAvailable","freeDiskBytes"].every(k=>k in health)||![4,7].includes(Object.keys(health).length)||["transcriberAvailable","ffmpegAvailable","gpuAvailable"].some(k=>typeof health[k]!=="boolean")||typeof health.freeDiskBytes!=="number"||!Number.isSafeInteger(health.freeDiskBytes)||health.freeDiskBytes<0||Object.keys(health).some(k=>!["transcriberAvailable","ffmpegAvailable","gpuAvailable","freeDiskBytes","analyzerConfigured","analyzerProvider","analyzerModel"].includes(k))||Object.keys(health).length===7&&(typeof health.analyzerConfigured!=="boolean"||!["","openai","wavespeed","fake"].includes(String(health.analyzerProvider))||typeof health.analyzerModel!=="string"||health.analyzerModel!==""&&!/^[a-zA-Z0-9][a-zA-Z0-9/._:-]{0,191}$/.test(health.analyzerModel))))throw new AppError(400,"Invalid worker health.");
+  if(health&&(!["transcriberAvailable","ffmpegAvailable","gpuAvailable","freeDiskBytes"].every(k=>k in health)||![4,7].includes(Object.keys(health).filter(k=>k!=='variationRenderAvailable').length)||["transcriberAvailable","ffmpegAvailable","gpuAvailable"].some(k=>typeof health[k]!=="boolean")||typeof health.freeDiskBytes!=="number"||!Number.isSafeInteger(health.freeDiskBytes)||health.freeDiskBytes<0||Object.keys(health).some(k=>!["transcriberAvailable","ffmpegAvailable","gpuAvailable","freeDiskBytes","analyzerConfigured","analyzerProvider","analyzerModel","variationRenderAvailable"].includes(k))||Object.keys(health).filter(k=>k!=='variationRenderAvailable').length===7&&(typeof health.analyzerConfigured!=="boolean"||!["","openai","wavespeed","fake"].includes(String(health.analyzerProvider))||typeof health.analyzerModel!=="string"||health.analyzerModel!==""&&!/^[a-zA-Z0-9][a-zA-Z0-9/._:-]{0,191}$/.test(health.analyzerModel))))throw new AppError(400,"Invalid worker health.");
+  if(health?.variationRenderAvailable!==undefined&&typeof health.variationRenderAvailable!=='boolean')throw new AppError(400,'Invalid variation health.');
   await query("UPDATE workers SET clipper_health=$1::jsonb WHERE id=$2",[JSON.stringify(health||{}),worker.id]);
   const result=await query<Worker>(`UPDATE workers SET agent_version=$1,pipeline_version=$2,available_slots=$3,last_heartbeat_at=now()
     WHERE id=$4 AND status<>'DISABLED' RETURNING id,name,status,capabilities,max_concurrency,available_slots,last_heartbeat_at`,[agentVersion,pipelineVersion,slots,worker.id]);
@@ -60,12 +61,13 @@ export async function workerClaim(worker:Worker){
     const picked=await db.query<JobRow&{attempt_id:string}>(`SELECT j.*,a.id AS attempt_id FROM jobs j
       JOIN job_attempts a ON a.workspace_id=j.workspace_id AND a.job_id=j.id AND a.attempt_number=j.attempt_count+1 AND a.status='PENDING'
       JOIN workspaces w ON w.id=j.workspace_id AND w.status='ACTIVE'
-      WHERE j.type IN ('SYSTEM_TEST','CLIPPER') AND j.status='WAITING_FOR_WORKER' AND j.available_at<=now() AND $1::jsonb ? j.required_capability
+      WHERE j.type IN ('SYSTEM_TEST','CLIPPER','CLIPPER_VARIATION') AND j.status='WAITING_FOR_WORKER' AND j.available_at<=now() AND ($1::jsonb ? j.required_capability OR (j.type='CLIPPER_VARIATION' AND $1::jsonb ? 'CLIPPER_V1'))
+      AND (j.type<>'CLIPPER_VARIATION' OR ($9 AND (j.input_snapshot->'source'->>'byteSize')::bigint*3<$4))
       AND (j.required_capability<>'CLIPPER_V1' OR ($3 AND (j.input_snapshot->'source'->>'byteSize')::bigint*3<$4))
       AND ($5 OR j.type<>'SYSTEM_TEST' AND j.required_capability<>'CLIPPER_TEST_V1')
       AND (j.type<>'CLIPPER' OR (j.input_snapshot->>'analyzerProvider'='wavespeed' AND $6='wavespeed' AND $7 AND j.input_snapshot->>'analyzerModel'=$8) OR (j.input_snapshot->>'analyzerProvider'<>'wavespeed' AND ($6='' OR j.input_snapshot->>'analyzerProvider'=$6)))
-      AND (j.type<>'CLIPPER' OR NOT EXISTS (SELECT 1 FROM worker_leases l JOIN jobs busy ON busy.id=l.job_id WHERE l.worker_id=$2 AND l.status='ACTIVE' AND busy.type='CLIPPER'))
-      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[JSON.stringify(own.capabilities),worker.id,realClipperReady,typeof health.freeDiskBytes==='number'?health.freeDiskBytes:0,nonProductionTestAllowed(),String(health.analyzerProvider||''),health.analyzerConfigured===true,String(health.analyzerModel||'')]);
+      AND (j.type NOT IN('CLIPPER','CLIPPER_VARIATION') OR NOT EXISTS (SELECT 1 FROM worker_leases l JOIN jobs busy ON busy.id=l.job_id WHERE l.worker_id=$2 AND l.status='ACTIVE' AND busy.type IN('CLIPPER','CLIPPER_VARIATION')))
+      ORDER BY j.created_at,j.id LIMIT 1 FOR UPDATE OF j SKIP LOCKED`,[JSON.stringify(own.capabilities),worker.id,realClipperReady,typeof health.freeDiskBytes==='number'?health.freeDiskBytes:0,nonProductionTestAllowed(),String(health.analyzerProvider||''),health.analyzerConfigured===true,String(health.analyzerModel||''),health.variationRenderAvailable===true&&health.ffmpegAvailable===true&&typeof health.freeDiskBytes==='number'&&health.freeDiskBytes>=boundedSetting('WORKER_MIN_FREE_DISK_BYTES',5*1024**3,1,Number.MAX_SAFE_INTEGER)]);
     const job=picked.rows[0];if(!job)return {claim:null,reason:"no_compatible_job"};
     if(!await snapshotMediaAvailable(job,db)){
       await db.query("UPDATE jobs SET status='FAILED',error_code='INPUT_UNAVAILABLE',error_message_safe='Required reference media is unavailable.',finished_at=now(),updated_at=now() WHERE id=$1",[job.id]);
@@ -143,7 +145,7 @@ export async function workerFail(worker:Worker,jobId:string,raw:Record<string,un
       return {status:"CANCELLED",duplicate:false};
     }
     await jobEvent(db,job.workspace_id,job.id,"JOB_ATTEMPT_FAILED",id.attemptId,worker.id,{code:errorCode});
-    if(job.type==='CLIPPER'&&safe.known?safe.retry:raw.retriable)return {status:await scheduleRetry(db,job,errorCode,id.attemptId,worker.id),duplicate:false};
+    if(['CLIPPER','CLIPPER_VARIATION'].includes(job.type)&&safe.known?safe.retry:raw.retriable)return {status:await scheduleRetry(db,job,errorCode,id.attemptId,worker.id),duplicate:false};
     await db.query("UPDATE jobs SET status='FAILED',error_code=$1,error_message_safe=$2,finished_at=now(),progress_stage='failed',updated_at=now() WHERE id=$3",[errorCode,message,job.id]);
     await jobEvent(db,job.workspace_id,job.id,"JOB_FAILED",id.attemptId,worker.id,{code:errorCode});
     return {status:"FAILED",duplicate:false};
@@ -171,7 +173,7 @@ export async function workerComplete(worker:Worker,jobId:string,raw:Record<strin
   if(!Array.isArray(artifactIds)||artifactIds.length>12||artifactIds.some(x=>typeof x!=="string"||!isUuid(x)))throw new AppError(400,"Invalid output manifest.");
   const plan=await transaction(async db=>{
     const lease=await lockedLease(db,worker.id,id),job=await scopedJob(db,lease.workspace_id,jobId);
-    if(lease.status==='COMPLETED'&&job.status==='SUCCEEDED'||job.input_snapshot.kind!=='CLIPPER')return null;
+    if(lease.status==='COMPLETED'&&job.status==='SUCCEEDED'||(job.input_snapshot.kind!=='CLIPPER'&&job.input_snapshot.kind!=='CLIPPER_VARIATION'))return null;
     activeLease(lease);const row=(await db.query<{id:string;storage_key:string;sha256:string;byte_size:string}>("SELECT id,storage_key,sha256,byte_size FROM job_artifacts WHERE workspace_id=$1 AND job_id=$2 AND attempt_id=$3 AND slot_name='clip-plan' AND status='READY'",[lease.workspace_id,jobId,id.attemptId])).rows[0];
     if(!row||row.id!==raw.planArtifactId)throw new AppError(422,'Completion plan is unavailable.');return row;
   });
@@ -183,7 +185,7 @@ export async function workerComplete(worker:Worker,jobId:string,raw:Record<strin
     if(lease.status==="COMPLETED"&&job.status==="SUCCEEDED")return {status:"SUCCEEDED",result:job.result,duplicate:true};
     activeLease(lease);
     if(job.status!=="RUNNING"||job.cancel_requested_at)throw new AppError(409,"Job is no longer completable.");
-    if(job.input_snapshot.kind==="CLIPPER")return completeClipper(db,lease,job,raw,verifiedPlan);
+    if((job.input_snapshot.kind==="CLIPPER"||job.input_snapshot.kind==='CLIPPER_VARIATION'))return completeClipper(db,lease,job,raw,verifiedPlan);
     if(job.type!=="SYSTEM_TEST")throw new AppError(409,"No executor is configured for this Job type.");
     if(artifactIds.length>10)throw new AppError(400,"Invalid output manifest.");
     if(job.input_snapshot.kind==="AI_VIDEO")throw new AppError(409,"Cloud video Jobs do not use worker completion.");
@@ -224,7 +226,7 @@ export async function workerOutputSlot(worker:Worker,jobId:string,raw:Record<str
     const lease=await lockedLease(db,worker.id,id);activeLease(lease);
     const job=await runningJob(db,lease);
     if(job.cancel_requested_at)throw new AppError(409,"Cancellation requested.");
-    if(job.input_snapshot.kind==="CLIPPER"){
+    if((job.input_snapshot.kind==="CLIPPER"||job.input_snapshot.kind==='CLIPPER_VARIATION')){
       if(!clipperSlotAllowed(String(slotName),String(mimeType),job.input_snapshot.targetClipCount)||Number(byteSize)>clipperArtifactLimit(String(slotName),String(mimeType)))throw new AppError(400,"Invalid Clipper output slot.");
     }else if(Number(byteSize)>20*1024*1024)throw new AppError(400,"Invalid output size.");
     const existing=await db.query<{id:string;storage_key:string;mime_type:string;expected_byte_size:string;expected_sha256:string|null;status:string}>("SELECT id,storage_key,mime_type,expected_byte_size,expected_sha256,status FROM job_artifacts WHERE attempt_id=$1 AND slot_name=$2",[id.attemptId,slotName]);

@@ -1,4 +1,6 @@
 const stages: Record<string, string> = {
+  PREPARING_EDIT: "Preparing your edit.", RENDERING_VARIATION: "Rendering your variation.",
+  UPLOADING_VARIATION: "Saving your variation.", FINALIZING_VARIATION: "Finishing your variation.",
   RUNNING: "Processing your video.", STEP: "Processing task.",
   DOWNLOADING_SOURCE: "Downloading your source video.", VERIFYING_SOURCE: "Checking your source video.",
   TRANSCRIBING: "Transcribing your video.", ANALYZING_TRANSCRIPT: "Finding useful moments.",
@@ -8,6 +10,7 @@ const stages: Record<string, string> = {
   COMPLETE: "Your clips are ready.", CANCELLED: "Cancelled.", FAILED: "Your clips could not be completed.",
 };
 const failures: Record<string, { message: string; retry: boolean }> = {
+  VARIATION_INPUT_INVALID: {message:"Saved editing data could not be verified. Please try another clip.",retry:false},
   SOURCE_DOWNLOAD_FAILED: { message: "The source video could not be downloaded. Retrying.", retry: true },
   TRANSCRIPTION_MODEL_UNAVAILABLE: { message: "Video transcription is temporarily unavailable.", retry: true },
   ANALYZER_UNAVAILABLE: { message: "Clip analysis is temporarily unavailable.", retry: true },

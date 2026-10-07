@@ -1,6 +1,6 @@
 import {jobWorkflowLineage} from "@/lib/workflows";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound,redirect } from "next/navigation";
 import { Shell } from "@/components/shell";
 import { JobCancel,JobRefresh } from "@/components/job-actions";
 import { pageWorkspace } from "@/lib/page";
@@ -13,6 +13,7 @@ export default async function JobDetailPage({params}:{params:Promise<{jobId:stri
   const {session,workspaces,current}=await pageWorkspace(),{jobId}=await params;
   const data=await customerJobDetail(session,current.id,jobId).catch(error=>{if(error instanceof AppError&&error.status===404)notFound();throw error;});
   const job=data.job as {id:string;type:string;status:string;progress_percent:number;progress_stage:string;progress_message:string;created_at:Date;started_at:Date|null;finished_at:Date|null;attempt_count:number;max_attempts:number;error_message_safe:string|null;cancel_requested_at:Date|null};
+  if(job.type==="CLIPPER_VARIATION")redirect(`/clipper/${job.id}`);
   const workflow=await jobWorkflowLineage(session,current.id,jobId);
   const active=["QUEUED","WAITING_FOR_WORKER","RUNNING","RECONCILING"].includes(job.status);
   return <Shell user={session} workspaces={workspaces} current={current}>

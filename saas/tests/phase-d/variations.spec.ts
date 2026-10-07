@@ -1,0 +1,71 @@
+import {test,expect} from '@playwright/test';
+import {randomUUID} from 'node:crypto';
+import {resolve} from 'node:path';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {fixture,variation,quote,render,entries,originalUnchanged,close,dispatch,evidence,provision,worker,launch,killOwned} from './support';
+import {lease,type Claim} from '../clipper-helpers';
+import {publishJob} from '../content-helpers';
+import {login} from '../stabilization/browser-checks';
+
+test('A/D: real visual variation reuses analysis, preserves original bytes and settles once on replay',async()=>{
+ const f=await fixture();try{const before=(await f.db.query('SELECT count(*)::int n FROM token_ledger_entries WHERE job_id=$1',[f.originalJobId])).rows[0].n,r=await variation(f.c,f.workspaceId,f.contentId,f.versionId,{colorGrade:'warm',mirror:true,name:'Warm flip'});
+  const replay=await f.c.post(`/api/workspaces/${f.workspaceId}/clipper/variations`,{data:r.input});expect(replay.status()).toBe(200);expect((await replay.json()).job.id).toBe(r.id);
+  const output=await render(f,r.id);expect(output.metrics).toEqual({transcription:0,analyzer:0,render:1});expect(await entries(f.db,r.id)).toEqual([{entry_type:'CAPTURE',count:1},{entry_type:'RESERVE',count:1}]);
+  expect((await f.db.query('SELECT count(*)::int n FROM content_versions WHERE job_id=$1',[r.id])).rows[0].n).toBe(1);expect((await f.db.query('SELECT count(*)::int n FROM token_ledger_entries WHERE job_id=$1',[f.originalJobId])).rows[0].n).toBe(before);await originalUnchanged(f);
+  const row=(await f.db.query('SELECT * FROM clipper_variations WHERE render_job_id=$1',[r.id])).rows[0];expect(row).toMatchObject({root_content_id:f.contentId,source_version_id:f.versionId,source_artifact_id:f.artifactId,parent_variation_id:null,variation_number:1,result_content_id:output.content.id});
+  const copied=(await f.db.query("SELECT a.sha256 FROM job_artifacts a WHERE a.job_id=$1 AND slot_name='transcript'",[r.id])).rows[0].sha256,root=(await f.db.query("SELECT a.sha256 FROM job_artifacts a WHERE a.job_id=$1 AND slot_name='transcript'",[f.originalJobId])).rows[0].sha256;expect(copied).toBe(root);
+  await evidence('variation-basic-idempotency',{status:'PASS',realWorker:true,realFfmpeg:true,reusedTranscriptBytes:true,originalVersionAndBytesUnchanged:true,metrics:output.metrics,variationTokens:100,ledger:await entries(f.db,r.id),jobs:1,publications:1,originalLedgerUnchanged:true});
+ }finally{await close(f);}
+});
+test('B/C: independent variations and editing an existing variation preserve root and parent lineage',async()=>{
+ test.setTimeout(300000);const f=await fixture();try{const first=await variation(f.c,f.workspaceId,f.contentId,f.versionId,{subtitleSize:'large'}),v1=await render(f,first.id),second=await variation(f.c,f.workspaceId,f.contentId,f.versionId,{letterboxEnabled:true,topHookEnabled:true,hookFont:'display'}),v2=await render(f,second.id),third=await variation(f.c,f.workspaceId,v1.content.id,v1.content.version,{colorGrade:'cool'}),v3=await render(f,third.id);
+  const rows=(await f.db.query('SELECT * FROM clipper_variations WHERE root_content_id=$1 ORDER BY variation_number',[f.contentId])).rows;expect(rows.map(v=>v.variation_number)).toEqual([1,2,3]);expect(rows[2].parent_variation_id).toBe(rows[0].id);expect(rows[2].source_content_id).toBe(v1.content.id);expect(rows[2].root_content_id).toBe(f.contentId);
+  for(const v of [v1,v2,v3]){const url=(await (await f.c.get(`/api/workspaces/${f.workspaceId}/content/${v.content.id}/versions/${v.content.version}/media`)).json()).url;expect((await fetch(url)).ok).toBe(true);}await originalUnchanged(f);
+  await evidence('variation-lineage',{status:'PASS',variations:3,labels:[1,2,3],thirdParent:1,rootPreserved:true,independentPrivateDownloads:3,originalUnchanged:true});
+ }finally{await close(f);}
+});
+test('E: definite variation failure and cancellation each release exactly once',async()=>{
+ const f=await fixture(),p=provision(),w=await worker(p.credential);try{const v=await variation(f.c,f.workspaceId,f.contentId,f.versionId);dispatch();const c=(await (await w.post('/api/worker/claim',{data:{}})).json()).claim as Claim;expect(c.jobId).toBe(v.id);
+  expect((await w.post(`/api/worker/jobs/${v.id}/fail`,{data:{...lease(c),errorCode:'VARIATION_INPUT_INVALID',retriable:false,message:'controlled failure'}})).status()).toBe(200);for(let n=0;n<3;n++)dispatch();expect(await entries(f.db,v.id)).toEqual([{entry_type:'RELEASE',count:1},{entry_type:'RESERVE',count:1}]);
+  const cancel=await variation(f.c,f.workspaceId,f.contentId,f.versionId,{mirror:true});expect((await f.c.post(`/api/workspaces/${f.workspaceId}/jobs/${cancel.id}/cancel`)).status()).toBe(200);for(let n=0;n<3;n++)dispatch();expect(await entries(f.db,cancel.id)).toEqual([{entry_type:'RELEASE',count:1},{entry_type:'RESERVE',count:1}]);await originalUnchanged(f);
+  await evidence('variation-failure-cancel',{status:'PASS',definiteFailureRelease:1,cancelRelease:1,captures:0,originalUnchanged:true});
+ }finally{await f.db.query("UPDATE workers SET status='DISABLED' WHERE id=$1",[p.workerId]);await w.dispose();await close(f);}
+});
+test('G/H: shared brand wallet spends 100 but direct content, artifact, variation, job and media IDs stay isolated',async()=>{
+ const f=await fixture('1600'),b=(await (await f.c.post('/api/workspaces',{data:{name:'Brand B shared wallet'}})).json()).workspace.id as string,cb=await login(f.email);try{expect((await cb.post(`/api/workspaces/${b}/select`)).status()).toBe(200);const v=await variation(f.c,f.workspaceId,f.contentId,f.versionId),out=await render(f,v.id),row=(await f.db.query('SELECT * FROM clipper_variations WHERE render_job_id=$1',[v.id])).rows[0];
+  for(const [c,id] of [[f.c,f.workspaceId],[cb,b]] as const){const wallet=(await (await c.get(`/api/workspaces/${id}/billing`)).json()).wallet;expect(wallet).toMatchObject({availableTokens:'900',reservedTokens:'0'});}
+  for(const path of [`content/${f.contentId}/variations`,`content/${out.content.id}`,`clipper/variations/${row.id}`,`clipper/${v.id}`,`jobs/${v.id}`,`clipper/${v.id}/artifacts/${row.result_artifact_id}/download`,`content/${out.content.id}/versions/${out.content.version}/media`]){expect((await f.c.get(`/api/workspaces/${f.workspaceId}/${path}`)).status(),`Owned ${path}`).toBe(200);expect((await cb.get(`/api/workspaces/${b}/${path}`)).status(),path).toBe(404);}
+  const bad=await cb.post(`/api/workspaces/${b}/billing/quotes`,{data:{operation:'CLIPPER_VARIATION',sourceContentId:f.contentId,sourceVersionId:f.versionId,settings:{}}});expect(bad.status()).toBe(404);expect((await cb.post(`/api/workspaces/${b}/clipper/variations`,{data:{...v.input,idempotencyKey:randomUUID()}})).status()).toBe(404);
+  await evidence('variation-isolation-wallet',{status:'PASS',accountTokensBefore:1000,accountTokensAfter:900,brandBalancesMatch:true,reserved:0,foreignDirectIdsDenied:7,foreignQuoteAndCreate:404,workspaceContentNotShared:true});
+ }finally{await cb.dispose();await close(f);}
+});
+test('I: concurrent same-root requests allocate unique labels and actual workers publish distinct artifacts',async()=>{
+ test.setTimeout(240000);const f=await fixture(),workers=[provision(),provision()],processes:ReturnType<typeof launch>[]=[];try{const inputs=await Promise.all([quote(f.c,f.workspaceId,f.contentId,f.versionId,{colorGrade:'warm'}),quote(f.c,f.workspaceId,f.contentId,f.versionId,{mirror:true})]);const rs=await Promise.all(inputs.map(data=>f.c.post(`/api/workspaces/${f.workspaceId}/clipper/variations`,{data})));expect(rs.map(r=>r.status())).toEqual([201,201]);const ids=await Promise.all(rs.map(async r=>(await r.json()).job.id as string));dispatch();
+  for(const p of workers){const work=resolve('../worker-agent/data',`phase-d-${process.env.STABILIZATION_RUN_ID}`,p.workerId);await mkdir(work,{recursive:true});processes.push(launch(p.credential,work));}
+  await expect.poll(async()=> (await f.db.query("SELECT count(*)::int n FROM jobs WHERE id=ANY($1::uuid[]) AND status='SUCCEEDED'",[ids])).rows[0].n,{timeout:120000}).toBe(2);for(const id of ids){publishJob(f.workspaceId,id,3);dispatch();expect(await entries(f.db,id)).toEqual([{entry_type:'CAPTURE',count:1},{entry_type:'RESERVE',count:1}]);}
+  const rows=(await f.db.query('SELECT v.variation_number,a.storage_key,a.sha256,v.result_artifact_id FROM clipper_variations v JOIN job_artifacts a ON a.id=v.result_artifact_id WHERE render_job_id=ANY($1::uuid[]) ORDER BY variation_number',[ids])).rows;expect(rows.map(r=>r.variation_number)).toEqual([1,2]);for(const key of ['storage_key','sha256','result_artifact_id'])expect(new Set(rows.map(r=>r[key])).size).toBe(2);await originalUnchanged(f);
+  await evidence('variation-concurrency',{status:'PASS',simultaneousAdmissions:2,realWorkers:2,labels:[1,2],distinctArtifactKeys:true,distinctOutputChecksums:true,separateWorkerDirectories:true,oneReservationAndCapturePerJob:true,originalUnchanged:true});
+ }finally{processes.forEach(p=>killOwned(p.child));for(let i=0;i<workers.length;i++){await f.db.query("UPDATE workers SET status='DISABLED' WHERE id=$1",[workers[i].workerId]);if(processes[i])await writeFile(`${process.env.STABILIZATION_LOG_DIR}/concurrent-${i}.log`,processes[i].output());}await close(f);}
+});
+test('validation and immutable database guards reject invalid edits before reservation',async()=>{
+ const f=await fixture();try{const input=await quote(f.c,f.workspaceId,f.contentId,f.versionId),path=`/api/workspaces/${f.workspaceId}/clipper/variations`,before=(await f.db.query('SELECT count(*)::int n FROM token_ledger_entries WHERE workspace_id=$1',[f.workspaceId])).rows[0].n;
+  for(const settings of [{subtitleY:2},{hookSize:999},{topBar:-1},{topHookEnabled:true},{textStyle:['current']},{filter:'hflip'},{fontColor:'#fff'},{mirror:1}])expect((await f.c.post(path,{data:{...input,settings}})).status()).toBe(400);
+  expect((await f.db.query('SELECT count(*)::int n FROM token_ledger_entries WHERE workspace_id=$1',[f.workspaceId])).rows[0].n).toBe(before);
+  const v=await variation(f.c,f.workspaceId,f.contentId,f.versionId),row=(await f.db.query('SELECT * FROM clipper_variations WHERE render_job_id=$1',[v.id])).rows[0];await expect(f.db.query('UPDATE clipper_variations SET settings_hash=$1 WHERE id=$2',['f'.repeat(64),row.id])).rejects.toThrow();await expect(f.db.query('DELETE FROM clipper_variations WHERE id=$1',[row.id])).rejects.toThrow();await expect(f.db.query('UPDATE content_versions SET sha256=$1 WHERE id=$2',['f'.repeat(64),f.versionId])).rejects.toThrow();await f.c.post(`/api/workspaces/${f.workspaceId}/jobs/${v.id}/cancel`);dispatch();
+  await evidence('variation-validation',{status:'PASS',invalidSettingCases:8,invalidEditsCharged:0,immutableVariationInput:true,lineageDeleteDenied:true,immutableOriginalVersion:true});
+ }finally{await close(f);}
+});
+test('worker gate and underfunded concurrent variations keep account accounting exact',async()=>{
+ const f=await fixture('700'),p=provision(),w=await worker(p.credential);try{
+  const qs=await Promise.all([quote(f.c,f.workspaceId,f.contentId,f.versionId,{mirror:true}),quote(f.c,f.workspaceId,f.contentId,f.versionId,{colorGrade:'cool'})]),rs=await Promise.all(qs.map(data=>f.c.post(`/api/workspaces/${f.workspaceId}/clipper/variations`,{data})));expect(rs.map(r=>r.status()).sort()).toEqual([201,402]);const id=(await rs.find(r=>r.status()===201)!.json()).job.id as string;dispatch();
+  await w.post('/api/worker/heartbeat',{data:{agentVersion:'legacy-worker',pipelineVersion:'clipper-v1',availableSlots:1,activeLeaseIds:[],clipperHealth:{transcriberAvailable:false,ffmpegAvailable:true,gpuAvailable:false,freeDiskBytes:20*1024**3}}});expect((await (await w.post('/api/worker/claim',{data:{}})).json()).claim).toBeNull();
+  await f.db.query("UPDATE workers SET capabilities='[\"CLIPPER_V1\"]'::jsonb WHERE id=$1",[p.workerId]);await w.post('/api/worker/heartbeat',{data:{agentVersion:'updated-worker',pipelineVersion:'clipper-v1',availableSlots:1,activeLeaseIds:[],clipperHealth:{transcriberAvailable:false,ffmpegAvailable:true,gpuAvailable:false,freeDiskBytes:20*1024**3,variationRenderAvailable:true}}});const c=(await (await w.post('/api/worker/claim',{data:{}})).json()).claim as Claim;expect(c.jobId).toBe(id);
+  expect((await w.post(`/api/worker/jobs/${id}/fail`,{data:{...lease(c),errorCode:'VARIATION_INPUT_INVALID',retriable:false,message:'controlled terminal failure'}})).status()).toBe(200);dispatch();expect(await entries(f.db,id)).toEqual([{entry_type:'RELEASE',count:1},{entry_type:'RESERVE',count:1}]);const wallet=(await (await f.c.get(`/api/workspaces/${f.workspaceId}/billing`)).json()).wallet;expect(wallet).toMatchObject({availableTokens:'100',reservedTokens:'0'});
+  await evidence('variation-worker-gate',{status:'PASS',startingAvailable:100,concurrentRequests:[100,100],admissionStatuses:[201,402],negativeWallets:0,legacyWorkerCannotClaim:true,updatedNormalClipperCapabilityCanClaim:true,gpuRequired:false,analyzerRequired:false,reservation:1,release:1});
+ }finally{await f.db.query("UPDATE workers SET status='DISABLED' WHERE id=$1",[p.workerId]);await w.dispose();await close(f);}
+});
+test('archiving a variation preserves its parent and children and retained artifacts',async()=>{
+ test.setTimeout(240000);const f=await fixture();try{const a=await variation(f.c,f.workspaceId,f.contentId,f.versionId),first=await render(f,a.id),b=await variation(f.c,f.workspaceId,first.content.id,first.content.version,{mirror:true}),child=await render(f,b.id);const path=`/api/workspaces/${f.workspaceId}/content/${first.content.id}`;const d=(await (await f.c.get(path)).json()).content;const archived=await f.c.post(path+'/archive',{data:{revision:d.reviewRevision,idempotencyKey:randomUUID()}});expect(archived.status()).toBe(200);expect((await f.c.get(`/api/workspaces/${f.workspaceId}/content/${child.content.id}`)).status()).toBe(200);expect((await f.db.query('SELECT count(*)::int n FROM job_artifacts WHERE job_id=$1 AND status=\'READY\'',[a.id])).rows[0].n).toBe(3);await originalUnchanged(f);expect((await f.c.get(path+'/variations')).status()).toBe(409);
+  await evidence('variation-archive',{status:'PASS',archivedParentHistoryRetained:true,childStillAvailable:true,readyParentArtifacts:3,originalUnchanged:true});
+ }finally{await close(f);}
+});
