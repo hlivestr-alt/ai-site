@@ -9,7 +9,7 @@ import {fundFixture} from '../billing-helpers';
 import {database,base,evidence} from '../stabilization/support';
 import {defaultVariationSettings,type VariationSettings} from '../../src/lib/clipper-variation-settings';
 export {database,base,evidence,dispatch};
-if(!process.env.STABILIZATION_RUN_ID||!/^\/phase_d_[0-9]+_[a-f0-9]+$/.test(new URL(process.env.TEST_DATABASE_URL!).pathname)||!process.env.OBJECT_STORAGE_BUCKET?.startsWith('phase-d-'))throw new Error('Owned Phase D isolation required');
+if(!process.env.STABILIZATION_RUN_ID||!/^\/phase_[de]_[0-9]+_[a-f0-9]+$/.test(new URL(process.env.TEST_DATABASE_URL!).pathname)||! /^phase-[de]-\d+-[a-f0-9]+$/.test(process.env.OBJECT_STORAGE_BUCKET||''))throw new Error('Owned Phase D isolation required');
 export async function fixture(amount='10000'){
  const email=`phase-d-${randomUUID()}@example.test`,a=await owner(email,false),db=await database();
  try{fundFixture(a.workspaceId,amount);const s=await source(a.c,a.workspaceId),r=await submit(a.c,a.workspaceId,s.id,randomUUID(),{captions:false});expect(r.status()).toBe(201);const jobId=(await r.json()).job.id;await fixtureClips(a.c,a.workspaceId,db,{jobId,source:s});const id=publishJob(a.workspaceId,jobId)[0][0] as string;dispatch();const v=(await db.query('SELECT * FROM content_versions WHERE content_item_id=$1',[id])).rows[0];return {...a,email,db,source:s,originalJobId:jobId,contentId:id,versionId:v.id as string,artifactId:v.artifact_id as string,originalVersion:JSON.stringify(v)};}catch(e){await a.c.dispose();await db.end();throw e;}

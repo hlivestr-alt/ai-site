@@ -6,7 +6,7 @@ import {allowlistedOperator} from './platform-access';
 import {nonProductionTestAllowed} from './operational-config';
 import {workspaceBillingAccount} from './billing-accounts';
 
-export type Operation="AI_VIDEO"|"CLIPPER"|'CLIPPER_VARIATION';
+export type Operation="AI_VIDEO"|"CLIPPER"|'CLIPPER_VARIATION'|'OUTREACH';
 export function billingRealm(){return ['local','test'].includes(process.env.APP_ENV||'')&&process.env.ENABLE_TEST_BILLING==="1"?"TEST":"PRODUCTION";}
 export function integer(value:unknown,positive=false){if(typeof value!=="string"||! /^(0|[1-9][0-9]{0,15})$/.test(value))throw new AppError(400,"Use an integer decimal amount.");const n=BigInt(value);if(n>BigInt(9007199254740991)||positive&&n<=BigInt(0))throw new AppError(400,"Invalid amount.");return n;}
 export function canonicalHash(value:unknown):string{function sorted(v:unknown):unknown{if(Array.isArray(v))return v.map(sorted);if(v&&typeof v==="object")return Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>[k,sorted(x)]));return v;}return createHash("sha256").update(JSON.stringify(sorted(value))).digest("hex");}

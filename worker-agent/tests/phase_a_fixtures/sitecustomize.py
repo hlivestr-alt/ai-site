@@ -14,7 +14,7 @@ if os.getenv('PHASE_A_PROCESS_TEST') == '1':
     qa_owned_phase_c = (
         bool(os.getenv('STABILIZATION_RUN_ID'))
         and os.getenv('DATABASE_URL') == os.getenv('TEST_DATABASE_URL')
-        and urlparse(os.getenv('DATABASE_URL', '')).path.startswith(('/phase_c_', '/phase_d_'))
+        and urlparse(os.getenv('DATABASE_URL', '')).path.startswith(('/phase_c_', '/phase_d_', '/phase_e_'))
         and os.getenv('SAAS_BASE_URL') == os.getenv('SAAS_TEST_BASE_URL')
         and qa_origin.scheme == 'http' and qa_origin.hostname == '127.0.0.1'
         and qa_origin.port not in (None, 3200)

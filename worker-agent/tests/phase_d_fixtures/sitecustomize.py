@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 if os.getenv('PHASE_D_PROCESS_TEST') == '1':
     import re
     origin = urlparse(os.getenv('SAAS_BASE_URL', ''))
-    if not (os.getenv('STABILIZATION_RUN_ID') and os.getenv('DATABASE_URL') == os.getenv('TEST_DATABASE_URL') and re.fullmatch(r'/phase_d_[0-9]+_[a-f0-9]+', urlparse(os.getenv('DATABASE_URL', '')).path) and origin.scheme == 'http' and origin.hostname == '127.0.0.1' and origin.port not in (None, 3200) and os.getenv('SAAS_BASE_URL') == os.getenv('SAAS_TEST_BASE_URL') and os.getenv('CLIP_ANALYZER_PROVIDER') == 'fake' and not os.getenv('WAVESPEED_API_KEY') and not os.getenv('OPENAI_API_KEY')):
+    if not (os.getenv('STABILIZATION_RUN_ID') and os.getenv('DATABASE_URL') == os.getenv('TEST_DATABASE_URL') and re.fullmatch(r'/phase_[de]_[0-9]+_[a-f0-9]+', urlparse(os.getenv('DATABASE_URL', '')).path) and origin.scheme == 'http' and origin.hostname == '127.0.0.1' and origin.port not in (None, 3200) and os.getenv('SAAS_BASE_URL') == os.getenv('SAAS_TEST_BASE_URL') and os.getenv('CLIP_ANALYZER_PROVIDER') == 'fake' and not os.getenv('WAVESPEED_API_KEY') and not os.getenv('OPENAI_API_KEY')):
         raise RuntimeError('Owned isolated Phase D configuration required')
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from clipper_executor import Callbacks
