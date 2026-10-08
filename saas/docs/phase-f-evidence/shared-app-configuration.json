@@ -1,0 +1,84 @@
+{
+  "checkedAt": "2026-10-08T05:55:03.636Z",
+  "scope": "Explicitly authorized existing developer-app configuration reuse; no seller authorization or message",
+  "appConfiguration": {
+    "status": "PASS",
+    "existingNativeAppReused": true,
+    "copiedAppFields": [
+      "OUTREACH_TIKTOK_APP_KEY",
+      "OUTREACH_TIKTOK_APP_SECRET",
+      "OUTREACH_TIKTOK_SERVICE_ID"
+    ],
+    "valuesOmitted": true,
+    "privateConfigurationIgnored": true,
+    "loadedThroughActualNextEnvironmentLoader": true,
+    "otherSaasConfigurationUnchanged": true,
+    "nativeConfigurationUnchanged": true,
+    "partnerCenterSettingsChanged": false
+  },
+  "structuralChecks": {
+    "tokenExchange": "PASS, in-memory intercepted transport only",
+    "requestSigning": "PASS, independently checked HMAC",
+    "externalProviderRequests": 0,
+    "independentSaasKeyring": true,
+    "authenticatedEncryptionRoundTrip": "PASS",
+    "crossWorkspaceDecryption": "REJECTED"
+  },
+  "sellerAuthorization": {
+    "status": "BLOCKED / NOT STARTED",
+    "providerConnectConfigured": false,
+    "fullContractReviewCompleted": false,
+    "internalExclusionListConfigured": false,
+    "sellerCredentialStoresSeparate": true,
+    "liveSaasRows": {
+      "credentials": 0,
+      "oauthStates": 0,
+      "channels": 0,
+      "deliveries": 0
+    },
+    "newWorkspaceOwnedSellerAuthorizationVerified": false,
+    "nativeSellerCredentialsCopied": false,
+    "nativeShopCipherOrSelectionCopied": false,
+    "nativeSenderCampaignIdentityCopied": false,
+    "nativeCookiesOrBrowserSessionsCopied": false
+  },
+  "callback": {
+    "status": "BLOCKED AT ROUTING PREFLIGHT",
+    "nativeConfiguredCallbackIsHttpLoopback": true,
+    "nativeCallbackRoute": "/api/v1/integrations/tiktok/callback",
+    "saasCallbackRoute": "/api/outreach/tiktok/callback",
+    "authorizationBuilderSelectsSaasCallback": false,
+    "nativeCallbackUsesSeparateStateStore": true,
+    "sharedCallbackRouterPresent": false,
+    "partnerCenterRegisteredCallbackInspected": false,
+    "liveProviderCallbackAttempted": false,
+    "settingsChanged": false,
+    "stopReason": "Native callback cannot consume SaaS-owned OAuth state; existing registered provider callback has not been inspected"
+  },
+  "runtime": {
+    "ownedSaasProcessReloaded": true,
+    "nativeServicesLeftRunning": true,
+    "localHealthStatus": 200,
+    "remoteHealthStatus": 200,
+    "remoteLoginStatus": 200
+  },
+  "secretAudit": {
+    "status": "PASS",
+    "findings": 0,
+    "scopes": [
+      "tracked working tree",
+      "staged Git",
+      "Git text history",
+      "client bundles",
+      "private follow-up runtime and metadata artifacts",
+      "public local and remote responses"
+    ],
+    "credentialValuesOmitted": true
+  },
+  "applicationSourceChanged": false,
+  "realSendEnabled": 0,
+  "providerFixtureEnabled": 0,
+  "realMessagesSent": 0,
+  "originalAcceptanceEvidencePreserved": true,
+  "realProviderCertification": "NOT CERTIFIED"
+}

@@ -1,6 +1,6 @@
 # Phase F — Provider Authentication and Creator Data Audit
 
-Read-only audit on 2026-10-07, before Phase F application edits. References are the configured native repository `C:\Data\TikTok Outreach` and the Phase E commits `e87651b10a8f4162a2fe45c6a6328293b3fa7890` / `c28641c84a9e3a16200d1729906d6038135b6c20`. No native/provider mutation, authorization, refresh, discovery or message request was made during this audit.
+Read-only audit on 2026-10-07, before Phase F application edits. References are the configured native repository `C:\Data\TikTok Outreach` and the Phase E commits `e87651b10a8f4162a2fe45c6a6328293b3fa7890` / `c28641c84a9e3a16200d1729906d6038135b6c20`. No native/provider mutation, authorization, refresh, discovery or message request was made during this audit. The authorized 2026-10-08 app-configuration follow-up is recorded below; original acceptance evidence is retained.
 
 ## Preflight
 
@@ -25,7 +25,7 @@ Messaging requires the returned `seller.affiliate_messages.write` grant. Marketp
 | Provider capability | Native behavior | Safe SaaS equivalent | Phase F action |
 | --- | --- | --- | --- |
 | Authorization | Seller authorization URL with service ID and random state | State bound to Workspace, channel, actor and session; expire and consume once | ADAPT |
-| Token exchange | Server GET with app secret/code query | Fixed authorized HTTPS origin, bounded request/body, no URL/raw-error logging | ADAPT; dedicated SaaS app only |
+| Token exchange | Server GET with app secret/code query | Fixed authorized HTTPS origin, bounded request/body, no URL/raw-error logging | ADAPT; app-level configuration may be shared, seller grants stay separate |
 | Authorized shops | Fetches exact shop identities/ciphers | Verify account; explicit owned selection; encrypt cipher | REIMPLEMENT TENANT-SAFE |
 | Native shop selection | Global operator-selected shop | Never imported or used as fallback | NOT CUSTOMER-SAFE |
 | Permissions | Returned scope checks | Separate identity, discovery and outbound capabilities | ADAPT; fail closed |
@@ -52,7 +52,15 @@ Messaging requires the returned `seller.affiliate_messages.write` grant. Marketp
 
 Reference links: [seller authorization](https://partner.tiktokshop.com/docv2/page/authorization-overview-202407), [authorized shops](https://partner.tiktokshop.com/docv2/page/call-get-authorized-shops), [request signing](https://partner.tiktokshop.com/docv2/page/sign-your-api-request), [Create Conversation](https://partner.tiktokshop.com/docv2/page/create-conversation-with-creator-202508), [Send IM Message](https://partner.tiktokshop.com/docv2/page/send-im-message-202412), [rate limits](https://partner.tiktokshop.com/docv2/page/rate-limits), [creator search](https://partner.tiktokshop.com/docv2/page/seller-search-creator-on-marketplace-202508).
 
-The current web reader receives only the documentation site's JavaScript shell; managed browser access did not provide the document body. Therefore native-observed contracts above are factual code observations, **not a fresh official-contract certification**. Real enablement must require review of the dedicated app's current Partner Center authorization, API grants, callback, identity/expiry fields, message proof and limits. The operator confirmed that a dedicated SaaS developer app is **not available yet** and requested that the integration be prepared. No native app credentials will be substituted.
+The initial Phase F readers received only the documentation site's JavaScript shell; native-observed contracts above are factual code observations, **not a fresh official-contract certification**. Real enablement requires review of the configured app's current Partner Center authorization, API grants, callback, identity/expiry fields, message proof and limits. The original preparation assumed a separate app; the operator subsequently explicitly authorized reuse of the existing developer app. That earlier assumption is superseded. Native seller authorization remains prohibited as a substitute for SaaS authorization.
+
+## Existing Developer-App Reuse — 2026-10-08
+
+**APP CONFIGURATION PASS / LIVE ONBOARDING BLOCKED.** The native app key, app secret and service ID were privately copied into ignored SaaS configuration. No values are included here or in evidence. A new SaaS-only encryption keyring was created; native/mail keys were not reused. Fresh Next.js environment loading, in-memory token-exchange construction, HMAC signing and ownership-bound encryption checks pass. No TikTok API request, authorization, refresh or message was performed. SaaS provider activation still fails closed because contract review and internal-account exclusion configuration are incomplete.
+
+Native configuration points to an HTTP loopback callback at `/api/v1/integrations/tiktok/callback`, while SaaS uses `/api/outreach/tiktok/callback` on its HTTPS host. Neither authorization builder selects another callback with `redirect_uri`. Native state lookup uses its own `tikTokAuthorizationState` table and rejects a SaaS state before token exchange. No callback router exists between these stores. The actual Partner Center registration was not read; this is a routing preflight failure, not a claimed live provider rejection. Work stopped before seller authorization. No Partner Center setting or native configuration was changed, and the working native services were left running.
+
+App-level identity is now shared; seller authorization databases and encryption keys remain separate. SaaS has zero channels, authorization states, credentials and deliveries after configuration. No native tokens, cipher, selected shop, authorization records, internal sender/campaign identities, cookies or sessions were copied. The existing SaaS provider-account unique index and activation/dispatch exclusions remain intact; they do not establish callback compatibility, external-seller app approval or shared native/SaaS quota coordination. `OUTREACH_REAL_SEND_ENABLED=0` and `OUTREACH_PROVIDER_FIXTURE=0`. No application source changes were required. See [configuration evidence](phase-f-evidence/shared-app-configuration.json) and [current readiness report](phase-f-real-outreach-certification.md).
 
 ## Creator Source Authorization
 
@@ -75,4 +83,4 @@ No value, username/password pair, connection URL or decrypted token is reproduce
 
 ## Decision
 
-A tenant-safe official-token integration can be prepared without importing native credentials, identities, campaigns or creator records. Real onboarding and sending remain blocked pending the dedicated SaaS app, private key/app configuration and current provider-contract review. Real creator-directory approval remains independent. Real sends stay **0**; a later explicit operator approval may permit only one controlled canary, never automatic bulk activation. Phase 10 is not started.
+A tenant-safe official-token integration uses the existing app-level configuration while preserving separate Workspace-owned seller grants. A second developer app is not mandatory merely because the SaaS is a separate codebase. Real onboarding and sending remain blocked by observed callback routing and pending current app-contract/internal-exclusion review. Real creator-directory approval remains independent. Real sends stay **0**; a later explicit operator approval may permit only one controlled canary, never automatic bulk activation. Phase 10 is not started.

@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Application/provider integration: **PASS in isolated acceptance / integration prepared**. Real account onboarding: **BLOCKED** because the operator confirmed no dedicated SaaS TikTok Shop developer app is available yet. Real provider: **NOT CERTIFIED**. Real canary: **NOT READY / NOT RUN**; explicit operator approval remains required after the missing provider inputs are supplied. No real messages or paid AI/LLM/payment operations have been initiated. Phase 10 has not started.
+Application/provider integration: **PASS in isolated acceptance / integration prepared**. Existing native developer-app configuration: **REUSED / LOAD AND STRUCTURAL CHECKS PASS** on 2026-10-08, following explicit operator authorization. Real account onboarding: **BLOCKED** by callback routing preflight and the remaining activation guards. Real provider: **NOT CERTIFIED**. Real canary: **NOT READY / NOT RUN**; explicit operator approval remains required after the missing provider inputs are supplied. No real messages or paid AI/LLM/payment operations have been initiated. Phase 10 has not started.
 
 The implementation prepares official-token onboarding, encrypted Workspace-owned accounts, a controlled recipient directory and an exact one-message approval through the Phase E execution/billing path. Fixture acceptance cannot certify current provider grants, live authorization, external message delivery or creator-data licensing.
 
@@ -14,9 +14,17 @@ See [Phase F provider audit](phase-f-provider-audit.md) for the native-code capa
 
 ## Authorization Method
 
-Connect account initiates the official seller authorization flow for a **dedicated SaaS app**. The SaaS callback is `/api/outreach/tiktok/callback` on the existing HTTPS test host. Authorization code exchange and shop verification run only on the server. No native credentials, internal selected-shop state or public native-service route is reused.
+Connect account uses the configured developer app and must create a fresh seller authorization for the selected SaaS Workspace. The existing native app's app key, app secret and service ID are now privately reused; a second developer app is not required by this implementation. The SaaS callback is `/api/outreach/tiktok/callback` on the existing HTTPS test host. Authorization code exchange and shop verification run only on the server. Native seller credentials, internal selected-shop state and native callback ownership are not reused.
 
-The current Partner Center documentation body could not be retrieved through the configured readers. The implemented contract is derived from inspected native code, not a fresh provider certification. Before real configuration, review the dedicated app's current seller grants, callback, token fields, exact Creator Open ID namespace, message IDs and quotas. `OUTREACH_TIKTOK_CONTRACT_REVIEWED=1` records that separate operator review; it is not set in the live configuration by this task.
+The original Phase F implementation derived its contract from inspected native code, not a fresh provider certification. The existing app's Partner Center record, customer-authorization eligibility and registered callbacks have not been read through a signed-in management session. Before enabling onboarding, review its current seller grants, callback routing, token fields, exact Creator Open ID namespace, message IDs and quotas. `OUTREACH_TIKTOK_CONTRACT_REVIEWED=1` records that review; it remains unset. The required internal-account exclusion list also remains unset, so `providerConfiguration().configured` is false even though the app values and encryption key load successfully.
+
+### Existing App Configuration Follow-up — 2026-10-08
+
+Only three app-level values were copied directly from native private configuration into ignored SaaS private configuration. A new versioned SaaS encryption key was generated independently of native and mail encryption keys. Fresh loading through Next.js's actual `@next/env` loader matches all three native app values. In-memory intercepted requests verify the fixed token-exchange endpoint and parameters and the API HMAC signature; no request was sent to TikTok and no authorization code or seller token was obtained. Authenticated encryption passes a round trip and rejects another Workspace's context. This is structural readiness, not a live provider grant certification. See [shared-app configuration evidence](phase-f-evidence/shared-app-configuration.json).
+
+Callback routing preflight is **BLOCKED**. Native private configuration points to an HTTP loopback callback at `/api/v1/integrations/tiktok/callback`; SaaS requires its own HTTPS callback at `/api/outreach/tiktok/callback`. Both implementations build authorization URLs with service ID and state, without selecting a callback using `redirect_uri`. The native callback looks up state only in native `tikTokAuthorizationState`; a SaaS state would fail with “Authorization state does not match” before token exchange. No shared callback router exists. This is an observed configuration/code limitation; the actual Partner Center registration was not inspected, so no live callback rejection is claimed. Work stopped before seller authorization. No native or Partner Center callback/app setting was changed.
+
+Native private configuration is unchanged. SaaS and native use the same developer app with separate seller credential stores and independent encryption keys. Live SaaS channel, OAuth state, credential and delivery tables remain empty. No native seller access/refresh token, shop cipher, selected shop, authorization record, sender/campaign identity, cookie or browser session was copied. `OUTREACH_REAL_SEND_ENABLED=0` and `OUTREACH_PROVIDER_FIXTURE=0`; real messages remain **0**. Only the owned SaaS process was reloaded to consume private configuration; native services were left running. No application source change was required. Original Phase A–F acceptance evidence is preserved.
 
 ## Workspace-Owned Channel Model
 
@@ -28,7 +36,7 @@ A partial unique index binds `(provider, provider_identity)` to one channel. Dis
 
 ## Credential Encryption
 
-Credentials use AES-256-GCM with independent random 12-byte nonces, 16-byte tags and a versioned private keyring. Associated data binds Workspace, channel, provider account and credential generation; temporary authorization selections also bind the actor, session and state hash. The existing SaaS mail primitive was inspected: it uses authenticated encryption, but its single mail key, absent ownership context and unversioned envelope do not fit provider credential lifecycle. Phase F uses the same established Node crypto primitive with separate keys and versioned ownership binding. Mail/native encryption keys are not reused. Credentials remain immutable encrypted envelopes with separate active/retired metadata. Older configured key versions can decrypt historical envelopes; no deployment keys were changed.
+Credentials use AES-256-GCM with independent random 12-byte nonces, 16-byte tags and a versioned private keyring. Associated data binds Workspace, channel, provider account and credential generation; temporary authorization selections also bind the actor, session and state hash. The existing SaaS mail primitive was inspected: it uses authenticated encryption, but its single mail key, absent ownership context and unversioned envelope do not fit provider credential lifecycle. Phase F uses the same established Node crypto primitive with separate keys and versioned ownership binding. Mail/native encryption keys are not reused. Credentials remain immutable encrypted envelopes with separate active/retired metadata. Older configured key versions can decrypt historical envelopes. Original acceptance changed no deployment keys; the authorized app-configuration follow-up subsequently provisioned a new SaaS-only keyring without replacing any existing key.
 
 ## Credential Lifecycle
 
@@ -61,7 +69,7 @@ Ambiguous submissions retain contact exclusion and the required 10-Token reserva
 
 ## Rate Limits / Pacing
 
-App-wide database permits and existing channel serialization impose conservative spacing of at least one second per provider request. Full Retry-After delays, including HTTP dates and a one-hour fixture limit, are respected without the TEST adapter's shorter retry cap. Only safe pre-message failures may retry, within the existing three-attempt bound. The first certification allows one message attempt. Exact dedicated-app/account/day quotas remain subject to current contract review and observed provider enforcement; this is not bulk capacity certification.
+App-wide database permits and existing channel serialization impose conservative spacing of at least one second per provider request. Full Retry-After delays, including HTTP dates and a one-hour fixture limit, are respected without the TEST adapter's shorter retry cap. Only safe pre-message failures may retry, within the existing three-attempt bound. The first certification allows one message attempt. Exact app/account/day quotas remain subject to current contract review and observed provider enforcement; this is not bulk capacity certification. SaaS and native database governors are separate, so sharing an app does not prove coordination of its combined provider quota.
 
 ## Creator Data Source
 
@@ -81,7 +89,7 @@ A random one-use 10-minute state is stored only as a hash and bound to Workspace
 
 ## Real-Send Gate
 
-`OUTREACH_REAL_SEND_ENABLED` defaults to 0; bulk sending is hard disabled. Real dispatch also requires Outreach availability, dedicated reviewed app configuration, encryption keys, internal-account exclusions, an active Workspace-owned grant with message scope, healthy token metadata, exact approved canary, creator authorization and the existing wallet/quote rules. An incorrectly enabled fixture flag outside an owned fixture environment fails closed. Browser values cannot turn these gates on.
+`OUTREACH_REAL_SEND_ENABLED` defaults to 0 and is explicitly 0 in the current private configuration; bulk sending is hard disabled. Real dispatch also requires Outreach availability, reviewed developer-app configuration, encryption keys, internal-account exclusions, an active Workspace-owned grant with message scope, healthy token metadata, exact approved canary, creator authorization and the existing wallet/quote rules. An incorrectly enabled fixture flag outside an owned fixture environment fails closed. Browser values cannot turn these gates on.
 
 ## Canary Gate
 
@@ -109,7 +117,7 @@ The updated production build is running on port 3200. Public remote HTTPS smoke 
 
 ## Secret Audit
 
-**PASS, zero findings in Phase F artifacts.** Tests inspect encrypted storage, browser DTOs, console/network responses, logs, production bundles, working tree and staged Git. Evidence records only acceptance facts; Playwright environment dumps, cookies, raw bodies and credential values are excluded. Three private configuration files remain ignored and unchanged, and all 523 Phase A-E evidence files match their original hashes. Full audit counts and staged-index coverage are recorded in [secret audit](phase-f-evidence/secret-audit.json). This result does not resolve the earlier transcript incident below.
+**PASS, zero findings in the original Phase F artifacts.** Tests inspect encrypted storage, browser DTOs, console/network responses, logs, production bundles, working tree and staged Git. Evidence records only acceptance facts; Playwright environment dumps, cookies, raw bodies and credential values are excluded. At original acceptance, three private configuration files were ignored and unchanged, and all 523 Phase A-E evidence files matched their original hashes. The later authorized app-only private configuration change is recorded separately above. Full original audit counts and staged-index coverage are recorded in [secret audit](phase-f-evidence/secret-audit.json). This result does not resolve the earlier transcript incident below.
 
 ## Legacy Credential Incident Status
 
@@ -117,7 +125,7 @@ The updated production build is running on port 3200. Public remote HTTPS smoke 
 
 ## Native Preservation
 
-**PASS.** 264 native source/configuration files and all 41 native schema tables match their baseline hashes. Three private deployment configuration files remain unchanged. No native account, credential, campaign or creator row is imported or modified. All 523 prior evidence files remain unchanged. Full live row fingerprints across 22 historical tables match the Phase F preflight. New forward migration `0016_outreach_provider_onboarding.sql` was applied after every isolated suite passed; the transaction checked history before/after and matched the canonical tested schema. No ledger entry or content version was added, no live Outreach fixture was created, and both internal-beta price catalogs remain 10 Tokens per confirmed send. Prior migrations were not edited. See [migration](phase-f-evidence/live-migration.json) and [preservation](phase-f-evidence/preservation.json).
+**PASS at original Phase F acceptance.** 264 native source/configuration files and all 41 native schema tables matched their baseline hashes. Three private deployment configuration files were unchanged. No native account, credential, campaign or creator row was imported or modified. All 523 prior evidence files were unchanged. Full live row fingerprints across 22 historical tables matched the Phase F preflight. New forward migration `0016_outreach_provider_onboarding.sql` was applied after every isolated suite passed; the transaction checked history before/after and matched the canonical tested schema. No ledger entry or content version was added, no live Outreach fixture was created, and both internal-beta price catalogs remained 10 Tokens per confirmed send. Prior migrations were not edited. See [migration](phase-f-evidence/live-migration.json) and [preservation](phase-f-evidence/preservation.json). The later authorized app-only configuration follow-up changes only SaaS private configuration and these readiness notes; native configuration and prior evidence are preserved.
 
 ## Phase A-E Regression
 
@@ -165,13 +173,13 @@ Earlier recorded runs total 66 executions: 50 passed and 16 failed. These includ
 
 ## Canary Result
 
-**NOT RUN — NOT READY.** Dedicated SaaS app, current grants/callback review, private configuration, live owned connection and controlled recipient are missing. Explicit canary approval has not been requested or assumed. There is no truthful READY FOR REAL CANARY claim at this stage.
+**NOT RUN — NOT READY.** Shared developer-app values and an independent SaaS encryption key are provisioned. Callback routing, current app/grant review, internal-account exclusions, a live owned connection and a controlled recipient remain unresolved. Explicit canary approval has not been requested or assumed. There is no truthful READY FOR REAL CANARY claim at this stage.
 
 Required operator preparation:
 
-1. Create a dedicated SaaS seller-authorized TikTok Shop developer app with `seller.affiliate_messages.write` and the provider-authorized creator-read grant. Do not substitute the internal app/account.
-2. Register `https://ai-test.proyaofficial.com/api/outreach/tiktok/callback` and review the current token, expiry, scopes, exact Creator Open ID namespace, message-proof and rate-limit contracts in Partner Center.
-3. Privately provision the dedicated app values, independent versioned encryption keyring, active key version and all internal-account exclusion fingerprints. Record contract review only after completing it. Keep `OUTREACH_REAL_SEND_ENABLED=0` and `OUTREACH_PROVIDER_FIXTURE=0`; bulk remains disabled.
+1. Continue with the existing developer app; do not require a second app solely because two applications share app-level credentials. Review its customer seller-authorization eligibility and required Affiliate messaging and creator-read grants. Native seller/shop grants must never substitute for Workspace authorization.
+2. Resolve the observed callback routing limitation without interfering with the native callback. Partner Center settings and native routing were not changed by this task; any future change requires separately authorized work. Review the current token, expiry, scopes, exact Creator Open ID namespace, message-proof and rate-limit contracts.
+3. Keep the reused app values and independent versioned SaaS keyring private. Configure the mandatory internal-account exclusion fingerprints before enabling onboarding. Record contract review only after completing it. Keep `OUTREACH_REAL_SEND_ENABLED=0` and `OUTREACH_PROVIDER_FIXTURE=0`; bulk remains disabled.
 4. Use a dedicated QA Billing Account/Workspace with at least 10 Tokens, add its safe sender label, authorize the controlled seller through SaaS and run Verify connection. Select the intended account explicitly if multiple shops are returned.
 5. Authorize exactly one controlled recipient and verify its exact provider identity through the private `register-recipient` operator command. Prepare the frozen message using the private `prepare` command. Proposed benign text for review: “Controlled QA certification. Please confirm receipt.” No real Workspace/channel/recipient is selected yet.
 6. After readiness is verified, review the selected Workspace/channel, safe sender label, controlled recipient and exact message. Explicitly authorize **maximum one external message in a later turn**. Only then may the private `approve` command, temporary real-send gate and shared Outreach worker dispatch the exact approved campaign. No canary approval or real-send gate change was performed in Phase F preparation.
