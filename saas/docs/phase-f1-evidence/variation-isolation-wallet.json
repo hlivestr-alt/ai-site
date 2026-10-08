@@ -1,0 +1,11 @@
+{
+  "runId": "1791446349651_0b3b2d",
+  "status": "PASS",
+  "accountTokensBefore": 1000,
+  "accountTokensAfter": 900,
+  "brandBalancesMatch": true,
+  "reserved": 0,
+  "foreignDirectIdsDenied": 7,
+  "foreignQuoteAndCreate": 404,
+  "workspaceContentNotShared": true
+}

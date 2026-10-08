@@ -1,0 +1,17 @@
+{
+  "runId": "1791444814836_6d6112",
+  "status": "PASS",
+  "browserVersion": "154.0.4258.62",
+  "repeatedSwitches": 4,
+  "accountBalanceLabel": true,
+  "brandCreationUsesSameBalance": true,
+  "sharedBalance": 1000,
+  "separateAccountBalance": 800,
+  "aiQuote": 560,
+  "clipperQuote": 600,
+  "afterSiblingReserve": 440,
+  "insufficientButtonsDisabled": true,
+  "refreshAfterRelease": true,
+  "pageErrors": [],
+  "secretLeaks": []
+}

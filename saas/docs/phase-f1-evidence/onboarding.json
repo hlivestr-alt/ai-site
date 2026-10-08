@@ -1,0 +1,11 @@
+{
+  "runId": "1791444814836_6d6112",
+  "status": "PASS",
+  "simultaneousInitialWorkspaceRequests": 10,
+  "accounts": 1,
+  "wallets": 1,
+  "workspaces": 10,
+  "available": 0,
+  "reserved": 0,
+  "tokenEntries": 0
+}

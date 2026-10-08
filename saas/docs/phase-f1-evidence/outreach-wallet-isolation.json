@@ -1,0 +1,11 @@
+{
+  "runId": "1791446463797_474eb4",
+  "status": "PASS",
+  "sharedAvailable": 960,
+  "otherAccountAvailable": 1000,
+  "foreignReadsDenied": 7,
+  "foreignControlsDenied": 3,
+  "foreignQuoteDenied": true,
+  "internalSenderRejected": true,
+  "noImportedNativeHistory": true
+}

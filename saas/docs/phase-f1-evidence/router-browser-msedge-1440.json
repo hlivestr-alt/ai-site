@@ -1,0 +1,23 @@
+{
+  "runId": "1791446582221_988534",
+  "status": "PASS",
+  "channel": "msedge",
+  "browserVersion": "154.0.4258.62",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "steps": [
+    "saas-ui-connect-success",
+    "replay-clean-failure",
+    "saas-provider-failure",
+    "desktop-starts-in-standard-browser-before-state",
+    "native-ui-private-completion",
+    "native-completion-failure"
+  ],
+  "consoleLeaks": 0,
+  "networkLeaks": 0,
+  "cleanResults": true,
+  "realProviderOperations": 0,
+  "realSends": 0
+}

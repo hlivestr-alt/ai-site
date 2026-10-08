@@ -1,0 +1,12 @@
+{
+  "automaticVersion2": true,
+  "oneCurrentSlot": true,
+  "frontDefaultCover": true,
+  "selectedCover": true,
+  "removedCoverFallback": true,
+  "encryptedPrivateStorage": true,
+  "oldJobV1BytesMatch": true,
+  "futureJobV2": true,
+  "restorePreservesIdentity": true,
+  "derivedProvenance": true
+}

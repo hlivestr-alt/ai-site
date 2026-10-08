@@ -1,0 +1,169 @@
+{
+  "status": "PASS",
+  "suites": [
+    {
+      "suite": "integration",
+      "exitCode": 0
+    },
+    {
+      "suite": "browser",
+      "exitCode": 0
+    },
+    {
+      "suite": "shared",
+      "exitCode": 0
+    },
+    {
+      "suite": "focused",
+      "exitCode": 0
+    },
+    {
+      "suite": "restart",
+      "exitCode": 0
+    },
+    {
+      "suite": "phase-b",
+      "exitCode": 0
+    },
+    {
+      "suite": "variations",
+      "exitCode": 0
+    },
+    {
+      "suite": "restart-variation",
+      "exitCode": 0
+    },
+    {
+      "suite": "editor",
+      "exitCode": 0
+    },
+    {
+      "suite": "isolation",
+      "exitCode": 0
+    },
+    {
+      "suite": "outreach",
+      "exitCode": 0
+    },
+    {
+      "suite": "outreach-browser",
+      "exitCode": 0
+    },
+    {
+      "suite": "outreach-restart",
+      "exitCode": 0
+    },
+    {
+      "suite": "provider",
+      "exitCode": 0
+    },
+    {
+      "suite": "provider-browser",
+      "exitCode": 0
+    },
+    {
+      "suite": "canary-browser",
+      "exitCode": 0
+    }
+  ],
+  "realExternalOperations": 0,
+  "totalPassed": 178,
+  "testCounts": [
+    {
+      "suite": "integration",
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "browser",
+      "passed": 41,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "shared",
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "focused",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "restart",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "phase-b",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "variations",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "restart-variation",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "editor",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "isolation",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "outreach",
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "outreach-browser",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "outreach-restart",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "provider",
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "provider-browser",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "canary-browser",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    }
+  ]
+}

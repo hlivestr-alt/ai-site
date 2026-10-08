@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "saasUnit": 121,
+  "workerUnit": 82,
+  "nativeUnit": 221,
+  "nativeOauthIdentityIntegration": 25,
+  "routerAcceptance": 10,
+  "routerBrowser": 4,
+  "phaseAFRegressionGroups": 16,
+  "phaseAFRegressionTests": 178,
+  "lint": "PASS",
+  "saasTypecheck": "PASS",
+  "nativeApiBuild": "PASS",
+  "nativeWebTypecheck": "PASS",
+  "saasProductionBuild": "PASS",
+  "nativeApiUiProductionBuild": "PASS",
+  "skippedAcceptanceTests": 0,
+  "realSends": 0
+}

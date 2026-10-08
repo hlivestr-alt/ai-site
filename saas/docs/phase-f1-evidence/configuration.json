@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "appCredentialsUnchanged": true,
+  "nativeSellerCredentialsCopied": 0,
+  "independentRouterKey": true,
+  "independentHandoffKey": true,
+  "internalExclusionProvisioned": false,
+  "internalShopCount": 1,
+  "contractReviewed": false,
+  "realSendEnabled": false,
+  "providerSettingsChanged": false
+}

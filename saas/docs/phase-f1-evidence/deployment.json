@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-08T09:23:57.847Z",
+  "checks": [
+    {
+      "name": "saas-local",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "saas-remote",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "native-api",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "native-ui",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "native-forged-completion",
+      "status": 403,
+      "pass": true
+    }
+  ],
+  "configuration": {
+    "sameDeveloperApp": true,
+    "handoffKeyMatches": true,
+    "independentKeys": true,
+    "nativeRouterEnabled": true,
+    "nativeOriginCorrect": true,
+    "nativeSourceMatchesCommit": true,
+    "depsAutoInstallDisabled": true,
+    "realSendsDisabled": true,
+    "contractGuardClosed": true,
+    "internalGuardClosed": true
+  },
+  "nativeVersionMetadata": "local",
+  "nativeMigrationApplied": true,
+  "nativeCommit": "893c62e8bd8013d1bd656f232c86e8fb4caf5ce8",
+  "saasCommit": "eb5b4264454b884815a387dcf197244ee2c0d8cf",
+  "partnerCenterChanged": false,
+  "realOAuthOperations": 0,
+  "realSends": 0
+}

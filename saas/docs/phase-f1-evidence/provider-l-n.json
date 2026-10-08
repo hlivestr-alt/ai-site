@@ -1,0 +1,8 @@
+{
+  "runId": "1791446635260_0959fe",
+  "status": "PASS",
+  "foreignReadsDenied": 5,
+  "foreignAuthorizationActionsDenied": 5,
+  "foreignQuoteDenied": true,
+  "crossAccountMemberCannotUseForeignChannel": true
+}

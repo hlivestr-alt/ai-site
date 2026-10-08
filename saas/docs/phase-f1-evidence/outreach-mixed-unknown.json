@@ -1,0 +1,15 @@
+{
+  "runId": "1791446463797_474eb4",
+  "status": "PASS",
+  "sent": 2,
+  "restricted": 1,
+  "failed": 1,
+  "unknownBeforeReconciliation": 1,
+  "noBlindRetry": true,
+  "arbitraryBrowserResolutionRejected": true,
+  "providerProofRequired": true,
+  "reserved": 40,
+  "captured": 20,
+  "released": 20,
+  "realSends": 0
+}

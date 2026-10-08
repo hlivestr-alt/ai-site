@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "oldMigrationsVerified": 17,
+  "newMigrationsApplied": [
+    "0017_outreach_shared_oauth_router.sql"
+  ],
+  "oldMigrationsEdited": false
+}

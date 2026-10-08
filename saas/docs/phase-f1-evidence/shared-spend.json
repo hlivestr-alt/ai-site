@@ -1,0 +1,17 @@
+{
+  "runId": "1791444814836_6d6112",
+  "status": "PASS",
+  "balances": [
+    10000,
+    9440,
+    8840
+  ],
+  "aiTokens": 560,
+  "clipperTokens": 600,
+  "sameAccount": true,
+  "ledgerPerJob": {
+    "RESERVE": 1,
+    "CAPTURE": 1
+  },
+  "auditAccountAndWorkspace": true
+}

@@ -1,0 +1,118 @@
+{
+  "status": "PASS",
+  "preservedNativeFiles": 245,
+  "preservedPhaseEvidenceFiles": 663,
+  "saas": {
+    "oldTables": 84,
+    "schemaPreserved": true,
+    "newTables": [
+      "outreach_oauth_handoff_nonces",
+      "outreach_oauth_router_states"
+    ],
+    "changedTables": [
+      {
+        "table": "service_heartbeats",
+        "beforeRows": 7,
+        "afterRows": 7
+      },
+      {
+        "table": "workers",
+        "beforeRows": 1,
+        "afterRows": 1
+      }
+    ],
+    "decreasedTables": [],
+    "liveOutreach": {
+      "rows": 0
+    }
+  },
+  "native": {
+    "oldTables": 41,
+    "schemaPreserved": true,
+    "newTables": [
+      "TikTokOAuthHandoffNonce"
+    ],
+    "changedTables": [
+      {
+        "table": "Creator",
+        "beforeRows": 402562,
+        "afterRows": 402638
+      },
+      {
+        "table": "CreatorMarketplaceCategory",
+        "beforeRows": 2678,
+        "afterRows": 2678
+      },
+      {
+        "table": "CreatorMetricSnapshot",
+        "beforeRows": 1171667,
+        "afterRows": 1172167
+      },
+      {
+        "table": "CreatorProviderIdentity",
+        "beforeRows": 404401,
+        "afterRows": 404477
+      },
+      {
+        "table": "CreatorSearchPartition",
+        "beforeRows": 30431,
+        "afterRows": 30433
+      },
+      {
+        "table": "CreatorSyncEvent",
+        "beforeRows": 981022,
+        "afterRows": 981284
+      },
+      {
+        "table": "CreatorSyncJob",
+        "beforeRows": 1,
+        "afterRows": 1
+      },
+      {
+        "table": "CreatorSyncPage",
+        "beforeRows": 59325,
+        "afterRows": 59350
+      },
+      {
+        "table": "IntegrationConnection",
+        "beforeRows": 801,
+        "afterRows": 801
+      },
+      {
+        "table": "ProviderReadThrottle",
+        "beforeRows": 145,
+        "afterRows": 145
+      },
+      {
+        "table": "WorkerHeartbeat",
+        "beforeRows": 3,
+        "afterRows": 3
+      }
+    ],
+    "decreasedTables": [],
+    "crypto": {
+      "grantCount": 801,
+      "grantsUnchanged": true,
+      "shopSelectionUnchanged": true
+    }
+  },
+  "infrastructurePreserved": true,
+  "protectedContainerCount": 13,
+  "nativeApiLoopbackOnly": true,
+  "realSendEnabled": false,
+  "realOAuthOperations": 0,
+  "backgroundActivity": {
+    "jobCount": 1,
+    "allJobsPredateBaseline": true,
+    "currentStates": [
+      "RUNNING"
+    ],
+    "discoveryWorkerPreserved": true,
+    "credentialMaterialUnchanged": true
+  },
+  "unexpectedNativeChanges": [],
+  "unexpectedSaasChanges": [],
+  "nativeCampaignHistoryUnchanged": true,
+  "preservedOriginalSaasFiles": 1425,
+  "preservedOriginalSaasDocs": 779
+}

@@ -1,0 +1,15 @@
+{
+  "runId": "1791446463797_474eb4",
+  "status": "PASS",
+  "beforeSend": {
+    "captured": 0,
+    "released": 40
+  },
+  "partial": {
+    "sent": 1,
+    "cancelled": 3,
+    "captured": 10,
+    "released": 30
+  },
+  "sentHistoryPreserved": true
+}

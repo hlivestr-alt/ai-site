@@ -1,0 +1,14 @@
+{
+  "runId": "1791446635260_0959fe",
+  "status": "PASS",
+  "checks": {
+    "badState": 400,
+    "wrongSession": 400,
+    "superseded": 400,
+    "current": 200,
+    "replay": 400,
+    "expired": 400
+  },
+  "callbackQueryNotReflected": true,
+  "webhooks": "Not provided by inspected contract; no speculative endpoint"
+}

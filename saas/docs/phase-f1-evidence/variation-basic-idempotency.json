@@ -1,0 +1,27 @@
+{
+  "runId": "1791445528157_5ead93",
+  "status": "PASS",
+  "realWorker": true,
+  "realFfmpeg": true,
+  "reusedTranscriptBytes": true,
+  "originalVersionAndBytesUnchanged": true,
+  "metrics": {
+    "analyzer": 0,
+    "render": 1,
+    "transcription": 0
+  },
+  "variationTokens": 100,
+  "ledger": [
+    {
+      "entry_type": "CAPTURE",
+      "count": 1
+    },
+    {
+      "entry_type": "RESERVE",
+      "count": 1
+    }
+  ],
+  "jobs": 1,
+  "publications": 1,
+  "originalLedgerUnchanged": true
+}

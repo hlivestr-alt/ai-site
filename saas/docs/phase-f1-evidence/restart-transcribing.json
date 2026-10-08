@@ -1,0 +1,39 @@
+{
+  "runId": "1791444939089_d7bee1",
+  "status": "PASS",
+  "command": "python worker_agent.py",
+  "interruptedStage": "TRANSCRIBING",
+  "realWorkerProcesses": true,
+  "realStorageTransfers": true,
+  "realFfmpegRendering": true,
+  "fakeTranscriptionAndAnalyzer": true,
+  "oldLeaseLateProgress": 409,
+  "oldLeaseLateComplete": 409,
+  "attemptStatuses": [
+    "LOST",
+    "SUCCEEDED"
+  ],
+  "sharedWallet": true,
+  "sharedTokens": 600,
+  "sharedBalancesMatch": true,
+  "fencingAdvanced": true,
+  "checkpointsBefore": [],
+  "restartMetrics": {
+    "analyzer": 1,
+    "render": 2,
+    "transcription": 1
+  },
+  "finalClips": 2,
+  "publishedContentVersions": 2,
+  "ledger": [
+    {
+      "entry_type": "CAPTURE",
+      "count": 1
+    },
+    {
+      "entry_type": "RESERVE",
+      "count": 1
+    }
+  ],
+  "paidInference": 0
+}

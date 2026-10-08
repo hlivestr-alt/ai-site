@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "exitCode": 0,
+  "startedAt": "2026-10-08T09:23:53.246Z",
+  "commit": "893c62e8bd8013d1bd656f232c86e8fb4caf5ce8",
+  "oldMigrationsVerified": 36,
+  "newMigration": "20261008090000_shared_oauth_router",
+  "migrationAlreadyApplied": true,
+  "servicesChanged": [
+    "api"
+  ],
+  "workersRestarted": false,
+  "providerSettingsChanged": false,
+  "realOAuthOperations": 0,
+  "healthCheckedAt": "2026-10-08T09:23:57.847Z",
+  "newMigrationApplied": true
+}

@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "credentialMaterialUnchanged": true,
+  "shopSelectionUnchanged": true,
+  "nativeBoundStates": 0,
+  "nativeHandoffNonces": 0,
+  "infrastructurePreserved": true,
+  "protectedContainers": 13
+}

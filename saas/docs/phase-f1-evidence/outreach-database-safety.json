@@ -1,0 +1,8 @@
+{
+  "runId": "1791446463797_474eb4",
+  "status": "PASS",
+  "invalidTransitionsRejected": true,
+  "proofRequiredByDatabase": true,
+  "immutableSenderIdentity": true,
+  "changedOperationConflict": true
+}
