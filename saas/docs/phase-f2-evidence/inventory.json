@@ -1,0 +1,73 @@
+{
+  "status": "PASS",
+  "allNativeGrantRowsInspected": 801,
+  "encryptedTikTokGrantRowsReviewed": 652,
+  "mappedGrants": 1,
+  "unmappedGrants": 651,
+  "confirmedInternalIdentities": 1,
+  "classificationCounts": {
+    "ACTIVE_INTERNAL": 1,
+    "HISTORICAL_INTERNAL": 0,
+    "TEST_FIXTURE": 0,
+    "OBSOLETE_FIXTURE": 651,
+    "UNRESOLVED": 0
+  },
+  "unresolvedGrantCount": 0,
+  "unresolvedIdentityCount": 0,
+  "inventoryComplete": true,
+  "fixtureProof": {
+    "authenticatedExactSyntheticTokens": true,
+    "publicFixtureKeyFromTrackedTest": true,
+    "noMappedShop": true,
+    "noBusinessUsageReferences": true,
+    "fixtureGrantsWithOnlyResidualThrottleReferences": 10,
+    "orphanThrottleOperations": [
+      {
+        "operation": "SEARCH_CREATORS",
+        "count": 10
+      },
+      {
+        "operation": "__LEASE__:SEARCH_CREATORS",
+        "count": 10
+      }
+    ],
+    "cleanupDeletesShopButNotGrant": true,
+    "source": "apps/api/src/integrations/tiktok-refresh.integration.test.ts",
+    "sourceSha256": "cae9181d099a19eac91ba6b50ac825e875f27e8213e26caf7cd1a11633f2fbd1"
+  },
+  "otherGrantGroups": [
+    {
+      "shape": {
+        "provider": "TIKTOK_SHOP",
+        "mode": "READ_ONLY",
+        "status": "REFRESH_OUTCOME_UNCERTAIN",
+        "hasTokens": false,
+        "hasSellerIdentity": false,
+        "lastAuthorized": false,
+        "tokenVersion": 0,
+        "mapped": false,
+        "usageTables": []
+      },
+      "count": 148
+    },
+    {
+      "shape": {
+        "provider": "TIKTOK_SHOP",
+        "mode": "READ_ONLY",
+        "status": "REFRESH_OUTCOME_UNCERTAIN",
+        "hasTokens": false,
+        "hasSellerIdentity": false,
+        "lastAuthorized": false,
+        "tokenVersion": 4,
+        "mapped": false,
+        "usageTables": []
+      },
+      "count": 1
+    }
+  ],
+  "rawIdentitiesPublished": 0,
+  "tokensPublished": 0,
+  "providerCalls": 0,
+  "recordsDeleted": 0,
+  "unresolvedDiagnosticGroups": []
+}

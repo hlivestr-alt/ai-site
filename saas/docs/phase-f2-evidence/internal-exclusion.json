@@ -1,0 +1,10 @@
+{
+  "runId": "1791453936300_126f9f",
+  "status": "PASS",
+  "confirmedPrivateIdentityTested": true,
+  "internalRejected": true,
+  "unrelatedQaAllowed": true,
+  "sharedAppCannotBypass": true,
+  "nativeCredentialsImported": 0,
+  "realProviderCalls": 0
+}

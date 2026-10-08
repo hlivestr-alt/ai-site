@@ -1,0 +1,9 @@
+{
+  "runId": "1791453742012_e781cd",
+  "status": "PASS",
+  "scenarios": 7,
+  "explicitMarkerValuesPersisted": 0,
+  "callbackResponseLeaks": 0,
+  "resultLeaks": 0,
+  "applicationLogsAuditedByHarness": true
+}

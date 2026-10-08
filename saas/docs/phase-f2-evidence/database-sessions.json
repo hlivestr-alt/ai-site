@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "currentRoleSessions": [
+    {
+      "consumer": "tiktokoutreach-outbound-live-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-api-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-api-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-discovery-worker-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-api-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-api-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-outbound-live-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-api-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-outbound-live-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-history-worker-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-api-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-outbound-live-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-discovery-worker-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-outbound-live-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-api-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-api-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    },
+    {
+      "consumer": "tiktokoutreach-api-1",
+      "connectedAfterRotation": true,
+      "state": "idle"
+    }
+  ],
+  "preRotationRoleSessionsRemaining": 0,
+  "sessionOrQueueMutation": false
+}

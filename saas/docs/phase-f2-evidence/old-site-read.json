@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "oldApplicationRunning": false,
+  "existingReadOnlyIntegrationWorks": true,
+  "campaignsReadable": 46,
+  "applicationStarted": false,
+  "writeQueries": 0,
+  "providerCalls": 0
+}

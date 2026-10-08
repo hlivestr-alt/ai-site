@@ -1,0 +1,23 @@
+{
+  "runId": "1791454057618_7c979e",
+  "status": "PASS",
+  "channel": "chrome",
+  "browserVersion": "154.0.8037.98",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "steps": [
+    "saas-ui-connect-success",
+    "replay-clean-failure",
+    "saas-provider-failure",
+    "desktop-starts-in-standard-browser-before-state",
+    "native-ui-private-completion",
+    "native-completion-failure"
+  ],
+  "consoleLeaks": 0,
+  "networkLeaks": 0,
+  "cleanResults": true,
+  "realProviderOperations": 0,
+  "realSends": 0
+}

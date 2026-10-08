@@ -1,0 +1,50 @@
+{
+  "runId": "1791453936300_126f9f",
+  "suite": "provider",
+  "database": "phase_e_1791453936300_126f9f",
+  "bucket": "phase-e-1791453936300-126f9f",
+  "gateway": "phase-e-gateway-1791453936300-126f9f",
+  "commands": [
+    {
+      "command": "migrations",
+      "exitCode": 0,
+      "seconds": 1
+    },
+    {
+      "command": "focused tests (provider)",
+      "exitCode": 0,
+      "seconds": 18
+    }
+  ],
+  "cleanup": {
+    "mailFiles": 4,
+    "bucket": "deleted",
+    "objectsDeleted": 0,
+    "gateway": "deleted",
+    "database": "deleted",
+    "generatedTsconfigChanges": "restored"
+  },
+  "paid": {
+    "realVideo": 0,
+    "realLLM": 0,
+    "outreach": 0,
+    "payments": 0
+  },
+  "fixtureCounts": {
+    "clipper_variations": 0,
+    "users": 4,
+    "workspaces": 4,
+    "products": 0,
+    "asset_versions": 0,
+    "source_assets": 0,
+    "jobs": 0,
+    "job_attempts": 0,
+    "job_artifacts": 0,
+    "clipper_checkpoints": 0,
+    "content_items": 0,
+    "token_ledger_entries": 4,
+    "billing_accounts": 4,
+    "billing_account_wallets": 4
+  },
+  "exitCode": 0
+}

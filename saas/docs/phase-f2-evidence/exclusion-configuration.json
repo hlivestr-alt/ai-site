@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "confirmedInternalIdentitiesCovered": 1,
+  "inventoryComplete": true,
+  "hashAlgorithm": "SHA256 UTF8 JSON.stringify({provider:TIKTOK_SHOP,account:externalShopId})",
+  "privateExclusionListIgnored": true,
+  "rawIdentityPublished": false,
+  "contractReviewFlag": 0,
+  "realSendFlag": 0,
+  "otherSaasPrivateKeysUnchanged": true,
+  "nativeSellerCredentialsImported": false
+}

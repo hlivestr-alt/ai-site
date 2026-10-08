@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "suites": {
+    "router": {
+      "exitCode": 0,
+      "stats": {
+        "expected": 10,
+        "unexpected": 0,
+        "skipped": 0,
+        "duration": 31161.948999999997
+      },
+      "cleanup": {
+        "nativeDatabase": "deleted",
+        "nativeProcesses": "stopped",
+        "mailFiles": 8,
+        "bucket": "deleted",
+        "objectsDeleted": 0,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "callbackMarkerLeaks": 0,
+      "nativeMarkerLeaks": 0
+    },
+    "router-browser": {
+      "exitCode": 0,
+      "stats": {
+        "expected": 4,
+        "unexpected": 0,
+        "skipped": 0,
+        "duration": 31200.323
+      },
+      "cleanup": {
+        "nativeDatabase": "deleted",
+        "nativeProcesses": "stopped",
+        "mailFiles": 4,
+        "bucket": "deleted",
+        "objectsDeleted": 0,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "callbackMarkerLeaks": 0,
+      "nativeMarkerLeaks": 0
+    },
+    "provider": {
+      "exitCode": 0,
+      "stats": {
+        "expected": 3,
+        "unexpected": 0,
+        "skipped": 0,
+        "duration": 17546.361999999997
+      },
+      "cleanup": {
+        "mailFiles": 4,
+        "bucket": "deleted",
+        "objectsDeleted": 0,
+        "gateway": "deleted",
+        "database": "deleted",
+        "generatedTsconfigChanges": "restored"
+      },
+      "callbackMarkerLeaks": 0,
+      "nativeMarkerLeaks": 0
+    }
+  },
+  "nativeUnitTests": 205,
+  "nativeAffectedIntegrationTests": 25,
+  "nativeApiBuild": "PASS",
+  "exclusionTestLint": "PASS",
+  "realSellerAuthorizations": 0,
+  "realTokenExchanges": 0,
+  "realMessages": 0,
+  "realAiCalls": 0,
+  "realPaymentCharges": 0,
+  "partnerCenterChanges": 0
+}

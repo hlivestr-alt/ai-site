@@ -1,0 +1,112 @@
+{
+  "status": "PASS",
+  "preservedNativeFiles": 258,
+  "preservedPhaseEvidenceFiles": 919,
+  "saas": {
+    "oldTables": 86,
+    "schemaPreserved": true,
+    "newTables": [],
+    "changedTables": [
+      {
+        "table": "service_heartbeats",
+        "beforeRows": 7,
+        "afterRows": 7
+      },
+      {
+        "table": "workers",
+        "beforeRows": 1,
+        "afterRows": 1
+      }
+    ],
+    "decreasedTables": [],
+    "liveOutreach": {
+      "rows": 0
+    }
+  },
+  "native": {
+    "oldTables": 42,
+    "schemaPreserved": true,
+    "newTables": [],
+    "changedTables": [
+      {
+        "table": "Creator",
+        "beforeRows": 402759,
+        "afterRows": 402877
+      },
+      {
+        "table": "CreatorMarketplaceCategory",
+        "beforeRows": 2678,
+        "afterRows": 2678
+      },
+      {
+        "table": "CreatorMetricSnapshot",
+        "beforeRows": 1172607,
+        "afterRows": 1172827
+      },
+      {
+        "table": "CreatorProviderIdentity",
+        "beforeRows": 404598,
+        "afterRows": 404716
+      },
+      {
+        "table": "CreatorSearchPartition",
+        "beforeRows": 30437,
+        "afterRows": 30437
+      },
+      {
+        "table": "CreatorSyncEvent",
+        "beforeRows": 981582,
+        "afterRows": 981800
+      },
+      {
+        "table": "CreatorSyncJob",
+        "beforeRows": 1,
+        "afterRows": 1
+      },
+      {
+        "table": "CreatorSyncPage",
+        "beforeRows": 59372,
+        "afterRows": 59383
+      },
+      {
+        "table": "IntegrationConnection",
+        "beforeRows": 801,
+        "afterRows": 801
+      },
+      {
+        "table": "ProviderReadThrottle",
+        "beforeRows": 145,
+        "afterRows": 145
+      },
+      {
+        "table": "WorkerHeartbeat",
+        "beforeRows": 3,
+        "afterRows": 3
+      }
+    ],
+    "decreasedTables": [],
+    "crypto": {
+      "grantCount": 801,
+      "grantsUnchanged": true,
+      "shopSelectionUnchanged": true
+    }
+  },
+  "infrastructurePreserved": true,
+  "protectedContainerCount": 11,
+  "nativeApiLoopbackOnly": true,
+  "realSendEnabled": false,
+  "realOAuthOperations": 0,
+  "backgroundActivity": {
+    "jobCount": 1,
+    "allJobsPredateBaseline": true,
+    "currentStates": [
+      "RUNNING"
+    ],
+    "discoveryWorkerSameImage": true,
+    "credentialMaterialUnchanged": true
+  },
+  "unexpectedNativeChanges": [],
+  "unexpectedSaasChanges": [],
+  "nativeCampaignHistoryUnchanged": true,
+  "preservedOriginalAiSiteTrackedFiles": 1712
+}

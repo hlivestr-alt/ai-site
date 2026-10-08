@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "providerConfigurationLoaded": true,
+  "confirmedInternalExclusionsMatch": true,
+  "contractReviewFlag": 0,
+  "realSendFlag": 0,
+  "realActivationBlocked": true,
+  "fixtureDisabledInLiveConfiguration": true,
+  "remoteHealth": 200,
+  "appCredentialsUnchanged": true,
+  "providerOperations": 0
+}

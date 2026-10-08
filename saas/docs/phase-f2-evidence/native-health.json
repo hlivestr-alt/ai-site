@@ -1,0 +1,142 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-08T10:19:32.744Z",
+  "checks": [
+    {
+      "name": "saas-local",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "saas-remote",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "native-api",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "native-ui",
+      "status": 200,
+      "pass": true
+    }
+  ],
+  "affectedConsumers": [
+    {
+      "name": "tiktokoutreach-api-1",
+      "role": "api",
+      "id": "0df0642c7021",
+      "running": true,
+      "health": "healthy",
+      "sameImage": true,
+      "changedExistingEnvironmentKeys": [
+        "DATABASE_URL"
+      ],
+      "onlyDbCredentialChanged": true,
+      "authenticated": true,
+      "campaigns": 46,
+      "deliveries": 4212,
+      "grants": 801,
+      "outbox": 4212,
+      "selectedShopReadable": true,
+      "selectedGrantReadable": true,
+      "selectedEncryptedTokensDecryptInNative": true
+    },
+    {
+      "name": "tiktokoutreach-discovery-worker-1",
+      "role": "discovery-worker",
+      "id": "9a82f0c745ab",
+      "running": true,
+      "health": "heartbeat-checked",
+      "sameImage": true,
+      "changedExistingEnvironmentKeys": [
+        "DATABASE_URL"
+      ],
+      "onlyDbCredentialChanged": true,
+      "authenticated": true,
+      "campaigns": 46,
+      "deliveries": 4212,
+      "grants": 801,
+      "outbox": 4212,
+      "selectedShopReadable": true,
+      "selectedGrantReadable": true,
+      "selectedEncryptedTokensDecryptInNative": true
+    },
+    {
+      "name": "tiktokoutreach-outbound-live-1",
+      "role": "outbound-worker",
+      "id": "b398b6f22046",
+      "running": true,
+      "health": "heartbeat-checked",
+      "sameImage": true,
+      "changedExistingEnvironmentKeys": [
+        "DATABASE_URL"
+      ],
+      "onlyDbCredentialChanged": true,
+      "authenticated": true,
+      "campaigns": 46,
+      "deliveries": 4212,
+      "grants": 801,
+      "outbox": 4212,
+      "selectedShopReadable": true,
+      "selectedGrantReadable": true,
+      "selectedEncryptedTokensDecryptInNative": true
+    },
+    {
+      "name": "tiktokoutreach-history-worker-1",
+      "role": "history-worker",
+      "id": "22f24aa5b1b2",
+      "running": true,
+      "health": "heartbeat-checked",
+      "sameImage": true,
+      "changedExistingEnvironmentKeys": [
+        "DATABASE_URL"
+      ],
+      "onlyDbCredentialChanged": true,
+      "authenticated": true,
+      "campaigns": 46,
+      "deliveries": 4212,
+      "grants": 801,
+      "outbox": 4212,
+      "selectedShopReadable": true,
+      "selectedGrantReadable": true,
+      "selectedEncryptedTokensDecryptInNative": true
+    }
+  ],
+  "nativeDatabase": {
+    "grants": 801,
+    "grantsUnchanged": true,
+    "shopSelectionUnchanged": true,
+    "roleUnchanged": true,
+    "permissionsUnchanged": true,
+    "heartbeats": [
+      {
+        "role": "discovery-worker",
+        "status": "RUNNING",
+        "fresh": true
+      },
+      {
+        "role": "history-worker",
+        "status": "RUNNING",
+        "fresh": true
+      },
+      {
+        "role": "outbound-worker",
+        "status": "RUNNING",
+        "fresh": true
+      }
+    ]
+  },
+  "protectedContainerCount": 11,
+  "protectedContainerIdsUnchanged": true,
+  "oldAiSite": {
+    "running": false,
+    "privateDatabaseConfigurationUpdated": true,
+    "databaseReadAuthenticated": true
+  },
+  "postgresHealthy": true,
+  "postgresRestarted": false,
+  "realProviderOperations": 0
+}

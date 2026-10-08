@@ -1,0 +1,10 @@
+{
+  "runId": "1791453742012_e781cd",
+  "status": "PASS",
+  "saasWorkspaceEncryption": true,
+  "nativeEncryptedStorage": true,
+  "saasFlowNativeStoreUnchanged": true,
+  "nativeFlowSaasStoreUnchanged": true,
+  "realProviderOperations": 0,
+  "realSends": 0
+}

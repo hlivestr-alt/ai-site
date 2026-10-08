@@ -1,0 +1,215 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-10-08T09:40:34.492Z",
+  "affectedContainers": [
+    {
+      "name": "tiktokoutreach-api-1",
+      "role": "api",
+      "id": "c0bc60e04df0",
+      "databaseConfigKeys": [
+        "DATABASE_URL"
+      ]
+    },
+    {
+      "name": "tiktokoutreach-discovery-worker-1",
+      "role": "discovery-worker",
+      "id": "725d2516ebc0",
+      "databaseConfigKeys": [
+        "DATABASE_URL"
+      ]
+    },
+    {
+      "name": "tiktokoutreach-outbound-live-1",
+      "role": "outbound-worker",
+      "id": "9efc156b1fff",
+      "databaseConfigKeys": [
+        "DATABASE_URL"
+      ]
+    },
+    {
+      "name": "tiktokoutreach-history-worker-1",
+      "role": "history-worker",
+      "id": "232f6401afe6",
+      "databaseConfigKeys": [
+        "DATABASE_URL"
+      ]
+    },
+    {
+      "name": "tiktokoutreach-postgres-1",
+      "role": "postgres",
+      "id": "00ac55d113bc",
+      "databaseConfigKeys": [
+        "POSTGRES_PASSWORD"
+      ]
+    }
+  ],
+  "affectedConfigurationFiles": [
+    {
+      "path": "C:/Data/TikTok Outreach/docker-compose.yml",
+      "keys": []
+    },
+    {
+      "path": "C:/Data/TikTok Outreach/.github/workflows/ci.yml",
+      "keys": []
+    },
+    {
+      "path": "C:/Data/TikTok Outreach/.env.example",
+      "keys": [
+        "DATABASE_URL"
+      ]
+    },
+    {
+      "path": "C:/Data/TikTok Outreach/.env",
+      "keys": [
+        "DATABASE_URL"
+      ]
+    },
+    {
+      "path": "C:/Data/ai-site/app/.env.local",
+      "keys": [
+        "OUTREACH_DATABASE_URL"
+      ]
+    },
+    {
+      "path": "C:/Data/————/TikTok Outreach/docker-compose.yml",
+      "keys": []
+    },
+    {
+      "path": "C:/Data/————/TikTok Outreach/.github/workflows/ci.yml",
+      "keys": []
+    },
+    {
+      "path": "C:/Data/————/TikTok Outreach/.env.example",
+      "keys": [
+        "DATABASE_URL"
+      ]
+    },
+    {
+      "path": "C:/Data/————/TikTok Outreach/.env",
+      "keys": [
+        "DATABASE_URL"
+      ]
+    }
+  ],
+  "projectProcesses": [
+    {
+      "pid": 11532,
+      "parent": 18400,
+      "name": "node.exe",
+      "project": "native",
+      "ports": []
+    },
+    {
+      "pid": 49428,
+      "parent": 18400,
+      "name": "electron.exe",
+      "project": "native",
+      "ports": []
+    },
+    {
+      "pid": 17004,
+      "parent": 49428,
+      "name": "electron.exe",
+      "project": "native",
+      "ports": []
+    },
+    {
+      "pid": 30708,
+      "parent": 49428,
+      "name": "electron.exe",
+      "project": "native",
+      "ports": []
+    },
+    {
+      "pid": 6756,
+      "parent": 49428,
+      "name": "electron.exe",
+      "project": "native",
+      "ports": []
+    },
+    {
+      "pid": 50356,
+      "parent": 47364,
+      "name": "node.exe",
+      "project": "next-unresolved",
+      "ports": []
+    },
+    {
+      "pid": 21856,
+      "parent": 47364,
+      "name": "node.exe",
+      "project": "next-unresolved",
+      "ports": []
+    },
+    {
+      "pid": 50308,
+      "parent": 11532,
+      "name": "node.exe",
+      "project": "native",
+      "ports": [
+        3010
+      ]
+    },
+    {
+      "pid": 10876,
+      "parent": 28304,
+      "name": "node.exe",
+      "project": "saas",
+      "ports": [
+        3200
+      ]
+    }
+  ],
+  "health": [
+    {
+      "name": "saas",
+      "status": 200
+    },
+    {
+      "name": "remote",
+      "status": 200
+    },
+    {
+      "name": "native-api",
+      "status": 200
+    },
+    {
+      "name": "native-ui",
+      "status": 200
+    },
+    {
+      "name": "old-ai-site",
+      "status": 0
+    }
+  ],
+  "nativeEncryptedGrantRows": 801,
+  "existingDatabaseRoleSuperuser": true,
+  "permissionSnapshotRecorded": true,
+  "logSettings": [
+    {
+      "name": "log_connections",
+      "setting": "off"
+    },
+    {
+      "name": "log_disconnections",
+      "setting": "off"
+    },
+    {
+      "name": "log_error_verbosity",
+      "setting": "default"
+    },
+    {
+      "name": "log_min_duration_statement",
+      "setting": "-1"
+    },
+    {
+      "name": "log_statement",
+      "setting": "none"
+    },
+    {
+      "name": "password_encryption",
+      "setting": "scram-sha-256"
+    }
+  ],
+  "realSends": 0
+}
