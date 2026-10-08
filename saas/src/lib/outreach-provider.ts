@@ -8,6 +8,7 @@ import { requireActiveWorkspace } from './products';
 import { canonicalHash } from './billing-core';
 import { allowlistedOperator } from './platform-access';
 import { channelFor, testOutreachEnabled, type Channel } from './outreach';
+import {registerSaasRouterState,consumeSaasRouterState,initiationEnabled,verifyAuthorizationSession} from './outreach-oauth-router';
 import { TikTokShopProvider, OutreachProviderError, MESSAGE_SCOPE, DIRECTORY_SCOPE, sealCredential, openCredential, type SellerCredential, type AuthorizedShop, type Transport } from './outreach-provider-core';
 export type RealChannel = Channel & {
   provider_identity: string | null;
@@ -247,6 +248,7 @@ async function activate(db: DbClient, c: RealChannel, tokens: Omit<SellerCredent
   });
 }
 export async function beginAuthorization(session: Session, w: string, id: string) {
+  initiationEnabled();
   await requireActiveWorkspace(session, w, 'outreach:channel_manage');
   configured();
   return transaction(async db => {
@@ -258,6 +260,7 @@ export async function beginAuthorization(session: Session, w: string, id: string
       expiresAt = new Date(Date.now() + 600000),
       realm = providerFixtureEnabled() ? 'TEST_FIXTURE' : 'REAL';
     await db.query('INSERT INTO outreach_oauth_states(state_hash,workspace_id,channel_id,actor_id,session_id,expires_at) VALUES($1,$2,$3,$4,$5,$6)', [hash(state), w, id, session.userId, session.id, expiresAt]);
+    await registerSaasRouterState(db,session,w,id,state,expiresAt);
     await db.query("UPDATE outreach_channels SET status='PENDING',outbound_capable=false,authorization_realm=$1,safe_connection_code=NULL,authorization_state_hash=$3,refresh_lease=NULL,refresh_lease_expires_at=NULL,updated_at=now() WHERE id=$2", [realm, id, hash(state)]);
     await audit(db, {
       workspaceId: w,
@@ -289,6 +292,7 @@ type Authorization = {
 };
 export async function authorizationCallback(session: Session, state: string, code: string) {
   if (!/^[A-Za-z0-9_-]{43}$/.test(state) || !code || code.length > 4096) throw new AppError(400, 'Authorization could not be verified. Start a new connection.');
+  await consumeSaasRouterState(session,state);
   const s = await transaction(async db => {
     const initial = (await db.query<Authorization>('SELECT * FROM outreach_oauth_states WHERE state_hash=$1', [hash(state)])).rows[0];
     if (!initial || initial.actor_id !== session.userId || initial.session_id !== session.id) throw new AppError(400, 'Authorization belongs to another session.');
@@ -312,6 +316,7 @@ export async function authorizationCallback(session: Session, state: string, cod
     } = keyring();
     await transaction(async db => {
       await requireActiveWorkspace(session, s.workspace_id, 'outreach:channel_manage', db);
+      await verifyAuthorizationSession(db,session,s.workspace_id);
       const current = await realChannel(db, s.workspace_id, s.channel_id, true);
       if (current.status !== 'PENDING' || current.authorization_state_hash !== s.state_hash) throw new AppError(409, 'This authorization was superseded.');
       if (shops.length === 1) {
